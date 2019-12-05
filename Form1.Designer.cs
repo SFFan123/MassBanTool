@@ -336,6 +336,7 @@
             this.btn_action_run.TabIndex = 4;
             this.btn_action_run.Text = "RUN";
             this.btn_action_run.UseVisualStyleBackColor = true;
+            this.btn_action_run.Click += new System.EventHandler(this.btn_action_run_Click);
             // 
             // tabPageFiltering
             // 
