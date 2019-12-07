@@ -20,6 +20,8 @@ namespace MassBanTool
         private string uname;
         private string channel;
         private bool Moderator = false;
+        private bool Broadcaster = false;
+        private bool connected;
         IRCClient iRC = null;
         Thread ircThread = null;
         private List<string> toBan = new List<string>();
@@ -43,8 +45,13 @@ namespace MassBanTool
         }
         private void btn_connect_Click(object sender, EventArgs e)
         {
-            string username = txt_username.Text.Trim().ToLower();
             string channel = txt_channel.Text.Trim().ToLower();
+            if (connected)
+            {
+                iRC.switchChannel(channel);
+                return;
+            }
+            string username = txt_username.Text.Trim().ToLower();
             string oauth = txt_oauth.Text.Trim().ToLower();
 
             if (username.Trim().Equals(String.Empty))
@@ -77,24 +84,62 @@ namespace MassBanTool
             btn_getFollows.Enabled = true;
         }
 
-        public void setMod(object sender, bool mod)
+        public void setMod(object sender, bool mod, bool broadcaster)
         {
             this.Moderator = mod;
+            this.Broadcaster = broadcaster;
             if (InvokeRequired)
             {
-                toolStripStatusMod.Visible = mod;
+
+                toolStripStatusMod.Visible = mod || broadcaster;
+                if (broadcaster)
+                {
+                    toolStripStatusMod.Image = Properties.Resources.broadcaster2;
+                }
+                if(mod)
+                {
+                    toolStripStatusMod.Image = Properties.Resources.moderator2;
+                }
+                
                 pbModerator.Invoke(new Action(() =>
                 {
-                    pbModerator.Visible = mod;
+                    pbModerator.Visible = mod || broadcaster;
+                    if (broadcaster)
+                    {
+                        pbModerator.Image = Properties.Resources.broadcaster2;
+
+                    }
+                    if (mod)
+                    {
+                        pbModerator.Image = Properties.Resources.moderator2;
+                    }
                 }));
             }
         }
         public void setInfo(object sender, string channel, string displayname)
         {
+            connected = true;
+            this.channel = channel;
+            this.uname = displayname;
             toolStripStatusLabel_Channel.Text = channel;
             toolStripStatusLabel_Username.Text = displayname;
+                       
             toolStripStatusLabel.Text = "Connected/Ready";
-
+            if(InvokeRequired)
+            {
+                btn_connect.Invoke(new Action(() =>
+                {
+                    btn_connect.Text = "Switch Channel";
+                }));
+                txt_oauth.Invoke(new Action(() =>
+                {
+                    txt_oauth.ReadOnly = true;
+                }));
+                txt_username.Invoke(new Action(() =>
+                {
+                    txt_username.ReadOnly = true;
+                }));
+            }
         }
 
         public void setBanProgress(object sender, int index, int max)
@@ -263,7 +308,7 @@ namespace MassBanTool
             string sregex = txt_uname_regex.Text;
             Regex rgx = new Regex(sregex);
             List<string> newToBan = new List<string>();
-            progresBar_BanProgress.Maximum = newToBan.Count;
+            progresBar_BanProgress.Maximum = toBan.Count;
             txt_ToBan.Text = "";
             for (int i = 0; i < toBan.Count; i++)
             {

@@ -46,7 +46,7 @@ namespace MassBanTool
         private readonly string _password;
 
         // channel to join
-        private readonly string _channel;
+        private string _channel;
 
         private readonly int _maxRetries;
         private StreamReader reader;
@@ -229,12 +229,14 @@ namespace MassBanTool
                     {
                         if (splitInput[0].StartsWith("@badge-info="))
                         {
-                            if (splitInput[0].ToLower().Contains("badges=moderator/1") || splitInput[0].ToLower().Contains("badges=broadcaster/1"))
+                            bool moderator = splitInput[0].ToLower().Contains("badges=moderator/1");
+                            bool broadcaster = splitInput[0].ToLower().Contains("badges=broadcaster/1");
+                            if (moderator || broadcaster)
                             {
                                 string cache = splitInput[0].Substring(splitInput[0].IndexOf("display-name=") + "display-name=".Length);
                                 _displayname = cache.Substring(0, cache.IndexOf(";"));
                                 Moderator = true;
-                                form.setMod(this, true);
+                                form.setMod(this, moderator, broadcaster);
                                 form.setInfo(this, _channel, _displayname);
                                 continue;
                             }
@@ -279,6 +281,21 @@ namespace MassBanTool
                 MessagesQueueStopped.AddFirst(MessagesQueue.First.Value);
                 MessagesQueue.RemoveFirst();
             }            
+        }
+        public void switchChannel(string newChannel)
+        {
+            newChannel = newChannel.Trim();
+            if (newChannel.Equals(string.Empty))
+            {
+                throw new ArgumentException("channel may not be empty");
+            }
+            if (!newChannel.StartsWith("#"))
+            {
+                newChannel = "#" + newChannel;
+            }
+            MessagesQueue.AddLast($"PART {_channel}");
+            _channel = newChannel;
+            MessagesQueue.AddLast($"JOIN {_channel}");
         }
 
     }

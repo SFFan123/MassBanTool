@@ -63,6 +63,7 @@
             this.btn_run_regex = new System.Windows.Forms.Button();
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -80,11 +81,12 @@
             this.txt_ToBan.ReadOnly = true;
             this.txt_ToBan.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txt_ToBan.Size = new System.Drawing.Size(315, 385);
-            this.txt_ToBan.TabIndex = 0;
+            this.txt_ToBan.TabIndex = 10000;
             // 
             // progresBar_BanProgress
             // 
-            this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 429);
             this.progresBar_BanProgress.Name = "progresBar_BanProgress";
             this.progresBar_BanProgress.Size = new System.Drawing.Size(315, 23);
@@ -92,6 +94,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(358, 28);
             this.label1.Name = "label1";
@@ -101,6 +104,7 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(403, 55);
             this.label2.Name = "label2";
@@ -110,6 +114,7 @@
             // 
             // btn_connect
             // 
+            this.btn_connect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btn_connect.Location = new System.Drawing.Point(473, 107);
             this.btn_connect.Name = "btn_connect";
             this.btn_connect.Size = new System.Drawing.Size(106, 23);
@@ -120,21 +125,24 @@
             // 
             // txt_username
             // 
+            this.txt_username.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_username.Location = new System.Drawing.Point(479, 28);
             this.txt_username.Name = "txt_username";
             this.txt_username.Size = new System.Drawing.Size(100, 20);
-            this.txt_username.TabIndex = 5;
+            this.txt_username.TabIndex = 0;
             // 
             // txt_oauth
             // 
+            this.txt_oauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_oauth.Location = new System.Drawing.Point(479, 55);
             this.txt_oauth.Name = "txt_oauth";
             this.txt_oauth.PasswordChar = '*';
             this.txt_oauth.Size = new System.Drawing.Size(100, 20);
-            this.txt_oauth.TabIndex = 6;
+            this.txt_oauth.TabIndex = 2;
             // 
             // chk_showOauth
             // 
+            this.chk_showOauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.chk_showOauth.AutoSize = true;
             this.chk_showOauth.Location = new System.Drawing.Point(586, 57);
             this.chk_showOauth.Name = "chk_showOauth";
@@ -146,13 +154,15 @@
             // 
             // txt_channel
             // 
+            this.txt_channel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_channel.Location = new System.Drawing.Point(479, 81);
             this.txt_channel.Name = "txt_channel";
             this.txt_channel.Size = new System.Drawing.Size(100, 20);
-            this.txt_channel.TabIndex = 9;
+            this.txt_channel.TabIndex = 3;
             // 
             // label3
             // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(370, 84);
             this.label3.Name = "label3";
@@ -177,6 +187,7 @@
             // 
             // pbModerator
             // 
+            this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pbModerator.Image = global::MassBanTool.Properties.Resources.moderator2;
             this.pbModerator.Location = new System.Drawing.Point(586, 104);
             this.pbModerator.Name = "pbModerator";
@@ -188,6 +199,7 @@
             // 
             // button1
             // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Location = new System.Drawing.Point(678, 52);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(66, 25);
@@ -199,7 +211,7 @@
             // lbl_list
             // 
             this.lbl_list.AutoSize = true;
-            this.lbl_list.Location = new System.Drawing.Point(94, 13);
+            this.lbl_list.Location = new System.Drawing.Point(174, 14);
             this.lbl_list.Name = "lbl_list";
             this.lbl_list.Size = new System.Drawing.Size(0, 13);
             this.lbl_list.TabIndex = 14;
@@ -249,7 +261,8 @@
             this.toolStripStatusLabel_Channel,
             this.toolStripStatusLabel2,
             this.toolStripStatusLabel_Username,
-            this.toolStripStatusMod});
+            this.toolStripStatusMod,
+            this.toolStripWarning});
             this.statusStrip1.Location = new System.Drawing.Point(0, 460);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
@@ -277,6 +290,7 @@
             // 
             // tabControl
             // 
+            this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl.Controls.Add(this.tabPageBanning);
             this.tabControl.Controls.Add(this.tabPageFiltering);
             this.tabControl.Location = new System.Drawing.Point(334, 189);
@@ -377,6 +391,11 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "Regex";
             // 
+            // toolStripWarning
+            // 
+            this.toolStripWarning.Name = "toolStripWarning";
+            this.toolStripWarning.Size = new System.Drawing.Size(0, 17);
+            // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -400,7 +419,9 @@
             this.Controls.Add(this.progresBar_BanProgress);
             this.Controls.Add(this.txt_ToBan);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MassBanTool v. 0.1.4";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
@@ -451,6 +472,7 @@
         private System.Windows.Forms.Button btn_run_regex;
         private System.Windows.Forms.TextBox txt_uname_regex;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripWarning;
     }
 }
 
