@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace MassBanTool
 {
@@ -19,6 +20,7 @@ namespace MassBanTool
     {
         private string uname;
         private string channel;
+        private string oauth;
         private bool Moderator = false;
         private bool Broadcaster = false;
         private bool connected;
@@ -30,6 +32,7 @@ namespace MassBanTool
         public Form()
         {
             InitializeComponent();
+            getLogin();
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -52,7 +55,7 @@ namespace MassBanTool
                 return;
             }
             string username = txt_username.Text.Trim().ToLower();
-            string oauth = txt_oauth.Text.Trim().ToLower();
+            oauth = txt_oauth.Text.Trim().ToLower();
 
             if (username.Trim().Equals(String.Empty))
             {
@@ -80,8 +83,7 @@ namespace MassBanTool
                 iRC.Start();
             });
             ircThread.Start();
-            btn_OpenList.Enabled = true;
-            btn_getFollows.Enabled = true;
+            
         }
 
         public void setMod(object sender, bool mod, bool broadcaster)
@@ -123,13 +125,25 @@ namespace MassBanTool
             this.uname = displayname;
             toolStripStatusLabel_Channel.Text = channel;
             toolStripStatusLabel_Username.Text = displayname;
-                       
+            
             toolStripStatusLabel.Text = "Connected/Ready";
             if(InvokeRequired)
             {
                 btn_connect.Invoke(new Action(() =>
                 {
                     btn_connect.Text = "Switch Channel";
+                }));
+                btn_OpenList.Invoke(new Action(() =>
+                {
+                    btn_OpenList.Enabled = true;
+                }));
+                btn_saveLogin.Invoke(new Action(() =>
+                {
+                    btn_saveLogin.Visible = true;
+                }));
+                btn_getFollows.Invoke(new Action(() =>
+                {
+                    btn_getFollows.Enabled = true;
                 }));
                 txt_oauth.Invoke(new Action(() =>
                 {
@@ -148,8 +162,8 @@ namespace MassBanTool
             {
                 progresBar_BanProgress.Invoke(new Action(() =>
                 {
-                    progresBar_BanProgress.Value = index;
                     progresBar_BanProgress.Maximum = max;
+                    progresBar_BanProgress.Value = index;
                     progresBar_BanProgress.Refresh();
                 }));
 
@@ -183,6 +197,7 @@ namespace MassBanTool
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
+
                 toolStripStatusLabel.Text = "Importing ...";
                 progresBar_BanProgress.Value = 0;
                 //Get the path of specified file
@@ -199,6 +214,7 @@ namespace MassBanTool
                     fileContent = reader.ReadToEnd();
                     string[] content = fileContent.Split('\n');
                     int count = content.Length;
+                    txt_ToBan.Text = "";
                     progresBar_BanProgress.Maximum = count;
                     for (int i = 0; i < count; i++)
                     {
@@ -328,6 +344,46 @@ namespace MassBanTool
             progresBar_BanProgress.Maximum = 100;
             progresBar_BanProgress.Value = 100;
             toolStripStatusLabel.Text = defaultStatus;
+        }
+        private void getLogin()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData), "MassBanTool" ,"MassBanToolLogin.txt");
+            try
+            {
+                string[] a = File.ReadAllLines(fileName);
+                if(a.Length==2)
+                {
+                    txt_username.Text = a[0];
+                    txt_oauth.Text = a[1];
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+        private void saveLogin()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MassBanTool");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            if (!File.Exists(fileName))
+            {
+                File.Create(fileName).Close();
+            }
+
+            File.WriteAllText(fileName, uname + Environment.NewLine + oauth);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            saveLogin();
         }
     }
 }

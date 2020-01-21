@@ -61,9 +61,10 @@ namespace MassBanTool
                      
         public bool Moderator { get; private set; } = false;
         private int cooldownNormal = 1600;
-        private int cooldownVIP_Moderator = 350;
+        private int cooldownVIP_Moderator = 301;
         List<String> toBan = new List<string>();
         int toBanLenght = 0;
+        static bool mt_pause = false;
 
         public IRCClient(string server, int port, string user, string channel, string password, Form f ,int maxRetries = 3)
         {
@@ -113,6 +114,10 @@ namespace MassBanTool
                 string message;
                 while (true)
                 {
+                    if (mt_pause)
+                    {
+                        Thread.Sleep(100);
+                    }
                     if (MessagesQueue.Count > 0)
                     {
                         message = MessagesQueue.First.Value;
@@ -125,6 +130,10 @@ namespace MassBanTool
                         }
                         writer.WriteLine(message);
                         writer.Flush();
+                        if(MessagesQueue.Count == 0)
+                        {
+                            form.setBanProgress(this, 100, 100);
+                        }
 #if DEBUG
                         Console.WriteLine($"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}");
 #endif
@@ -188,7 +197,7 @@ namespace MassBanTool
         public void run()
         {
             Thread messageThread = null;
-
+            string userstate = "";
             try
             {
                 string inputLine;
@@ -223,12 +232,15 @@ namespace MassBanTool
                         default:
                             break;
                     }
-
-                    #endregion
                     if (splitInput[2].Equals("USERSTATE"))
                     {
+                        if(inputLine.Equals(userstate))
+                        {
+                            continue;
+                        }
                         if (splitInput[0].StartsWith("@badge-info="))
                         {
+                            userstate = inputLine;
                             bool moderator = splitInput[0].ToLower().Contains("badges=moderator/1");
                             bool broadcaster = splitInput[0].ToLower().Contains("badges=broadcaster/1");
                             if (moderator || broadcaster)
@@ -242,6 +254,7 @@ namespace MassBanTool
                             }
                         }
                     }
+                    #endregion
                 }
             }
             catch (Exception e)
@@ -271,16 +284,18 @@ namespace MassBanTool
             }
             for(int i = 0; i<toBan.Count;i++)
             {
+#if DEBUG
+                sendMessage($"<command> {toBan[i].Trim()} {reason.Trim()}", _channel);
+#else
                 sendMessage($"/ban {toBan[i].Trim()} {reason.Trim()}", _channel);
+#endif
             }
         }
         public void StopQueue()
         {
-            foreach(var message in MessagesQueue)
-            {
-                MessagesQueueStopped.AddFirst(MessagesQueue.First.Value);
-                MessagesQueue.RemoveFirst();
-            }            
+            mt_pause = true;
+            MessagesQueue.Clear();
+            mt_pause = false;
         }
         public void switchChannel(string newChannel)
         {

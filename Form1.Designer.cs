@@ -52,6 +52,7 @@
             this.toolStripStatusLabel_Username = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
             this.btn_getFollows = new System.Windows.Forms.Button();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageBanning = new System.Windows.Forms.TabPage();
@@ -63,7 +64,7 @@
             this.btn_run_regex = new System.Windows.Forms.Button();
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btn_saveLogin = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -85,8 +86,7 @@
             // 
             // progresBar_BanProgress
             // 
-            this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 429);
             this.progresBar_BanProgress.Name = "progresBar_BanProgress";
             this.progresBar_BanProgress.Size = new System.Drawing.Size(315, 23);
@@ -115,9 +115,9 @@
             // btn_connect
             // 
             this.btn_connect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_connect.Location = new System.Drawing.Point(473, 107);
+            this.btn_connect.Location = new System.Drawing.Point(470, 107);
             this.btn_connect.Name = "btn_connect";
-            this.btn_connect.Size = new System.Drawing.Size(106, 23);
+            this.btn_connect.Size = new System.Drawing.Size(109, 23);
             this.btn_connect.TabIndex = 4;
             this.btn_connect.Text = "Connect to Twitch";
             this.btn_connect.UseVisualStyleBackColor = true;
@@ -173,7 +173,7 @@
             // btn_OpenList
             // 
             this.btn_OpenList.Enabled = false;
-            this.btn_OpenList.Location = new System.Drawing.Point(12, 9);
+            this.btn_OpenList.Location = new System.Drawing.Point(13, 9);
             this.btn_OpenList.Name = "btn_OpenList";
             this.btn_OpenList.Size = new System.Drawing.Size(75, 23);
             this.btn_OpenList.TabIndex = 10;
@@ -211,10 +211,11 @@
             // lbl_list
             // 
             this.lbl_list.AutoSize = true;
-            this.lbl_list.Location = new System.Drawing.Point(174, 14);
+            this.lbl_list.Location = new System.Drawing.Point(175, 14);
             this.lbl_list.Name = "lbl_list";
-            this.lbl_list.Size = new System.Drawing.Size(0, 13);
+            this.lbl_list.Size = new System.Drawing.Size(43, 13);
             this.lbl_list.TabIndex = 14;
+            this.lbl_list.Text = "<none>";
             // 
             // toolStripStatusLabel
             // 
@@ -277,10 +278,15 @@
             this.toolStripStatusMod.Size = new System.Drawing.Size(16, 17);
             this.toolStripStatusMod.Visible = false;
             // 
+            // toolStripWarning
+            // 
+            this.toolStripWarning.Name = "toolStripWarning";
+            this.toolStripWarning.Size = new System.Drawing.Size(0, 17);
+            // 
             // btn_getFollows
             // 
             this.btn_getFollows.Enabled = false;
-            this.btn_getFollows.Location = new System.Drawing.Point(93, 9);
+            this.btn_getFollows.Location = new System.Drawing.Point(94, 9);
             this.btn_getFollows.Name = "btn_getFollows";
             this.btn_getFollows.Size = new System.Drawing.Size(75, 23);
             this.btn_getFollows.TabIndex = 18;
@@ -322,6 +328,7 @@
             this.btn_actions_Stop.TabIndex = 7;
             this.btn_actions_Stop.Text = "Abort";
             this.btn_actions_Stop.UseVisualStyleBackColor = true;
+            this.btn_actions_Stop.Click += new System.EventHandler(this.btn_actions_Stop_Click);
             // 
             // txt_actions_ban_reason
             // 
@@ -391,16 +398,23 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "Regex";
             // 
-            // toolStripWarning
+            // btn_saveLogin
             // 
-            this.toolStripWarning.Name = "toolStripWarning";
-            this.toolStripWarning.Size = new System.Drawing.Size(0, 17);
+            this.btn_saveLogin.Location = new System.Drawing.Point(470, 136);
+            this.btn_saveLogin.Name = "btn_saveLogin";
+            this.btn_saveLogin.Size = new System.Drawing.Size(109, 23);
+            this.btn_saveLogin.TabIndex = 10001;
+            this.btn_saveLogin.Text = "Save Login*";
+            this.btn_saveLogin.UseVisualStyleBackColor = true;
+            this.btn_saveLogin.Visible = false;
+            this.btn_saveLogin.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 482);
+            this.Controls.Add(this.btn_saveLogin);
             this.Controls.Add(this.tabControl);
             this.Controls.Add(this.btn_getFollows);
             this.Controls.Add(this.statusStrip1);
@@ -473,6 +487,7 @@
         private System.Windows.Forms.TextBox txt_uname_regex;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ToolStripStatusLabel toolStripWarning;
+        private System.Windows.Forms.Button btn_saveLogin;
     }
 }
 
