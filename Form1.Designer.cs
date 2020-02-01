@@ -436,7 +436,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.1.4";
+            this.Text = "MassBanTool v. 0.1.8";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
