@@ -10,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WebSocketSharp;
 
 namespace MassBanTool
 {
@@ -37,8 +38,6 @@ namespace MassBanTool
 
         // server to connect to (edit at will)
         private readonly string _server;
-        // server port (6667 by default)
-        private readonly int _port;
         // user information defined in RFC 2812 (IRC: Client Protocol) is sent to the IRC server 
         private readonly string _user;
         private string _displayname;
@@ -48,12 +47,9 @@ namespace MassBanTool
         // channel to join
         private string _channel;
 
-        private readonly int _maxRetries;
-        private StreamReader reader;
-        private StreamWriter writer;
+        WebSocket ws;
 
         private Form form;
-        private readonly SslStream sslStream;
 
         public LinkedList<string> MessagesQueue { get; private set; } = new LinkedList<string>();
         public LinkedList<string> MessagesQueueStopped { get; private set; } = new LinkedList<string>();
@@ -66,11 +62,14 @@ namespace MassBanTool
         int toBanLenght = 0;
         static bool mt_pause = false;
 
-        public IRCClient(string server, int port, string user, string channel, string password, Form f ,int maxRetries = 3)
+        Thread messageThread = null;
+        string userstate = "";
+
+
+        public IRCClient(string server, string user, string channel, string password, Form f ,int maxRetries = 3)
         {
             form = f;
             _server = server;
-            _port = port;
             _user = user;
             _password = password;
             _channel = channel;
@@ -78,31 +77,18 @@ namespace MassBanTool
             {
                 _channel = "#" + _channel;
             }
-            _maxRetries = maxRetries;
-    
-            var irc = new TcpClient(_server, _port);
-            irc.ReceiveTimeout = 310000;
+            ws = new WebSocket(_server);
+            ws.SslConfiguration.ServerCertificateValidationCallback = ValidateServerCertificate;
 
-            sslStream = new SslStream(irc.GetStream(), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-            
-            try
-            {
-                sslStream.AuthenticateAsClient(server);
-            }
-            catch (AuthenticationException e)
-            {
-                Console.WriteLine("Exception: {0}", e.Message);
-                if (e.InnerException != null)
-                {
-                    Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
-                }
-                Console.WriteLine("Authentication failed - closing the connection.");
-                irc.Close();
+            ws.OnOpen += (sender, e) => {
+                connect();
+            };
 
-            }
-            reader = new StreamReader(sslStream);
-            sslStream.ReadTimeout = 310000;
-            writer = new StreamWriter(sslStream);
+            ws.OnMessage += (sender, e) => {
+                HandleMessage(e.Data.Trim());
+            };
+            ws.Connect();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => ws.Close();
         }
 
         private Thread makeMessageSender()
@@ -128,8 +114,7 @@ namespace MassBanTool
                             Console.WriteLine(banindex);
                             form.setBanProgress(this, banindex, toBanLenght);
                         }
-                        writer.WriteLine(message);
-                        writer.Flush();
+                        ws.Send(message);
                         if(MessagesQueue.Count == 0)
                         {
                             form.setBanProgress(this, 100, 100);
@@ -156,6 +141,7 @@ namespace MassBanTool
 
         private bool connect()
         {
+
 #if DEBUG
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("Logging in");
@@ -165,16 +151,12 @@ namespace MassBanTool
             {
                 if (!_password.Equals(""))
                 {
-                    writer.WriteLine("PASS  " + _password);
-                    writer.Flush();
+                    ws.Send("PASS  " + _password);
                 }
-                writer.WriteLine("NICK " + _user);
-                writer.Flush();
+                ws.Send("NICK " + _user);
+                ws.Send("CAP REQ :twitch.tv/commands");
+                ws.Send("CAP REQ :twitch.tv/tags");
 
-                writer.WriteLine("CAP REQ :twitch.tv/commands");
-                writer.Flush();
-                writer.WriteLine("CAP REQ :twitch.tv/tags");
-                writer.Flush();
                 return true;
             }
             catch (Exception e)
@@ -184,86 +166,73 @@ namespace MassBanTool
             }
         }
 
-        public void Start()
-        {
-            while (!connect())
-            {
-                Console.WriteLine("Failed to connect retry in 5s ...");
-                Thread.Sleep(5000);
-            }
-            run();
-        }
-
         public void run()
         {
-            Thread messageThread = null;
-            string userstate = "";
-            try
+            while(true)
             {
-                string inputLine;
-                while ((inputLine = reader.ReadLine()) != null)
+                Thread.Sleep(100);
+            }
+        }
+
+        public void HandleMessage(string m)
+        {
+            string[] multimessage = m.Split(new char[] { '\r', '\n' });
+            string message = "";
+            string cache = "";
+            string display_name = "";
+            foreach (string _message in multimessage)
+            {
+                message = _message.Trim();
+                if(message.Length==0)
                 {
-                    #region IRC STUFF
-                    Console.WriteLine(inputLine);
-                    string[] splitInput = inputLine.Split(new Char[] { ' ' });
-                    if (splitInput[0] == "PING")
-                    {
-                        string PongReply = splitInput[1];
-                        writer.WriteLine("PONG " + PongReply);
-                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM hh:mm:ss")} > PONG {PongReply}");
-                        writer.Flush();
-                        continue;
-                    }
-                    switch (splitInput[1])
-                    {
-                        case "001":
-#if DEBUG
-                            Console.WriteLine("Joining Channel: " + _channel);
-#endif
-                            writer.WriteLine("JOIN " + _channel);
-                            writer.Flush();
-                            break;
-
-                        case "376":
-                            messageThread = makeMessageSender();
-                            messageThread.Start();
-                            break;
-
-                        default:
-                            break;
-                    }
-                    if (splitInput[2].Equals("USERSTATE"))
-                    {
-                        if(inputLine.Equals(userstate))
-                        {
-                            continue;
-                        }
-                        if (splitInput[0].StartsWith("@badge-info="))
-                        {
-                            userstate = inputLine;
-                            bool moderator = splitInput[0].ToLower().Contains("badges=moderator/1");
-                            bool broadcaster = splitInput[0].ToLower().Contains("badges=broadcaster/1");
-                            if (moderator || broadcaster)
-                            {
-                                string cache = splitInput[0].Substring(splitInput[0].IndexOf("display-name=") + "display-name=".Length);
-                                _displayname = cache.Substring(0, cache.IndexOf(";"));
-                                Moderator = true;
-                                form.setMod(this, moderator, broadcaster);
-                                form.setInfo(this, _channel, _displayname);
-                                continue;
-                            }
-                        }
-                    }
-                    #endregion
+                    continue;
                 }
+                #region IRC STUFF
+                Console.WriteLine(message);
+
+                string[] splitInput = message.Split(new Char[] { ' ' });
+                
+
+                if (splitInput[0] == "PING")
+                {
+                    string PongReply = splitInput[1];
+                    ws.Send("PONG " + PongReply);
+                    Console.WriteLine($"{DateTime.Now.ToString("dd.MM hh:mm:ss")} > PONG {PongReply}");
+                    return;
+                }
+                if (splitInput[1].Equals("001"))
+                {
+#if DEBUG
+                    Console.WriteLine("Joining Channel: " + _channel);
+#endif
+                    ws.Send("JOIN " + _channel);
+                    messageThread = makeMessageSender();
+                    messageThread.Start();
+                    return;
+                }
+
+                if (splitInput[0].StartsWith("@badge-info="))
+                {
+                    cache = splitInput[0].Substring(splitInput[0].IndexOf("display-name=") + "display-name=".Length);
+                    display_name = cache.Substring(0, cache.IndexOf(";"));
+                    if (display_name.ToLower().Equals(_user) && splitInput[2].Equals("USERSTATE"))
+                    {
+                        if (message.Equals(userstate))
+                        {
+                            return;
+                        }
+                        userstate = message;
+                        _displayname = display_name;
+                        bool moderator = splitInput[0].ToLower().Contains("badges=moderator/1");
+                        bool broadcaster = splitInput[0].ToLower().Contains("badges=broadcaster/1");
+                        Moderator = moderator || broadcaster;
+                        form.setMod(this, moderator, broadcaster);
+                        form.setInfo(this, _channel, _displayname);
+                        return;
+                    }
+                }
+                #endregion
             }
-            catch (Exception e)
-            {
-                // shows the exception, sleeps for a little while and then tries to establish a new connection to the IRC server
-                Console.WriteLine(e.ToString());
-                Thread.Sleep(1000);
-            }
-            Console.WriteLine("end");
         }
 
         private void sendMessage(string message, string channel)
@@ -308,9 +277,9 @@ namespace MassBanTool
             {
                 newChannel = "#" + newChannel;
             }
-            MessagesQueue.AddLast($"PART {_channel}");
+            ws.Send($"PART {_channel}");
             _channel = newChannel;
-            MessagesQueue.AddLast($"JOIN {_channel}");
+            ws.Send($"JOIN {_channel}");
         }
 
     }

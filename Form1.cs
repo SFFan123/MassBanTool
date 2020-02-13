@@ -79,8 +79,7 @@ namespace MassBanTool
             ircThread = new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
-                iRC = new IRCClient("irc.chat.twitch.tv", 6697, username, channel, oauth, this);
-                iRC.Start();
+                iRC = new IRCClient("wss://irc-ws.chat.twitch.tv:443", username, channel, oauth, this);
             });
             ircThread.Start();
             
