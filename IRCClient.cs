@@ -105,10 +105,10 @@ namespace MassBanTool
                             message = MessagesQueue.First.Value;
                             MessagesQueue.RemoveFirst();
                             int banindex = (toBanLenght - MessagesQueue.Count);
-                            if (banindex % 2 == 0)
+                            if (banindex % 20 == 0)
                             {
                                 Console.WriteLine(banindex);
-                                eta = TimeSpan.FromMilliseconds(MessagesQueue.Count * cooldown);
+                                eta = TimeSpan.FromMilliseconds((MessagesQueue.Count * cooldown));
                                 form.setBanProgress(this, banindex, toBanLenght);
                                 form.setETA(this,  eta.ToString("g"));
                             }

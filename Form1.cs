@@ -144,18 +144,6 @@ namespace MassBanTool
                     progresBar_BanProgress.Maximum = max;
                     progresBar_BanProgress.Value = index;
                     progresBar_BanProgress.Refresh();
-
-
-                    int position = 0;
-                    for (int i = 0; i < index; i++)
-                    {
-                        position += txt_ToBan.Lines[i].Length;
-                    }
-
-                    txt_ToBan.SelectionStart = position;
-
-                    txt_ToBan.ScrollToCaret();
-
                 }));
                 
 
@@ -245,6 +233,9 @@ namespace MassBanTool
             }
             else
             {
+                if (iRC.cooldown == default)
+                    btn_applyDelay_Click(null, null);
+
                 iRC.addToBann(toBan, ban_reason);
             }
         }
