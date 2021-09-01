@@ -65,11 +65,16 @@
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.btn_saveLogin = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.in_cooldown = new System.Windows.Forms.NumericUpDown();
+            this.btn_applyDelay = new System.Windows.Forms.Button();
+            this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
             this.tabPageFiltering.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.SuspendLayout();
             // 
             // txt_ToBan
@@ -263,7 +268,8 @@
             this.toolStripStatusLabel2,
             this.toolStripStatusLabel_Username,
             this.toolStripStatusMod,
-            this.toolStripWarning});
+            this.toolStripWarning,
+            this.toolstripETA});
             this.statusStrip1.Location = new System.Drawing.Point(0, 460);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
@@ -409,11 +415,67 @@
             this.btn_saveLogin.Visible = false;
             this.btn_saveLogin.Click += new System.EventHandler(this.button2_Click);
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(596, 162);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(148, 13);
+            this.label6.TabIndex = 10002;
+            this.label6.Text = "Cooldown between messages";
+            // 
+            // in_cooldown
+            // 
+            this.in_cooldown.Increment = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.in_cooldown.Location = new System.Drawing.Point(599, 139);
+            this.in_cooldown.Maximum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            0});
+            this.in_cooldown.Minimum = new decimal(new int[] {
+            301,
+            0,
+            0,
+            0});
+            this.in_cooldown.Name = "in_cooldown";
+            this.in_cooldown.Size = new System.Drawing.Size(66, 20);
+            this.in_cooldown.TabIndex = 10003;
+            this.in_cooldown.Value = new decimal(new int[] {
+            301,
+            0,
+            0,
+            0});
+            // 
+            // btn_applyDelay
+            // 
+            this.btn_applyDelay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_applyDelay.Location = new System.Drawing.Point(669, 136);
+            this.btn_applyDelay.Name = "btn_applyDelay";
+            this.btn_applyDelay.Size = new System.Drawing.Size(75, 23);
+            this.btn_applyDelay.TabIndex = 10004;
+            this.btn_applyDelay.Text = "Apply";
+            this.btn_applyDelay.UseVisualStyleBackColor = true;
+            this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
+            // 
+            // toolstripETA
+            // 
+            this.toolstripETA.Name = "toolstripETA";
+            this.toolstripETA.Size = new System.Drawing.Size(37, 17);
+            this.toolstripETA.Text = "ETA: -";
+            // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 482);
+            this.Controls.Add(this.btn_applyDelay);
+            this.Controls.Add(this.in_cooldown);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.btn_saveLogin);
             this.Controls.Add(this.tabControl);
             this.Controls.Add(this.btn_getFollows);
@@ -445,6 +507,7 @@
             this.tabPageBanning.PerformLayout();
             this.tabPageFiltering.ResumeLayout(false);
             this.tabPageFiltering.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -488,6 +551,10 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ToolStripStatusLabel toolStripWarning;
         private System.Windows.Forms.Button btn_saveLogin;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.NumericUpDown in_cooldown;
+        private System.Windows.Forms.Button btn_applyDelay;
+        private System.Windows.Forms.ToolStripStatusLabel toolstripETA;
     }
 }
 

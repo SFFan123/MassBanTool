@@ -8,6 +8,11 @@ namespace MassBanTool
 {
     static class Program
     {
+        // TODO add mutex
+        // TODO check if multi channel support
+        // TODO show count
+        // TODO give feedback who has been banned
+        // TODO PAUSE option.
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
         /// </summary>

@@ -1,33 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 
 namespace MassBanTool
 {
     public partial class Form : System.Windows.Forms.Form
     {
-        private string uname;
-        private string channel;
-        private string oauth;
-        private bool Moderator = false;
         private bool Broadcaster = false;
+        private string channel;
         private bool connected;
+        private string defaultStatus = "Ready";
         IRCClient iRC = null;
         Thread ircThread = null;
+        private bool Moderator = false;
+        private string oauth;
         private List<string> toBan = new List<string>();
-        private string defaultStatus = "Ready";
+        private string uname;
 
         public Form()
         {
@@ -46,6 +39,7 @@ namespace MassBanTool
                 txt_oauth.PasswordChar = '*';
             }
         }
+
         private void btn_connect_Click(object sender, EventArgs e)
         {
             string channel = txt_channel.Text.Trim().ToLower();
@@ -54,6 +48,7 @@ namespace MassBanTool
                 iRC.switchChannel(channel);
                 return;
             }
+
             string username = txt_username.Text.Trim().ToLower();
             oauth = txt_oauth.Text.Trim().ToLower();
 
@@ -62,16 +57,19 @@ namespace MassBanTool
                 MessageBox.Show("No username given!");
                 return;
             }
+
             if (channel.Trim().Equals(String.Empty))
             {
                 MessageBox.Show("No channel given!");
                 return;
             }
+
             if (oauth.Trim().Equals(String.Empty))
             {
                 MessageBox.Show("No oauth given!");
                 return;
             }
+
             uname = username;
             this.channel = channel;
 
@@ -82,7 +80,6 @@ namespace MassBanTool
                 iRC = new IRCClient("wss://irc-ws.chat.twitch.tv:443", username, channel, oauth, this);
             });
             ircThread.Start();
-            
         }
 
         public void setMod(object sender, bool mod, bool broadcaster)
@@ -91,25 +88,25 @@ namespace MassBanTool
             this.Broadcaster = broadcaster;
             if (InvokeRequired)
             {
-
                 toolStripStatusMod.Visible = mod || broadcaster;
                 if (broadcaster)
                 {
                     toolStripStatusMod.Image = Properties.Resources.broadcaster2;
                 }
-                if(mod)
+
+                if (mod)
                 {
                     toolStripStatusMod.Image = Properties.Resources.moderator2;
                 }
-                
+
                 pbModerator.Invoke(new Action(() =>
                 {
                     pbModerator.Visible = mod || broadcaster;
                     if (broadcaster)
                     {
                         pbModerator.Image = Properties.Resources.broadcaster2;
-
                     }
+
                     if (mod)
                     {
                         pbModerator.Image = Properties.Resources.moderator2;
@@ -117,6 +114,7 @@ namespace MassBanTool
                 }));
             }
         }
+
         public void setInfo(object sender, string channel, string displayname)
         {
             connected = true;
@@ -124,34 +122,16 @@ namespace MassBanTool
             this.uname = displayname;
             toolStripStatusLabel_Channel.Text = channel;
             toolStripStatusLabel_Username.Text = displayname;
-            
+
             toolStripStatusLabel.Text = "Connected/Ready";
-            if(InvokeRequired)
+            if (InvokeRequired)
             {
-                btn_connect.Invoke(new Action(() =>
-                {
-                    btn_connect.Text = "Switch Channel";
-                }));
-                btn_OpenList.Invoke(new Action(() =>
-                {
-                    btn_OpenList.Enabled = true;
-                }));
-                btn_saveLogin.Invoke(new Action(() =>
-                {
-                    btn_saveLogin.Visible = true;
-                }));
-                btn_getFollows.Invoke(new Action(() =>
-                {
-                    btn_getFollows.Enabled = true;
-                }));
-                txt_oauth.Invoke(new Action(() =>
-                {
-                    txt_oauth.ReadOnly = true;
-                }));
-                txt_username.Invoke(new Action(() =>
-                {
-                    txt_username.ReadOnly = true;
-                }));
+                btn_connect.Invoke(new Action(() => { btn_connect.Text = "Switch Channel"; }));
+                btn_OpenList.Invoke(new Action(() => { btn_OpenList.Enabled = true; }));
+                btn_saveLogin.Invoke(new Action(() => { btn_saveLogin.Visible = true; }));
+                btn_getFollows.Invoke(new Action(() => { btn_getFollows.Enabled = true; }));
+                txt_oauth.Invoke(new Action(() => { txt_oauth.ReadOnly = true; }));
+                txt_username.Invoke(new Action(() => { txt_username.ReadOnly = true; }));
             }
         }
 
@@ -164,7 +144,20 @@ namespace MassBanTool
                     progresBar_BanProgress.Maximum = max;
                     progresBar_BanProgress.Value = index;
                     progresBar_BanProgress.Refresh();
+
+
+                    int position = 0;
+                    for (int i = 0; i < index; i++)
+                    {
+                        position += txt_ToBan.Lines[i].Length;
+                    }
+
+                    txt_ToBan.SelectionStart = position;
+
+                    txt_ToBan.ScrollToCaret();
+
                 }));
+                
 
                 if (index == max)
                 {
@@ -174,6 +167,14 @@ namespace MassBanTool
                 {
                     toolStripStatusLabel.Text = "banning ...";
                 }
+            }
+        }
+
+        public void setETA(object sender, string eta)
+        {
+            if (InvokeRequired)
+            {
+                toolstripETA.Text = "ETA: " + eta;
             }
         }
 
@@ -196,7 +197,6 @@ namespace MassBanTool
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-
                 toolStripStatusLabel.Text = "Importing ...";
                 progresBar_BanProgress.Value = 0;
                 //Get the path of specified file
@@ -213,20 +213,10 @@ namespace MassBanTool
                     fileContent = reader.ReadToEnd();
                     string[] content = fileContent.Split('\n');
                     int count = content.Length;
-                    txt_ToBan.Text = "";
-                    progresBar_BanProgress.Maximum = count;
-                    for (int i = 0; i < count; i++)
-                    {
-                        txt_ToBan.AppendText($"{content[i]}\r\n");
-                        if (i % 5 == 0)
-                        {
-                            progresBar_BanProgress.Value = i + 1;
-                        }
-
-
-                    }
+                    txt_ToBan.Lines = content;
                     toBan.AddRange(content);
                 }
+
                 toolStripStatusLabel.Text = defaultStatus;
                 progresBar_BanProgress.Value = progresBar_BanProgress.Maximum;
                 progresBar_BanProgress.Refresh();
@@ -236,7 +226,6 @@ namespace MassBanTool
                     item.Enabled = true;
                 }
             }
-
         }
 
         private void btn_action_run_Click(object sender, EventArgs e)
@@ -244,7 +233,8 @@ namespace MassBanTool
             string ban_reason = txt_actions_ban_reason.Text.Trim();
             if (ban_reason.Equals(string.Empty))
             {
-                if (MessageBox.Show("You have not provided a reason for the bans. Do you want to continue?", "Confirm Ban without reason", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show("You have not provided a reason for the bans. Do you want to continue?",
+                    "Confirm Ban without reason", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     iRC.addToBann(toBan, "");
                 }
@@ -272,6 +262,7 @@ namespace MassBanTool
                 MessageBox.Show("No Channel given can't fetch follows!");
                 return;
             }
+
             toolStripStatusLabel.Text = "Fetching Last 1000 Follows from API...";
             string[] c = getFollowsFromAPI();
             if (c.Length == 0)
@@ -280,12 +271,14 @@ namespace MassBanTool
                 toolStripStatusLabel.Text = defaultStatus;
                 return;
             }
+
             toBan = c.ToList<string>();
             txt_ToBan.Text = "";
-            foreach(var item in c)
+            foreach (var item in c)
             {
                 txt_ToBan.AppendText(item.Trim() + "\r\n");
             }
+
             tabControl.SelectedTab = tabPageFiltering;
 
             /* foreach (Control item in tabPageFiltering.Controls)
@@ -338,20 +331,22 @@ namespace MassBanTool
                     newToBan.Add(toBan[i]);
                 }
             }
+
             toBan = newToBan;
             txt_ToBan.Lines = toBan.ToArray();
             progresBar_BanProgress.Maximum = 100;
             progresBar_BanProgress.Value = 100;
             toolStripStatusLabel.Text = defaultStatus;
         }
+
         private void getLogin()
         {
             string fileName = Path.Combine(Environment.GetFolderPath(
-            Environment.SpecialFolder.ApplicationData), "MassBanTool" ,"MassBanToolLogin.txt");
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
             try
             {
                 string[] a = File.ReadAllLines(fileName);
-                if(a.Length==2)
+                if (a.Length == 2)
                 {
                     txt_username.Text = a[0];
                     txt_oauth.Text = a[1];
@@ -362,16 +357,19 @@ namespace MassBanTool
                 Console.WriteLine(e);
             }
         }
+
         private void saveLogin()
         {
             string fileName = Path.Combine(Environment.GetFolderPath(
-            Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
-            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MassBanTool");
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "MassBanTool");
 
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
+
             if (!File.Exists(fileName))
             {
                 File.Create(fileName).Close();
@@ -383,6 +381,19 @@ namespace MassBanTool
         private void button2_Click(object sender, EventArgs e)
         {
             saveLogin();
+        }
+
+        private void btn_applyDelay_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(in_cooldown.Text, out int result))
+            {
+                iRC.cooldown = result;
+            }
+            else
+            {
+                MessageBox.Show("Invalid Cooldown.");
+            }
+            
         }
     }
 }

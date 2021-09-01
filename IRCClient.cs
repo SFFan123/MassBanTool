@@ -1,72 +1,45 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
-using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using WebSocketSharp;
 
 namespace MassBanTool
 {
-    class IRCClient
+    public class IRCClient
     {
         private static Hashtable certificateErrors = new Hashtable();
+        static bool mt_pause = false;
 
-        // The following method is invoked by the RemoteCertificateValidationDelegate.
-        public static bool ValidateServerCertificate(
-              object sender,
-              X509Certificate certificate,
-              X509Chain chain,
-              SslPolicyErrors sslPolicyErrors)
-        {
-            if (sslPolicyErrors == SslPolicyErrors.None)
-                return true;
-
-            Console.WriteLine("Certificate error: {0}", sslPolicyErrors);
-
-            // Do not allow this client to communicate with unauthenticated servers.
-            return false;
-        }
-
+        private readonly string _password;
 
 
         // server to connect to (edit at will)
         private readonly string _server;
+
         // user information defined in RFC 2812 (IRC: Client Protocol) is sent to the IRC server 
         private readonly string _user;
-        private string _displayname;
-
-        private readonly string _password;
 
         // channel to join
         private string _channel;
+        private string _displayname;
 
-        WebSocket ws;
+        public int cooldown { get; set; }
 
         private Form form;
 
-        public LinkedList<string> MessagesQueue { get; private set; } = new LinkedList<string>();
-        public LinkedList<string> MessagesQueueStopped { get; private set; } = new LinkedList<string>();
-        public DateTime LastMessageSentAt { get; private set; }
-                     
-        public bool Moderator { get; private set; } = false;
-        private int cooldownNormal = 1600;
-        private int cooldownVIP_Moderator = 301;
+        Thread messageThread = null;
         List<String> toBan = new List<string>();
         int toBanLenght = 0;
-        static bool mt_pause = false;
-
-        Thread messageThread = null;
         string userstate = "";
 
+        WebSocket ws;
 
-        public IRCClient(string server, string user, string channel, string password, Form f ,int maxRetries = 3)
+
+        public IRCClient(string server, string user, string channel, string password, Form f, int maxRetries = 3)
         {
             form = f;
             _server = server;
@@ -77,71 +50,104 @@ namespace MassBanTool
             {
                 _channel = "#" + _channel;
             }
+
             ws = new WebSocket(_server);
             ws.SslConfiguration.ServerCertificateValidationCallback = ValidateServerCertificate;
 
-            ws.OnOpen += (sender, e) => {
-                connect();
-            };
+            ws.OnOpen += (sender, e) => { connect(); };
 
-            ws.OnMessage += (sender, e) => {
-                HandleMessage(e.Data.Trim());
-            };
+            ws.OnMessage += (sender, e) => { HandleMessage(e.Data.Trim()); };
             ws.Connect();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => ws.Close();
+        }
+
+        public LinkedList<string> MessagesQueue { get; private set; } = new LinkedList<string>();
+        public LinkedList<string> MessagesQueueStopped { get; private set; } = new LinkedList<string>();
+        public DateTime LastMessageSentAt { get; private set; }
+
+        public bool Moderator { get; private set; } = false;
+
+        // The following method is invoked by the RemoteCertificateValidationDelegate.
+        public static bool ValidateServerCertificate(
+            object sender,
+            X509Certificate certificate,
+            X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+
+            Console.WriteLine("Certificate error: {0}", sslPolicyErrors);
+
+            // Do not allow this client to communicate with unauthenticated servers.
+            return false;
         }
 
         private Thread makeMessageSender()
         {
             return new Thread(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
-                Thread.CurrentThread.Name = "MessageSenderThread";
-                string message;
-                while (true)
+                try
                 {
-                    if (mt_pause)
+                    TimeSpan eta;
+                    Thread.CurrentThread.IsBackground = true;
+                    Thread.CurrentThread.Name = "MessageSenderThread";
+                    string message;
+                    while (true)
                     {
-                        Thread.Sleep(100);
-                    }
-                    if (MessagesQueue.Count > 0)
-                    {
-                        message = MessagesQueue.First.Value;
-                        MessagesQueue.RemoveFirst();
-                        int banindex = (toBanLenght - MessagesQueue.Count);
-                        if (banindex % 2 == 0)
+                        if (mt_pause)
                         {
-                            Console.WriteLine(banindex);
-                            form.setBanProgress(this, banindex, toBanLenght);
+                            Thread.Sleep(100);
                         }
-                        ws.Send(message);
-                        if(MessagesQueue.Count == 0)
+
+                        if (MessagesQueue.Count > 0)
                         {
-                            form.setBanProgress(this, 100, 100);
-                        }
+                            message = MessagesQueue.First.Value;
+                            MessagesQueue.RemoveFirst();
+                            int banindex = (toBanLenght - MessagesQueue.Count);
+                            if (banindex % 2 == 0)
+                            {
+                                Console.WriteLine(banindex);
+                                eta = TimeSpan.FromMilliseconds(MessagesQueue.Count * cooldown);
+                                form.setBanProgress(this, banindex, toBanLenght);
+                                form.setETA(this,  eta.ToString("g"));
+                            }
+
+                            if (!ws.IsAlive)
+                            {
+                                Thread.Sleep(100);
+                                ws.Connect();
+                            }
+                            ws.Send(message);
+                            if (MessagesQueue.Count == 0)
+                            {
+                                
+                                form.setBanProgress(this, 100, 100);
+                                form.setETA(this, "-");
+                            }
 #if DEBUG
-                        Console.WriteLine($"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}");
+                            Console.WriteLine($"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}");
 #endif
-                        if (Moderator)
-                        {
-                            Thread.Sleep(cooldownVIP_Moderator);
+                            Thread.Sleep(cooldown);
+
                         }
                         else
                         {
-                            Thread.Sleep(cooldownNormal);
+                            Thread.Sleep(100);
                         }
                     }
-                    else
-                    {
-                        Thread.Sleep(100);
-                    }
                 }
+                catch (Exception e)
+                {
+                    MessageBox.Show($"{e.GetType().Name} {e.Message}", "ERROR");
+                    Environment.Exit(-1);
+                }
+                
             });
         }
 
         private bool connect()
         {
-
 #if DEBUG
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("Logging in");
@@ -153,6 +159,7 @@ namespace MassBanTool
                 {
                     ws.Send("PASS  " + _password);
                 }
+
                 ws.Send("NICK " + _user);
                 ws.Send("CAP REQ :twitch.tv/commands");
                 ws.Send("CAP REQ :twitch.tv/tags");
@@ -168,7 +175,7 @@ namespace MassBanTool
 
         public void run()
         {
-            while(true)
+            while (true)
             {
                 Thread.Sleep(100);
             }
@@ -176,22 +183,24 @@ namespace MassBanTool
 
         public void HandleMessage(string m)
         {
-            string[] multimessage = m.Split(new char[] { '\r', '\n' });
+            string[] multimessage = m.Split(new char[] {'\r', '\n'});
             string message = "";
             string cache = "";
             string display_name = "";
             foreach (string _message in multimessage)
             {
                 message = _message.Trim();
-                if(message.Length==0)
+                if (message.Length == 0)
                 {
                     continue;
                 }
+
                 #region IRC STUFF
+
                 Console.WriteLine(message);
 
-                string[] splitInput = message.Split(new Char[] { ' ' });
-                
+                string[] splitInput = message.Split(new Char[] {' '});
+
 
                 if (splitInput[0] == "PING")
                 {
@@ -200,6 +209,7 @@ namespace MassBanTool
                     Console.WriteLine($"{DateTime.Now.ToString("dd.MM hh:mm:ss")} > PONG {PongReply}");
                     return;
                 }
+
                 if (splitInput[1].Equals("001"))
                 {
 #if DEBUG
@@ -221,6 +231,7 @@ namespace MassBanTool
                         {
                             return;
                         }
+
                         userstate = message;
                         _displayname = display_name;
                         bool moderator = splitInput[0].ToLower().Contains("badges=moderator/1");
@@ -231,6 +242,7 @@ namespace MassBanTool
                         return;
                     }
                 }
+
                 #endregion
             }
         }
@@ -244,6 +256,7 @@ namespace MassBanTool
                 MessagesQueue.AddLast(response.Trim());
             }
         }
+
         public void addToBann(List<string> toBan, string reason)
         {
             toBanLenght = toBan.Count;
@@ -251,21 +264,25 @@ namespace MassBanTool
             {
                 reason = "no reason Given.";
             }
-            for(int i = 0; i<toBan.Count;i++)
+
+            for (int i = 0; i < toBan.Count; i++)
             {
-#if DEBUG
-                sendMessage($"<command> {toBan[i].Trim()} {reason.Trim()}", _channel);
-#else
                 sendMessage($"/ban {toBan[i].Trim()} {reason.Trim()}", _channel);
+#if DEBUG
+                //sendMessage($"<command> {toBan[i].Trim()} {reason.Trim()}", _channel);
+#else
+                //sendMessage($"/ban {toBan[i].Trim()} {reason.Trim()}", _channel);
 #endif
             }
         }
+
         public void StopQueue()
         {
             mt_pause = true;
             MessagesQueue.Clear();
             mt_pause = false;
         }
+
         public void switchChannel(string newChannel)
         {
             newChannel = newChannel.Trim();
@@ -273,14 +290,15 @@ namespace MassBanTool
             {
                 throw new ArgumentException("channel may not be empty");
             }
+
             if (!newChannel.StartsWith("#"))
             {
                 newChannel = "#" + newChannel;
             }
+
             ws.Send($"PART {_channel}");
             _channel = newChannel;
             ws.Send($"JOIN {_channel}");
         }
-
     }
 }
