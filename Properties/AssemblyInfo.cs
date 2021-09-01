@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("MassBanTool")]
-[assembly: AssemblyCopyright("Copyright © SFFan123 2019-2020")]
+[assembly: AssemblyCopyright("Copyright © SFFan123 2019-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
