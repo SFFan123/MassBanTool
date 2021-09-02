@@ -44,6 +44,7 @@ namespace MassBanTool
         public string user { get; set; }
 
         public static bool mt_pause = false;
+        Task messageThread = null;
 
         private int toBanLenght = 0;
 
@@ -100,24 +101,8 @@ namespace MassBanTool
 
             client = null; // Throw the client into the trashcan
 
-            int waitTimer = 2;
-            bool inet;
-            do
-            {
-                Thread.Sleep(waitTimer * 1000);
-                try
-                {
-                    using (var client = new WebClient())
-                    using (client.OpenRead("http://google.com/generate_204"))
-                        inet = true;
-                }
-                catch
-                {
-                    inet = false;
-                    waitTimer++;
-                }
-            }
-            while (!inet);
+            Thread.Sleep(2000);
+            
 
             client = InitializeClient(); // make a new one.
 
@@ -154,13 +139,15 @@ namespace MassBanTool
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
             Console.WriteLine($"Connected to {e.AutoJoinChannel}");
+            messageThread = makeMessageSender();
+            messageThread.Start();
         }
 
 
 
-        private Thread makeMessageSender()
+        private Task makeMessageSender()
         {
-            return new Thread(() =>
+            return new Task(() =>
             {
                 try
                 {
@@ -170,9 +157,9 @@ namespace MassBanTool
                     string message;
                     while (true)
                     {
-                        if (mt_pause)
+                        while (mt_pause)
                         {
-                            Thread.Sleep(100);
+                            Task.Delay(1000);
                         }
 
                         if (MessagesQueue.Count > 0)
@@ -180,7 +167,7 @@ namespace MassBanTool
                             message = MessagesQueue.First.Value;
                             MessagesQueue.RemoveFirst();
                             int banindex = (toBanLenght - MessagesQueue.Count);
-                            if (banindex % 20 == 0)
+                            if (banindex % 10 == 0)
                             {
                                 Console.WriteLine(banindex);
                                 eta = TimeSpan.FromMilliseconds((MessagesQueue.Count * cooldown));
@@ -213,7 +200,7 @@ namespace MassBanTool
                     Environment.Exit(-1);
                 }
 
-            });
+            }, TaskCreationOptions.LongRunning);
         }
         
 
