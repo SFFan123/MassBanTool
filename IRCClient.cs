@@ -238,7 +238,7 @@ namespace MassBanTool
                         bool broadcaster = splitInput[0].ToLower().Contains("badges=broadcaster/1");
                         Moderator = moderator || broadcaster;
                         form.setMod(this, moderator, broadcaster);
-                        form.setInfo(this, _channel, _displayname);
+                        form.setInfo(this, _channel);
                         return;
                     }
                 }

@@ -116,13 +116,11 @@ namespace MassBanTool
             }
         }
 
-        public void setInfo(object sender, string channel, string displayname)
+        public void setInfo(object sender, string channel)
         {
             connected = true;
             this.channel = channel;
-            this.uname = displayname;
             toolStripStatusLabel_Channel.Text = channel;
-            toolStripStatusLabel_Username.Text = displayname;
 
             toolStripStatusLabel.Text = "Connected/Ready";
             if (InvokeRequired)
@@ -247,7 +245,13 @@ namespace MassBanTool
 
             if (TwitchChatClient.mt_pause)
             {
+                btn_actions_Stop.Text = "RESUME";
                 toolStripStatusLabel.Text = "Paused! / Ready";
+            }
+            else
+            {
+                btn_actions_Stop.Text = "PAUSE";
+                toolStripStatusLabel.Text = "banning ...";
             }
         }
 
@@ -408,6 +412,12 @@ namespace MassBanTool
         {
             var a  = Program.AllocConsole();
             btn_showconsole.Enabled = false;
+        }
+
+        private void btn_Abort_Click(object sender, EventArgs e)
+        {
+            twitchChat.Abort();
+            toolStripStatusLabel.Text = "Aborted! / Ready";
         }
     }
 }

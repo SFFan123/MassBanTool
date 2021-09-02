@@ -48,8 +48,6 @@
             this.toolStripStatusLabelSeperator = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_Channel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel_Username = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
@@ -66,11 +64,12 @@
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabMisc = new System.Windows.Forms.TabPage();
+            this.btn_showconsole = new System.Windows.Forms.Button();
             this.btn_saveLogin = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
-            this.btn_showconsole = new System.Windows.Forms.Button();
+            this.btn_Abort = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -249,18 +248,6 @@
             this.toolStripStatusLabel_Channel.Size = new System.Drawing.Size(12, 17);
             this.toolStripStatusLabel_Channel.Text = "-";
             // 
-            // toolStripStatusLabel2
-            // 
-            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(63, 17);
-            this.toolStripStatusLabel2.Text = "Username:";
-            // 
-            // toolStripStatusLabel_Username
-            // 
-            this.toolStripStatusLabel_Username.Name = "toolStripStatusLabel_Username";
-            this.toolStripStatusLabel_Username.Size = new System.Drawing.Size(12, 17);
-            this.toolStripStatusLabel_Username.Text = "-";
-            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -268,8 +255,6 @@
             this.toolStripStatusLabelSeperator,
             this.toolStripStatusLabel3,
             this.toolStripStatusLabel_Channel,
-            this.toolStripStatusLabel2,
-            this.toolStripStatusLabel_Username,
             this.toolStripStatusMod,
             this.toolStripWarning,
             this.toolstripETA});
@@ -323,6 +308,7 @@
             // 
             // tabPageBanning
             // 
+            this.tabPageBanning.Controls.Add(this.btn_Abort);
             this.tabPageBanning.Controls.Add(this.btn_actions_Stop);
             this.tabPageBanning.Controls.Add(this.txt_actions_ban_reason);
             this.tabPageBanning.Controls.Add(this.label4);
@@ -425,6 +411,16 @@
             this.tabMisc.Text = "Misc";
             this.tabMisc.UseVisualStyleBackColor = true;
             // 
+            // btn_showconsole
+            // 
+            this.btn_showconsole.Location = new System.Drawing.Point(6, 6);
+            this.btn_showconsole.Name = "btn_showconsole";
+            this.btn_showconsole.Size = new System.Drawing.Size(86, 23);
+            this.btn_showconsole.TabIndex = 0;
+            this.btn_showconsole.Text = "Show Console";
+            this.btn_showconsole.UseVisualStyleBackColor = true;
+            this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
+            // 
             // btn_saveLogin
             // 
             this.btn_saveLogin.Location = new System.Drawing.Point(470, 136);
@@ -483,15 +479,15 @@
             this.btn_applyDelay.UseVisualStyleBackColor = true;
             this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
             // 
-            // btn_showconsole
+            // btn_Abort
             // 
-            this.btn_showconsole.Location = new System.Drawing.Point(6, 6);
-            this.btn_showconsole.Name = "btn_showconsole";
-            this.btn_showconsole.Size = new System.Drawing.Size(86, 23);
-            this.btn_showconsole.TabIndex = 0;
-            this.btn_showconsole.Text = "Show Console";
-            this.btn_showconsole.UseVisualStyleBackColor = true;
-            this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
+            this.btn_Abort.Location = new System.Drawing.Point(87, 208);
+            this.btn_Abort.Name = "btn_Abort";
+            this.btn_Abort.Size = new System.Drawing.Size(75, 23);
+            this.btn_Abort.TabIndex = 8;
+            this.btn_Abort.Text = "Abort";
+            this.btn_Abort.UseVisualStyleBackColor = true;
+            this.btn_Abort.Click += new System.EventHandler(this.btn_Abort_Click);
             // 
             // Form
             // 
@@ -560,8 +556,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelSeperator;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Channel;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Username;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusMod;
         private System.Windows.Forms.Button btn_getFollows;
@@ -583,6 +577,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolstripETA;
         private System.Windows.Forms.TabPage tabMisc;
         private System.Windows.Forms.Button btn_showconsole;
+        private System.Windows.Forms.Button btn_Abort;
     }
 }
 

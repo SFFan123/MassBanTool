@@ -76,7 +76,7 @@ namespace MassBanTool
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
-            form.setInfo(this, e.Channel, e.Channel);
+            form.setInfo(this, e.Channel);
         }
 
         private TwitchClient InitializeClient()
@@ -232,5 +232,11 @@ namespace MassBanTool
         }
 
 
+        public void Abort()
+        {
+            mt_pause = true;
+            MessagesQueue.Clear();
+            mt_pause = false;
+        }
     }
 }
