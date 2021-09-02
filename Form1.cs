@@ -15,12 +15,13 @@ namespace MassBanTool
         private string channel;
         private bool connected;
         private string defaultStatus = "Ready";
-        IRCClient iRC = null;
-        Thread ircThread = null;
+        TwitchChatClient twitchChat = null;
+        Thread clientThread = null;
         private bool Moderator = false;
         private string oauth;
         private List<string> toBan = new List<string>();
         private string uname;
+
 
         public Form()
         {
@@ -45,7 +46,7 @@ namespace MassBanTool
             string channel = txt_channel.Text.Trim().ToLower();
             if (connected)
             {
-                iRC.switchChannel(channel);
+                twitchChat.switchChannel(channel);
                 return;
             }
 
@@ -74,12 +75,12 @@ namespace MassBanTool
             this.channel = channel;
 
 
-            ircThread = new Thread(() =>
+            clientThread = new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
-                iRC = new IRCClient("wss://irc-ws.chat.twitch.tv:443", username, channel, oauth, this);
+                twitchChat = new TwitchChatClient(username, oauth, channel, this);
             });
-            ircThread.Start();
+            clientThread.Start();
         }
 
         public void setMod(object sender, bool mod, bool broadcaster)
@@ -224,7 +225,7 @@ namespace MassBanTool
                 if (MessageBox.Show("You have not provided a reason for the bans. Do you want to continue?",
                     "Confirm Ban without reason", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    iRC.addToBann(toBan, "");
+                    twitchChat.addToBann(toBan, "");
                 }
                 else
                 {
@@ -233,17 +234,21 @@ namespace MassBanTool
             }
             else
             {
-                if (iRC.cooldown == default)
+                if (twitchChat.cooldown == default)
                     btn_applyDelay_Click(null, null);
 
-                iRC.addToBann(toBan, ban_reason);
+                twitchChat.addToBann(toBan, ban_reason);
             }
         }
 
         private void btn_actions_Stop_Click(object sender, EventArgs e)
         {
-            iRC.StopQueue();
-            toolStripStatusLabel.Text = "Aborted! / Ready";
+            TwitchChatClient.mt_pause = !TwitchChatClient.mt_pause;
+
+            if (TwitchChatClient.mt_pause)
+            {
+                toolStripStatusLabel.Text = "Paused! / Ready";
+            }
         }
 
         private void btn_getFollows_Click(object sender, EventArgs e)
@@ -378,13 +383,31 @@ namespace MassBanTool
         {
             if (int.TryParse(in_cooldown.Text, out int result))
             {
-                iRC.cooldown = result;
+                twitchChat.cooldown = result;
             }
             else
             {
                 MessageBox.Show("Invalid Cooldown.");
             }
             
+        }
+
+        public void ThrowError(string message, bool exitonThrow = true)
+        {
+            MessageBox.Show(message, "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if(exitonThrow)
+                Environment.Exit(-1);
+        }
+
+        public void ShowWarning(string message)
+        {
+            MessageBox.Show(message, "WARNING",MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void btn_showconsole_Click(object sender, EventArgs e)
+        {
+            var a  = Program.AllocConsole();
+            btn_showconsole.Enabled = false;
         }
     }
 }

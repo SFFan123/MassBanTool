@@ -53,6 +53,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
             this.btn_getFollows = new System.Windows.Forms.Button();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageBanning = new System.Windows.Forms.TabPage();
@@ -64,16 +65,18 @@
             this.btn_run_regex = new System.Windows.Forms.Button();
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.tabMisc = new System.Windows.Forms.TabPage();
             this.btn_saveLogin = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
-            this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btn_showconsole = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
             this.tabPageFiltering.SuspendLayout();
+            this.tabMisc.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.SuspendLayout();
             // 
@@ -216,7 +219,7 @@
             // lbl_list
             // 
             this.lbl_list.AutoSize = true;
-            this.lbl_list.Location = new System.Drawing.Point(175, 14);
+            this.lbl_list.Location = new System.Drawing.Point(203, 14);
             this.lbl_list.Name = "lbl_list";
             this.lbl_list.Size = new System.Drawing.Size(43, 13);
             this.lbl_list.TabIndex = 14;
@@ -289,14 +292,20 @@
             this.toolStripWarning.Name = "toolStripWarning";
             this.toolStripWarning.Size = new System.Drawing.Size(0, 17);
             // 
+            // toolstripETA
+            // 
+            this.toolstripETA.Name = "toolstripETA";
+            this.toolstripETA.Size = new System.Drawing.Size(37, 17);
+            this.toolstripETA.Text = "ETA: -";
+            // 
             // btn_getFollows
             // 
             this.btn_getFollows.Enabled = false;
             this.btn_getFollows.Location = new System.Drawing.Point(94, 9);
             this.btn_getFollows.Name = "btn_getFollows";
-            this.btn_getFollows.Size = new System.Drawing.Size(75, 23);
+            this.btn_getFollows.Size = new System.Drawing.Size(103, 23);
             this.btn_getFollows.TabIndex = 18;
-            this.btn_getFollows.Text = "Get Follows";
+            this.btn_getFollows.Text = "Get Last Follows";
             this.btn_getFollows.UseVisualStyleBackColor = true;
             this.btn_getFollows.Click += new System.EventHandler(this.btn_getFollows_Click);
             // 
@@ -305,6 +314,7 @@
             this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl.Controls.Add(this.tabPageBanning);
             this.tabControl.Controls.Add(this.tabPageFiltering);
+            this.tabControl.Controls.Add(this.tabMisc);
             this.tabControl.Location = new System.Drawing.Point(334, 189);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
@@ -332,7 +342,7 @@
             this.btn_actions_Stop.Name = "btn_actions_Stop";
             this.btn_actions_Stop.Size = new System.Drawing.Size(75, 23);
             this.btn_actions_Stop.TabIndex = 7;
-            this.btn_actions_Stop.Text = "Abort";
+            this.btn_actions_Stop.Text = "PAUSE";
             this.btn_actions_Stop.UseVisualStyleBackColor = true;
             this.btn_actions_Stop.Click += new System.EventHandler(this.btn_actions_Stop_Click);
             // 
@@ -404,6 +414,17 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "Regex";
             // 
+            // tabMisc
+            // 
+            this.tabMisc.Controls.Add(this.btn_showconsole);
+            this.tabMisc.Location = new System.Drawing.Point(4, 22);
+            this.tabMisc.Name = "tabMisc";
+            this.tabMisc.Padding = new System.Windows.Forms.Padding(3);
+            this.tabMisc.Size = new System.Drawing.Size(412, 237);
+            this.tabMisc.TabIndex = 2;
+            this.tabMisc.Text = "Misc";
+            this.tabMisc.UseVisualStyleBackColor = true;
+            // 
             // btn_saveLogin
             // 
             this.btn_saveLogin.Location = new System.Drawing.Point(470, 136);
@@ -462,11 +483,15 @@
             this.btn_applyDelay.UseVisualStyleBackColor = true;
             this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
             // 
-            // toolstripETA
+            // btn_showconsole
             // 
-            this.toolstripETA.Name = "toolstripETA";
-            this.toolstripETA.Size = new System.Drawing.Size(37, 17);
-            this.toolstripETA.Text = "ETA: -";
+            this.btn_showconsole.Location = new System.Drawing.Point(6, 6);
+            this.btn_showconsole.Name = "btn_showconsole";
+            this.btn_showconsole.Size = new System.Drawing.Size(86, 23);
+            this.btn_showconsole.TabIndex = 0;
+            this.btn_showconsole.Text = "Show Console";
+            this.btn_showconsole.UseVisualStyleBackColor = true;
+            this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
             // 
             // Form
             // 
@@ -507,6 +532,7 @@
             this.tabPageBanning.PerformLayout();
             this.tabPageFiltering.ResumeLayout(false);
             this.tabPageFiltering.PerformLayout();
+            this.tabMisc.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -555,6 +581,8 @@
         private System.Windows.Forms.NumericUpDown in_cooldown;
         private System.Windows.Forms.Button btn_applyDelay;
         private System.Windows.Forms.ToolStripStatusLabel toolstripETA;
+        private System.Windows.Forms.TabPage tabMisc;
+        private System.Windows.Forms.Button btn_showconsole;
     }
 }
 
