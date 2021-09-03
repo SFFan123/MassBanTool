@@ -27,7 +27,7 @@ jobs:
         name: Checkout Code
 
       - name: Build and Publish Web App
-        run: C:\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe MassBanTool.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
+        run: "C:\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe' MassBanTool.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile"
         
       - name: Upload Artifact
         uses: actions/upload-artifact@v1.0.0
