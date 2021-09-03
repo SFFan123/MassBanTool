@@ -212,6 +212,11 @@ namespace MassBanTool
                 {
                     item.Enabled = true;
                 }
+
+                foreach (Control item in tabUnban.Controls)
+                {
+                    item.Enabled = true;
+                }
             }
         }
 
@@ -418,6 +423,33 @@ namespace MassBanTool
         {
             twitchChat.Abort();
             toolStripStatusLabel.Text = "Aborted! / Ready";
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (twitchChat.cooldown == default)
+                btn_applyDelay_Click(null, null);
+            
+            // run unban ...
+            twitchChat.addToUNBann(toBan);
+            TwitchChatClient.mt_pause = false;
+        }
+
+        private void btnRemovePrefixes_Click(object sender, EventArgs e)
+        {
+            List<string> result = new List<string>();
+            Regex regex = new Regex(@"^(?:(?:\/|\.)[^\s]+ )?(\w+)(?: .+)?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            foreach (string user in toBan)
+            {
+                string _user = user.Trim();
+                _user = regex.Replace(_user, @"$1");
+                _user = _user.Trim();
+
+                result.Add(_user);
+            }
+
+            toBan = result;
+            txt_ToBan.Lines = toBan.ToArray();
         }
     }
 }

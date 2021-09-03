@@ -166,7 +166,7 @@ namespace MassBanTool
                         {
                             message = MessagesQueue.First.Value;
                             MessagesQueue.RemoveFirst();
-                            int banindex = (toBanLenght - MessagesQueue.Count);
+                            int banindex = toBanLenght - MessagesQueue.Count;
                             if (banindex % 10 == 0)
                             {
                                 Console.WriteLine(banindex);
@@ -237,6 +237,16 @@ namespace MassBanTool
             mt_pause = true;
             MessagesQueue.Clear();
             mt_pause = false;
+        }
+
+        public void addToUNBann(List<string> toUnBan)
+        {
+            MessagesQueue.Clear();
+            toBanLenght = toUnBan.Count;
+            for (int i = 0; i < toUnBan.Count; i++)
+            {
+                MessagesQueue.AddLast(($"/unban {toUnBan[i].Trim()}").Trim());
+            }
         }
     }
 }

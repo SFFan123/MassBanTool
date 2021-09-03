@@ -55,6 +55,7 @@
             this.btn_getFollows = new System.Windows.Forms.Button();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageBanning = new System.Windows.Forms.TabPage();
+            this.btn_Abort = new System.Windows.Forms.Button();
             this.btn_actions_Stop = new System.Windows.Forms.Button();
             this.txt_actions_ban_reason = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -65,17 +66,22 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tabMisc = new System.Windows.Forms.TabPage();
             this.btn_showconsole = new System.Windows.Forms.Button();
+            this.tabUnban = new System.Windows.Forms.TabPage();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.btn_run_unban = new System.Windows.Forms.Button();
             this.btn_saveLogin = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
-            this.btn_Abort = new System.Windows.Forms.Button();
+            this.btnRemovePrefixes = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
             this.tabPageFiltering.SuspendLayout();
             this.tabMisc.SuspendLayout();
+            this.tabUnban.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.SuspendLayout();
             // 
@@ -300,6 +306,7 @@
             this.tabControl.Controls.Add(this.tabPageBanning);
             this.tabControl.Controls.Add(this.tabPageFiltering);
             this.tabControl.Controls.Add(this.tabMisc);
+            this.tabControl.Controls.Add(this.tabUnban);
             this.tabControl.Location = new System.Drawing.Point(334, 189);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
@@ -320,6 +327,16 @@
             this.tabPageBanning.TabIndex = 0;
             this.tabPageBanning.Text = "Banning";
             this.tabPageBanning.UseVisualStyleBackColor = true;
+            // 
+            // btn_Abort
+            // 
+            this.btn_Abort.Location = new System.Drawing.Point(87, 208);
+            this.btn_Abort.Name = "btn_Abort";
+            this.btn_Abort.Size = new System.Drawing.Size(75, 23);
+            this.btn_Abort.TabIndex = 8;
+            this.btn_Abort.Text = "Abort";
+            this.btn_Abort.UseVisualStyleBackColor = true;
+            this.btn_Abort.Click += new System.EventHandler(this.btn_Abort_Click);
             // 
             // btn_actions_Stop
             // 
@@ -371,7 +388,7 @@
             this.tabPageFiltering.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageFiltering.Size = new System.Drawing.Size(412, 237);
             this.tabPageFiltering.TabIndex = 1;
-            this.tabPageFiltering.Text = "Follow filter";
+            this.tabPageFiltering.Text = "Listfilter";
             this.tabPageFiltering.UseVisualStyleBackColor = true;
             // 
             // btn_run_regex
@@ -402,6 +419,7 @@
             // 
             // tabMisc
             // 
+            this.tabMisc.Controls.Add(this.btnRemovePrefixes);
             this.tabMisc.Controls.Add(this.btn_showconsole);
             this.tabMisc.Location = new System.Drawing.Point(4, 22);
             this.tabMisc.Name = "tabMisc";
@@ -420,6 +438,51 @@
             this.btn_showconsole.Text = "Show Console";
             this.btn_showconsole.UseVisualStyleBackColor = true;
             this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
+            // 
+            // tabUnban
+            // 
+            this.tabUnban.Controls.Add(this.button2);
+            this.tabUnban.Controls.Add(this.button3);
+            this.tabUnban.Controls.Add(this.btn_run_unban);
+            this.tabUnban.Location = new System.Drawing.Point(4, 22);
+            this.tabUnban.Name = "tabUnban";
+            this.tabUnban.Padding = new System.Windows.Forms.Padding(3);
+            this.tabUnban.Size = new System.Drawing.Size(412, 237);
+            this.tabUnban.TabIndex = 3;
+            this.tabUnban.Text = "Unban";
+            this.tabUnban.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(87, 208);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 11;
+            this.button2.Text = "Abort";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.btn_Abort_Click);
+            // 
+            // button3
+            // 
+            this.button3.Enabled = false;
+            this.button3.Location = new System.Drawing.Point(6, 208);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 10;
+            this.button3.Text = "PAUSE";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.btn_actions_Stop_Click);
+            // 
+            // btn_run_unban
+            // 
+            this.btn_run_unban.Enabled = false;
+            this.btn_run_unban.Location = new System.Drawing.Point(329, 208);
+            this.btn_run_unban.Name = "btn_run_unban";
+            this.btn_run_unban.Size = new System.Drawing.Size(75, 23);
+            this.btn_run_unban.TabIndex = 9;
+            this.btn_run_unban.Text = "RUN";
+            this.btn_run_unban.UseVisualStyleBackColor = true;
+            this.btn_run_unban.Click += new System.EventHandler(this.button4_Click);
             // 
             // btn_saveLogin
             // 
@@ -479,15 +542,15 @@
             this.btn_applyDelay.UseVisualStyleBackColor = true;
             this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
             // 
-            // btn_Abort
+            // btnRemovePrefixes
             // 
-            this.btn_Abort.Location = new System.Drawing.Point(87, 208);
-            this.btn_Abort.Name = "btn_Abort";
-            this.btn_Abort.Size = new System.Drawing.Size(75, 23);
-            this.btn_Abort.TabIndex = 8;
-            this.btn_Abort.Text = "Abort";
-            this.btn_Abort.UseVisualStyleBackColor = true;
-            this.btn_Abort.Click += new System.EventHandler(this.btn_Abort_Click);
+            this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 35);
+            this.btnRemovePrefixes.Name = "btnRemovePrefixes";
+            this.btnRemovePrefixes.Size = new System.Drawing.Size(96, 23);
+            this.btnRemovePrefixes.TabIndex = 1;
+            this.btnRemovePrefixes.Text = "Remove clutter";
+            this.btnRemovePrefixes.UseVisualStyleBackColor = true;
+            this.btnRemovePrefixes.Click += new System.EventHandler(this.btnRemovePrefixes_Click);
             // 
             // Form
             // 
@@ -519,7 +582,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.2.0";
+            this.Text = "MassBanTool v. 0.2.1";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -529,6 +592,7 @@
             this.tabPageFiltering.ResumeLayout(false);
             this.tabPageFiltering.PerformLayout();
             this.tabMisc.ResumeLayout(false);
+            this.tabUnban.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -578,6 +642,11 @@
         private System.Windows.Forms.TabPage tabMisc;
         private System.Windows.Forms.Button btn_showconsole;
         private System.Windows.Forms.Button btn_Abort;
+        private System.Windows.Forms.TabPage tabUnban;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button btn_run_unban;
+        private System.Windows.Forms.Button btnRemovePrefixes;
     }
 }
 
