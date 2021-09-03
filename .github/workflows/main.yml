@@ -25,9 +25,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         name: Checkout Code
-        
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.2
 
       - name: Build and Publish Web App
         run: msbuild MassBanTool.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
