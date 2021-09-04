@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form));
             this.txt_ToBan = new System.Windows.Forms.TextBox();
             this.progresBar_BanProgress = new System.Windows.Forms.ProgressBar();
@@ -65,16 +66,27 @@
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabMisc = new System.Windows.Forms.TabPage();
+            this.btnRemovePrefixes = new System.Windows.Forms.Button();
             this.btn_showconsole = new System.Windows.Forms.Button();
             this.tabUnban = new System.Windows.Forms.TabPage();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.btn_run_unban = new System.Windows.Forms.Button();
+            this.tab_ReadFile = new System.Windows.Forms.TabPage();
+            this.radio_Readfile_Ignore = new System.Windows.Forms.RadioButton();
+            this.label8 = new System.Windows.Forms.Label();
+            this.textBoxAllowedActions = new System.Windows.Forms.TextBox();
+            this.radio_Readfile_WarnAndAbort = new System.Windows.Forms.RadioButton();
+            this.label7 = new System.Windows.Forms.Label();
+            this.btn_AbortReadfile = new System.Windows.Forms.Button();
+            this.btn_Pause_Readfile = new System.Windows.Forms.Button();
+            this.btn_RunReadfile = new System.Windows.Forms.Button();
             this.btn_saveLogin = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
-            this.btnRemovePrefixes = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -82,6 +94,7 @@
             this.tabPageFiltering.SuspendLayout();
             this.tabMisc.SuspendLayout();
             this.tabUnban.SuspendLayout();
+            this.tab_ReadFile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.SuspendLayout();
             // 
@@ -109,11 +122,11 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(358, 28);
+            this.label1.Location = new System.Drawing.Point(418, 28);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(115, 13);
+            this.label1.Size = new System.Drawing.Size(55, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Username (lower case)";
+            this.label1.Text = "Username";
             // 
             // label2
             // 
@@ -162,6 +175,7 @@
             this.chk_showOauth.Size = new System.Drawing.Size(86, 17);
             this.chk_showOauth.TabIndex = 7;
             this.chk_showOauth.Text = "Show OAuth";
+            this.toolTip1.SetToolTip(this.chk_showOauth, "Toggles the hiding of the oauth token, since its a password.");
             this.chk_showOauth.UseVisualStyleBackColor = true;
             this.chk_showOauth.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
@@ -177,11 +191,11 @@
             // 
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(370, 84);
+            this.label3.Location = new System.Drawing.Point(422, 84);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(103, 13);
+            this.label3.Size = new System.Drawing.Size(46, 13);
             this.label3.TabIndex = 8;
-            this.label3.Text = "Channel (lowercase)";
+            this.label3.Text = "Channel";
             // 
             // btn_OpenList
             // 
@@ -217,7 +231,10 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(66, 25);
             this.button1.TabIndex = 13;
+            this.button1.Tag = "";
             this.button1.Text = "Get OAuth";
+            this.toolTip1.SetToolTip(this.button1, "Opens your default browser and goes to https://twitchapps.com/tmi/\r\nwhere you can" +
+        " create a oauth token for the twitch chat.\r\nPaste it in the oauth field.");
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -297,6 +314,7 @@
             this.btn_getFollows.Size = new System.Drawing.Size(103, 23);
             this.btn_getFollows.TabIndex = 18;
             this.btn_getFollows.Text = "Get Last Follows";
+            this.toolTip1.SetToolTip(this.btn_getFollows, "Fetches the last 1000 Follows to the current channel from a public API.");
             this.btn_getFollows.UseVisualStyleBackColor = true;
             this.btn_getFollows.Click += new System.EventHandler(this.btn_getFollows_Click);
             // 
@@ -307,6 +325,7 @@
             this.tabControl.Controls.Add(this.tabPageFiltering);
             this.tabControl.Controls.Add(this.tabMisc);
             this.tabControl.Controls.Add(this.tabUnban);
+            this.tabControl.Controls.Add(this.tab_ReadFile);
             this.tabControl.Location = new System.Drawing.Point(334, 189);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
@@ -330,11 +349,13 @@
             // 
             // btn_Abort
             // 
+            this.btn_Abort.Enabled = false;
             this.btn_Abort.Location = new System.Drawing.Point(87, 208);
             this.btn_Abort.Name = "btn_Abort";
             this.btn_Abort.Size = new System.Drawing.Size(75, 23);
             this.btn_Abort.TabIndex = 8;
             this.btn_Abort.Text = "Abort";
+            this.toolTip1.SetToolTip(this.btn_Abort, "Stops and clears the queue.");
             this.btn_Abort.UseVisualStyleBackColor = true;
             this.btn_Abort.Click += new System.EventHandler(this.btn_Abort_Click);
             // 
@@ -346,6 +367,7 @@
             this.btn_actions_Stop.Size = new System.Drawing.Size(75, 23);
             this.btn_actions_Stop.TabIndex = 7;
             this.btn_actions_Stop.Text = "PAUSE";
+            this.toolTip1.SetToolTip(this.btn_actions_Stop, "Pauses/resumes the execution of the banning.");
             this.btn_actions_Stop.UseVisualStyleBackColor = true;
             this.btn_actions_Stop.Click += new System.EventHandler(this.btn_actions_Stop_Click);
             // 
@@ -375,6 +397,7 @@
             this.btn_action_run.Size = new System.Drawing.Size(75, 23);
             this.btn_action_run.TabIndex = 4;
             this.btn_action_run.Text = "RUN";
+            this.toolTip1.SetToolTip(this.btn_action_run, "Adds all entries to the queue and starts banning.");
             this.btn_action_run.UseVisualStyleBackColor = true;
             this.btn_action_run.Click += new System.EventHandler(this.btn_action_run_Click);
             // 
@@ -393,11 +416,14 @@
             // 
             // btn_run_regex
             // 
+            this.btn_run_regex.Enabled = false;
             this.btn_run_regex.Location = new System.Drawing.Point(329, 33);
             this.btn_run_regex.Name = "btn_run_regex";
             this.btn_run_regex.Size = new System.Drawing.Size(75, 23);
             this.btn_run_regex.TabIndex = 4;
             this.btn_run_regex.Text = "Run Regex";
+            this.toolTip1.SetToolTip(this.btn_run_regex, "Filters the list through the given regex only entries that matches the given patt" +
+        "ern will remain in the list.");
             this.btn_run_regex.UseVisualStyleBackColor = true;
             this.btn_run_regex.Click += new System.EventHandler(this.btn_run_regex_Click);
             // 
@@ -429,13 +455,26 @@
             this.tabMisc.Text = "Misc";
             this.tabMisc.UseVisualStyleBackColor = true;
             // 
+            // btnRemovePrefixes
+            // 
+            this.btnRemovePrefixes.Enabled = false;
+            this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 35);
+            this.btnRemovePrefixes.Name = "btnRemovePrefixes";
+            this.btnRemovePrefixes.Size = new System.Drawing.Size(96, 23);
+            this.btnRemovePrefixes.TabIndex = 1;
+            this.btnRemovePrefixes.Text = "Remove clutter";
+            this.toolTip1.SetToolTip(this.btnRemovePrefixes, "Removes .ban /ban .mod /ban /somecommand form the nameslist.");
+            this.btnRemovePrefixes.UseVisualStyleBackColor = true;
+            this.btnRemovePrefixes.Click += new System.EventHandler(this.btnRemovePrefixes_Click);
+            // 
             // btn_showconsole
             // 
             this.btn_showconsole.Location = new System.Drawing.Point(6, 6);
             this.btn_showconsole.Name = "btn_showconsole";
-            this.btn_showconsole.Size = new System.Drawing.Size(86, 23);
+            this.btn_showconsole.Size = new System.Drawing.Size(96, 23);
             this.btn_showconsole.TabIndex = 0;
             this.btn_showconsole.Text = "Show Console";
+            this.toolTip1.SetToolTip(this.btn_showconsole, "Shows the Console where all messages from Twitch are shown.");
             this.btn_showconsole.UseVisualStyleBackColor = true;
             this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
             // 
@@ -454,6 +493,7 @@
             // 
             // button2
             // 
+            this.button2.Enabled = false;
             this.button2.Location = new System.Drawing.Point(87, 208);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
@@ -484,6 +524,110 @@
             this.btn_run_unban.UseVisualStyleBackColor = true;
             this.btn_run_unban.Click += new System.EventHandler(this.button4_Click);
             // 
+            // tab_ReadFile
+            // 
+            this.tab_ReadFile.Controls.Add(this.radio_Readfile_Ignore);
+            this.tab_ReadFile.Controls.Add(this.label8);
+            this.tab_ReadFile.Controls.Add(this.textBoxAllowedActions);
+            this.tab_ReadFile.Controls.Add(this.radio_Readfile_WarnAndAbort);
+            this.tab_ReadFile.Controls.Add(this.label7);
+            this.tab_ReadFile.Controls.Add(this.btn_AbortReadfile);
+            this.tab_ReadFile.Controls.Add(this.btn_Pause_Readfile);
+            this.tab_ReadFile.Controls.Add(this.btn_RunReadfile);
+            this.tab_ReadFile.Location = new System.Drawing.Point(4, 22);
+            this.tab_ReadFile.Name = "tab_ReadFile";
+            this.tab_ReadFile.Padding = new System.Windows.Forms.Padding(3);
+            this.tab_ReadFile.Size = new System.Drawing.Size(412, 237);
+            this.tab_ReadFile.TabIndex = 4;
+            this.tab_ReadFile.Text = "Readfile";
+            this.tab_ReadFile.UseVisualStyleBackColor = true;
+            // 
+            // radio_Readfile_Ignore
+            // 
+            this.radio_Readfile_Ignore.AutoSize = true;
+            this.radio_Readfile_Ignore.Location = new System.Drawing.Point(141, 43);
+            this.radio_Readfile_Ignore.Name = "radio_Readfile_Ignore";
+            this.radio_Readfile_Ignore.Size = new System.Drawing.Size(55, 17);
+            this.radio_Readfile_Ignore.TabIndex = 18;
+            this.radio_Readfile_Ignore.Text = "Ignore";
+            this.radio_Readfile_Ignore.UseVisualStyleBackColor = true;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(138, 3);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(167, 13);
+            this.label8.TabIndex = 19;
+            this.label8.Text = "Behaviour on command Mismatch";
+            // 
+            // textBoxAllowedActions
+            // 
+            this.textBoxAllowedActions.Location = new System.Drawing.Point(9, 19);
+            this.textBoxAllowedActions.Multiline = true;
+            this.textBoxAllowedActions.Name = "textBoxAllowedActions";
+            this.textBoxAllowedActions.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxAllowedActions.Size = new System.Drawing.Size(121, 183);
+            this.textBoxAllowedActions.TabIndex = 16;
+            this.textBoxAllowedActions.Text = "ban\r\nunban\r\nmod\r\nunmod\r\nblock\r\nunblock\r\nvip\r\nunvip\r\ntimeout\r\nslow\r\nslowoff\r\nfollo" +
+    "wers\r\nfollowersoff\r\nsubscribers\r\nsubscribersoff\r\nclear\r\nuniquechat\r\nuniquechatof" +
+    "f\r\nemoteonly\r\nemoteonlyoff";
+            this.toolTip1.SetToolTip(this.textBoxAllowedActions, "Allowed Chat commands for Readfile.\r\none per line.\r\nwithout . or /");
+            // 
+            // radio_Readfile_WarnAndAbort
+            // 
+            this.radio_Readfile_WarnAndAbort.AutoSize = true;
+            this.radio_Readfile_WarnAndAbort.Checked = true;
+            this.radio_Readfile_WarnAndAbort.Location = new System.Drawing.Point(141, 20);
+            this.radio_Readfile_WarnAndAbort.Name = "radio_Readfile_WarnAndAbort";
+            this.radio_Readfile_WarnAndAbort.Size = new System.Drawing.Size(100, 17);
+            this.radio_Readfile_WarnAndAbort.TabIndex = 17;
+            this.radio_Readfile_WarnAndAbort.TabStop = true;
+            this.radio_Readfile_WarnAndAbort.Text = "Warn and Abort";
+            this.radio_Readfile_WarnAndAbort.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 3);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(85, 13);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "Allowed Actions.";
+            // 
+            // btn_AbortReadfile
+            // 
+            this.btn_AbortReadfile.Enabled = false;
+            this.btn_AbortReadfile.Location = new System.Drawing.Point(87, 208);
+            this.btn_AbortReadfile.Name = "btn_AbortReadfile";
+            this.btn_AbortReadfile.Size = new System.Drawing.Size(75, 23);
+            this.btn_AbortReadfile.TabIndex = 14;
+            this.btn_AbortReadfile.Text = "Abort";
+            this.btn_AbortReadfile.UseVisualStyleBackColor = true;
+            this.btn_AbortReadfile.Click += new System.EventHandler(this.btn_Abort_Click);
+            // 
+            // btn_Pause_Readfile
+            // 
+            this.btn_Pause_Readfile.Enabled = false;
+            this.btn_Pause_Readfile.Location = new System.Drawing.Point(6, 208);
+            this.btn_Pause_Readfile.Name = "btn_Pause_Readfile";
+            this.btn_Pause_Readfile.Size = new System.Drawing.Size(75, 23);
+            this.btn_Pause_Readfile.TabIndex = 13;
+            this.btn_Pause_Readfile.Text = "PAUSE";
+            this.btn_Pause_Readfile.UseVisualStyleBackColor = true;
+            this.btn_Pause_Readfile.Click += new System.EventHandler(this.btn_actions_Stop_Click);
+            // 
+            // btn_RunReadfile
+            // 
+            this.btn_RunReadfile.Enabled = false;
+            this.btn_RunReadfile.Location = new System.Drawing.Point(329, 208);
+            this.btn_RunReadfile.Name = "btn_RunReadfile";
+            this.btn_RunReadfile.Size = new System.Drawing.Size(75, 23);
+            this.btn_RunReadfile.TabIndex = 12;
+            this.btn_RunReadfile.Text = "RUN";
+            this.btn_RunReadfile.UseVisualStyleBackColor = true;
+            this.btn_RunReadfile.Click += new System.EventHandler(this.btn_RunReadfile_Click);
+            // 
             // btn_saveLogin
             // 
             this.btn_saveLogin.Location = new System.Drawing.Point(470, 136);
@@ -491,6 +635,8 @@
             this.btn_saveLogin.Size = new System.Drawing.Size(109, 23);
             this.btn_saveLogin.TabIndex = 10001;
             this.btn_saveLogin.Text = "Save Login*";
+            this.toolTip1.SetToolTip(this.btn_saveLogin, "Saves the username and oauth token to your %appdata%\r\nWarning the data will saved" +
+        " in clear text.");
             this.btn_saveLogin.UseVisualStyleBackColor = true;
             this.btn_saveLogin.Visible = false;
             this.btn_saveLogin.Click += new System.EventHandler(this.button2_Click);
@@ -525,6 +671,8 @@
             this.in_cooldown.Name = "in_cooldown";
             this.in_cooldown.Size = new System.Drawing.Size(66, 20);
             this.in_cooldown.TabIndex = 10003;
+            this.toolTip1.SetToolTip(this.in_cooldown, "The Delay between messages sent to Twitch in ms.\r\nThe value can\'t be blow 301.\r\nT" +
+        "o apply the changes hit the apply button to the right.");
             this.in_cooldown.Value = new decimal(new int[] {
             301,
             0,
@@ -539,18 +687,9 @@
             this.btn_applyDelay.Size = new System.Drawing.Size(75, 23);
             this.btn_applyDelay.TabIndex = 10004;
             this.btn_applyDelay.Text = "Apply";
+            this.toolTip1.SetToolTip(this.btn_applyDelay, "Applies the Delay between the messages.");
             this.btn_applyDelay.UseVisualStyleBackColor = true;
             this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
-            // 
-            // btnRemovePrefixes
-            // 
-            this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 35);
-            this.btnRemovePrefixes.Name = "btnRemovePrefixes";
-            this.btnRemovePrefixes.Size = new System.Drawing.Size(96, 23);
-            this.btnRemovePrefixes.TabIndex = 1;
-            this.btnRemovePrefixes.Text = "Remove clutter";
-            this.btnRemovePrefixes.UseVisualStyleBackColor = true;
-            this.btnRemovePrefixes.Click += new System.EventHandler(this.btnRemovePrefixes_Click);
             // 
             // Form
             // 
@@ -582,7 +721,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.2.1";
+            this.Text = "MassBanTool v. 0.2.9";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -593,6 +732,8 @@
             this.tabPageFiltering.PerformLayout();
             this.tabMisc.ResumeLayout(false);
             this.tabUnban.ResumeLayout(false);
+            this.tab_ReadFile.ResumeLayout(false);
+            this.tab_ReadFile.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -647,6 +788,17 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button btn_run_unban;
         private System.Windows.Forms.Button btnRemovePrefixes;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.HelpProvider helpProvider1;
+        private System.Windows.Forms.TabPage tab_ReadFile;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button btn_AbortReadfile;
+        private System.Windows.Forms.Button btn_Pause_Readfile;
+        private System.Windows.Forms.Button btn_RunReadfile;
+        private System.Windows.Forms.TextBox textBoxAllowedActions;
+        private System.Windows.Forms.RadioButton radio_Readfile_Ignore;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.RadioButton radio_Readfile_WarnAndAbort;
     }
 }
 

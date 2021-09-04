@@ -48,6 +48,8 @@ namespace MassBanTool
 
         private int toBanLenght = 0;
 
+        private bool reconnect = true;
+
         public LinkedList<string> MessagesQueue { get; private set; } = new LinkedList<string>();
 
         public bool isMod
@@ -91,12 +93,16 @@ namespace MassBanTool
             TwitchClient client;
             client = new TwitchClient(customClient);
             client.Initialize(credentials, channel);
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => client.Disconnect();
             return client;
         }
 
         
         private void Client_OnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
         {
+            if (!reconnect)
+                return;
+
             Console.WriteLine("Connection to Twitch lost");
 
             client = null; // Throw the client into the trashcan
@@ -246,6 +252,16 @@ namespace MassBanTool
             for (int i = 0; i < toUnBan.Count; i++)
             {
                 MessagesQueue.AddLast(($"/unban {toUnBan[i].Trim()}").Trim());
+            }
+        }
+
+        public void addRawMessages(List<string> commandList)
+        {
+            MessagesQueue.Clear();
+            toBanLenght = commandList.Count;
+            for (int i = 0; i < commandList.Count; i++)
+            {
+                MessagesQueue.AddLast(commandList[i].Trim());
             }
         }
     }
