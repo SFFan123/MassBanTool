@@ -223,7 +223,7 @@ namespace MassBanTool
                 if (MessageBox.Show("You have not provided a reason for the bans. Do you want to continue?",
                     "Confirm Ban without reason", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    twitchChat.addToBann(usernameOrCommandList, "");
+                    twitchChat.setToBann(usernameOrCommandList, "");
                 }
                 else
                 {
@@ -235,7 +235,7 @@ namespace MassBanTool
                 if (twitchChat.cooldown == default)
                     btn_applyDelay_Click(null, null);
 
-                twitchChat.addToBann(usernameOrCommandList, ban_reason);
+                twitchChat.setToBann(usernameOrCommandList, ban_reason);
             }
         }
 
@@ -434,7 +434,7 @@ namespace MassBanTool
                 btn_applyDelay_Click(null, null);
             
             // run unban ...
-            twitchChat.addToUNBann(usernameOrCommandList);
+            twitchChat.setToUNBann(usernameOrCommandList);
             TwitchChatClient.mt_pause = false;
         }
 

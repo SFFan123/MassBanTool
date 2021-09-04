@@ -223,12 +223,13 @@ namespace MassBanTool
             client.JoinChannel(channel);
         }
 
-        public void addToBann(List<string> toBan, string reason)
+        public void setToBann(List<string> toBan, string reason)
         {
+            MessagesQueue.Clear();
             toBanLenght = toBan.Count;
             if (reason.Trim().Equals(String.Empty))
             {
-                reason = "no reason Given.";
+                reason = "no reason given.";
             }
 
             for (int i = 0; i < toBan.Count; i++)
@@ -245,7 +246,7 @@ namespace MassBanTool
             mt_pause = false;
         }
 
-        public void addToUNBann(List<string> toUnBan)
+        public void setToUNBann(List<string> toUnBan)
         {
             MessagesQueue.Clear();
             toBanLenght = toUnBan.Count;
