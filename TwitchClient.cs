@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 
 namespace MassBanTool
 {
-    public class TwitchChatClient
+    public class TwitchChatClient : INotifyPropertyChanged
     {
         public static bool mt_pause = false;
 
@@ -45,6 +49,9 @@ namespace MassBanTool
             client.Connect();
         }
 
+        public ToolStatus CurrentStatus { get; set; } = ToolStatus.Disconnected;
+        public ToolStatus TargetStatus_for_pause { get; set; }
+
         public string channel { get; set; }
 
         public int cooldown { get; set; }
@@ -59,18 +66,33 @@ namespace MassBanTool
 
         public bool isBroadcaster { get; private set; }
 
+        public List<string> ChannelModerators { get; private set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         private void RegisterClientEventHandler(TwitchClient client)
         {
             client.OnLog += Client_OnLog;
-            client.OnJoinedChannel += Client_OnJoinedChannel;
             client.OnConnected += Client_OnConnected;
+            client.OnJoinedChannel += Client_OnJoinedChannel;
             client.OnUserStateChanged += Client_OnUserStateChanged;
             client.OnDisconnected += Client_OnDisconnected;
+            client.OnModeratorsReceived += ClientOnOnModeratorsReceived;
+        }
+
+        private void ClientOnOnModeratorsReceived(object sender, OnModeratorsReceivedArgs e)
+        {
+            if (string.Equals(channel, e.Channel, StringComparison.CurrentCultureIgnoreCase))
+            {
+                ChannelModerators = e.Moderators;
+            }
         }
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
             form.setInfo(this, e.Channel);
+            CurrentStatus = ToolStatus.Ready;
+            NotifyPropertyChanged(nameof(CurrentStatus));
         }
 
         private TwitchClient InitializeClient()
@@ -96,8 +118,14 @@ namespace MassBanTool
 
         private void Client_OnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
         {
+            CurrentStatus = ToolStatus.Disconnected;
+            NotifyPropertyChanged(nameof(CurrentStatus));
             if (!reconnect)
+            {
+                Console.WriteLine("Connection to Twitch closed");
                 return;
+            }
+
 
             Console.WriteLine("Connection to Twitch lost");
 
@@ -123,8 +151,9 @@ namespace MassBanTool
 
             if (isBroadcaster)
             {
-                form.ShowWarning(
-                    "You are the Broadcaster, this mean you could also ban your mods/bots by accident! Make sure they aren't in the list you going to ban!");
+                client.GetChannelModerators(client.JoinedChannels.First());
+                //form.ShowWarning(
+                //    "You are the Broadcaster, this mean you could also ban your mods/bots by accident! Make sure they aren't in the list you going to ban!");
             }
 
             if (!isMod && !isBroadcaster)
@@ -141,7 +170,6 @@ namespace MassBanTool
 
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
-            Console.WriteLine($"Connected to {e.AutoJoinChannel}");
             messageTask = makeMessageSender();
             messageTask.Start();
         }
@@ -169,7 +197,6 @@ namespace MassBanTool
                             int banindex = ActionListLenght - MessagesQueue.Count;
                             if (banindex % 10 == 0)
                             {
-                                Console.WriteLine(banindex);
                                 eta = TimeSpan.FromMilliseconds((MessagesQueue.Count * cooldown));
                                 form.setBanProgress(this, banindex, ActionListLenght);
                                 form.setETA(this, eta.ToString("g"));
@@ -209,9 +236,13 @@ namespace MassBanTool
                 throw new ArgumentException("channel may not be empty");
             }
 
+            ChannelModerators.Clear();
+
             client.LeaveChannel(channel);
             channel = newChannel;
             client.JoinChannel(channel);
+            CurrentStatus = ToolStatus.Ready;
+            NotifyPropertyChanged(nameof(CurrentStatus));
         }
 
         public void setToBann(List<string> toBan, string reason)
@@ -223,8 +254,18 @@ namespace MassBanTool
                 reason = "no reason given.";
             }
 
+            CurrentStatus = ToolStatus.Banning;
+            NotifyPropertyChanged(nameof(CurrentStatus));
             for (int i = 0; i < toBan.Count; i++)
             {
+                if (isBroadcaster)
+                {
+                    if (ChannelModerators.Contains(toBan[i].ToLower()))
+                    {
+                        continue;
+                    }
+                }
+
                 MessagesQueue.Add(($"/ban {toBan[i].Trim()} {reason.Trim()}").Trim());
             }
         }
@@ -232,6 +273,7 @@ namespace MassBanTool
 
         public void Abort()
         {
+            CurrentStatus = ToolStatus.Aborted;
             mt_pause = true;
             MessagesQueue.Clear();
             mt_pause = false;
@@ -239,8 +281,11 @@ namespace MassBanTool
 
         public void setToUNBann(List<string> toUnBan)
         {
+            CurrentStatus = ToolStatus.UnBanning;
+            NotifyPropertyChanged(nameof(CurrentStatus));
             MessagesQueue.Clear();
             ActionListLenght = toUnBan.Count;
+
             for (int i = 0; i < toUnBan.Count; i++)
             {
                 MessagesQueue.Add(($"/unban {toUnBan[i].Trim()}").Trim());
@@ -249,10 +294,24 @@ namespace MassBanTool
 
         public void addRawMessages(List<string> commandList)
         {
+            CurrentStatus = ToolStatus.ReadFile;
+            NotifyPropertyChanged(nameof(CurrentStatus));
             MessagesQueue.Clear();
             ActionListLenght = commandList.Count;
-
             MessagesQueue = commandList;
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }
