@@ -31,3 +31,10 @@ jobs:
       - name: Build Solution
         run: |
           msbuild.exe MassBanTool.sln /p:platform="Any CPU" /p:configuration="Release"
+          
+      # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: MSIX Package
+          path: ${{ env.Wap_Project_Directory }}\AppPackages
