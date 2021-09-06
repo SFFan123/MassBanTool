@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -14,14 +15,14 @@ namespace MassBanTool
     {
         private bool Broadcaster = false;
         private string channel;
-        private bool connected;
-        private string defaultStatus = "Ready";
-        TwitchChatClient twitchChat = null;
         Thread clientThread = null;
+        private bool connected;
         private bool Moderator = false;
         private string oauth;
-        private List<string> usernameOrCommandList = new List<string>();
+        TwitchChatClient twitchChat = null;
         private string uname;
+        private List<string> usernameOrCommandList = new List<string>();
+        private bool consoleIsShown = false;
 
 
         public Form()
@@ -29,7 +30,9 @@ namespace MassBanTool
             InitializeComponent();
             getLogin();
         }
-        
+
+        public string Listinfo { get; set; } = "<none>";
+
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
@@ -76,14 +79,52 @@ namespace MassBanTool
             uname = username;
             this.channel = channel;
 
+            twitchChat = new TwitchChatClient(username, oauth, channel, this);
 
-            clientThread = new Thread(() =>
-            {
-                Thread.CurrentThread.IsBackground = true;
-                twitchChat = new TwitchChatClient(username, oauth, channel, this);
-            });
-            clientThread.Start();
+            twitchChat.PropertyChanged += ClientPropChanged;
         }
+
+        private void ClientPropChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(twitchChat.CurrentStatus):
+                    switch (twitchChat.CurrentStatus)
+                    {
+                        case ToolStatus.Ready:
+                            toolStripStatusLabel.Text = "Ready";
+                            break;
+                        case ToolStatus.Aborted:
+                            toolStripStatusLabel.Text = "Aborted";
+                            break;
+                        case ToolStatus.Banning:
+                            toolStripStatusLabel.Text = "Banning";
+                            break;
+                        case ToolStatus.Disconnected:
+                            toolStripStatusLabel.Text = "Disconnected";
+                            break;
+                        case ToolStatus.ReadFile:
+                            toolStripStatusLabel.Text = "Executing Readfile";
+                            break;
+                        case ToolStatus.UnBanning:
+                            toolStripStatusLabel.Text = "Unbanning";
+                            break;
+                        case ToolStatus.Paused:
+                            toolStripStatusLabel.Text = "Paused";
+                            break;
+                        case ToolStatus.Done:
+                            toolStripStatusLabel.Text = "Done";
+                            break;
+                    }
+
+                    break;
+
+
+                default:
+                    break;
+            }
+        }
+
 
         public void setMod(object sender, bool mod, bool broadcaster)
         {
@@ -124,7 +165,7 @@ namespace MassBanTool
             this.channel = channel;
             toolStripStatusLabel_Channel.Text = channel;
 
-            toolStripStatusLabel.Text = "Connected/Ready";
+
             if (InvokeRequired)
             {
                 btn_connect.Invoke(new Action(() => { btn_connect.Text = "Switch Channel"; }));
@@ -142,19 +183,18 @@ namespace MassBanTool
             {
                 progresBar_BanProgress.Invoke(new Action(() =>
                 {
+                    double percent = (double)index / (double)max;
+                    toolStripStatusLabel_BanIndex.Text = $"{index}/{max} - {string.Format("{0:P1}", percent)}";
                     progresBar_BanProgress.Maximum = max;
                     progresBar_BanProgress.Value = index;
                     progresBar_BanProgress.Refresh();
                 }));
-                
+
 
                 if (index == max)
                 {
-                    toolStripStatusLabel.Text = "Done";
-                }
-                else
-                {
-                    toolStripStatusLabel.Text = "banning ...";
+                    twitchChat.CurrentStatus = ToolStatus.Done;
+                    twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
                 }
             }
         }
@@ -181,20 +221,26 @@ namespace MassBanTool
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                toolStripStatusLabel.Text = "Importing ...";
+                twitchChat.CurrentStatus = ToolStatus.Importing;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
+
+
                 progresBar_BanProgress.Value = 0;
                 //Get the path of specified file
                 var filePath = openFileDialog1.FileName;
 
-                lbl_list.Text = filePath;
-                
+                Listinfo = filePath;
+
+                lbl_list.Text = Listinfo;
+
                 var fileContent = File.ReadLines(filePath).ToArray();
                 fileContent = fileContent.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
                 txt_ToBan.Lines = fileContent;
                 usernameOrCommandList = fileContent.ToList();
 
 
-                toolStripStatusLabel.Text = defaultStatus;
+                twitchChat.CurrentStatus = ToolStatus.Ready;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
                 progresBar_BanProgress.Value = progresBar_BanProgress.Maximum;
                 progresBar_BanProgress.Refresh();
 
@@ -243,17 +289,21 @@ namespace MassBanTool
         {
             TwitchChatClient.mt_pause = !TwitchChatClient.mt_pause;
 
+            twitchChat.TargetStatus_for_pause = twitchChat.CurrentStatus;
             if (TwitchChatClient.mt_pause)
             {
                 btn_actions_Stop.Text = "RESUME";
-                toolStripStatusLabel.Text = "Paused! / Ready";
+                twitchChat.CurrentStatus = ToolStatus.Paused;
             }
             else
             {
                 btn_actions_Stop.Text = "PAUSE";
-                toolStripStatusLabel.Text = "banning ...";
+                twitchChat.CurrentStatus = twitchChat.TargetStatus_for_pause;
             }
+
+            twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
         }
+
         //TODO 
         private void btn_getFollows_Click(object sender, EventArgs e)
         {
@@ -281,12 +331,16 @@ namespace MassBanTool
             if (c.Length == 0)
             {
                 MessageBox.Show("Fetching Follows failed.");
-                toolStripStatusLabel.Text = defaultStatus;
+                twitchChat.CurrentStatus = ToolStatus.Ready;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
                 return;
             }
 
             usernameOrCommandList = c.ToList<string>();
             txt_ToBan.Lines = c;
+
+            Listinfo = $"{channel} - last {follows} @{DateTime.Now.ToLocalTime():T}";
+            lbl_list.Text = Listinfo;
 
             tabControl.SelectedTab = tabPageFiltering;
 
@@ -294,7 +348,7 @@ namespace MassBanTool
 
             setEnableForControl(true);
         }
-        
+
         private string[] getFollowsFromAPI(int amount = 1000)
         {
             string URL = "https://cactus.tools/twitch/followers";
@@ -344,7 +398,8 @@ namespace MassBanTool
             txt_ToBan.Lines = usernameOrCommandList.ToArray();
             progresBar_BanProgress.Maximum = 100;
             progresBar_BanProgress.Value = 100;
-            toolStripStatusLabel.Text = defaultStatus;
+            twitchChat.CurrentStatus = ToolStatus.Ready;
+            twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
         }
 
         private void getLogin()
@@ -401,25 +456,34 @@ namespace MassBanTool
             {
                 MessageBox.Show("Invalid Cooldown.");
             }
-            
         }
 
         public void ThrowError(string message, bool exitonThrow = true)
         {
             MessageBox.Show(message, "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            if(exitonThrow)
+            if (exitonThrow)
                 Environment.Exit(-1);
         }
 
         public void ShowWarning(string message)
         {
-            MessageBox.Show(message, "WARNING",MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(message, "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void btn_showconsole_Click(object sender, EventArgs e)
         {
-            var a  = Program.AllocConsole();
-            btn_showconsole.Enabled = false;
+            if (consoleIsShown)
+            {
+                consoleIsShown = Program.FreeConsole();
+                btn_showconsole.Text = "Show Console";
+            }
+            else
+            {
+                consoleIsShown = Program.AllocConsole();
+                btn_showconsole.Text = "Hide Console";
+            }
+            
+            
         }
 
         private void btn_Abort_Click(object sender, EventArgs e)
@@ -432,7 +496,7 @@ namespace MassBanTool
         {
             if (twitchChat.cooldown == default)
                 btn_applyDelay_Click(null, null);
-            
+
             // run unban ...
             twitchChat.setToUNBann(usernameOrCommandList);
             TwitchChatClient.mt_pause = false;
@@ -441,7 +505,8 @@ namespace MassBanTool
         private void btnRemovePrefixes_Click(object sender, EventArgs e)
         {
             List<string> result = new List<string>();
-            Regex regex = new Regex(@"^(?:(?:\/|\.)[^\s]+ )?(\w+)(?: .+)?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Regex regex = new Regex(@"^(?:(?:\/|\.)[^\s]+ )?(\w+)(?: .+)?$",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
             foreach (string user in usernameOrCommandList)
             {
                 string _user = user.Trim();
@@ -460,10 +525,10 @@ namespace MassBanTool
             // get allow list
 
             var allowList = textBoxAllowedActions
-                                            .Lines
-                                            .Select(x=> x.Trim())
-                                            .Where(x => !string.IsNullOrEmpty(x) && x != string.Empty)
-                                            .ToArray();
+                .Lines
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrEmpty(x) && x != string.Empty)
+                .ToArray();
 
             if (allowList.Length == 0)
             {
@@ -476,10 +541,10 @@ namespace MassBanTool
 
             // Filter list
             // broken.
-            var commandList = usernameOrCommandList.Where(x => x!= String.Empty && allowList.Contains(
+            var commandList = usernameOrCommandList.Where(x => x != String.Empty && allowList.Contains(
                 //TODO check if command prefix
-                x.Substring(1, x.IndexOf(" ")-1))
-                ).ToList();
+                x.Substring(1, x.IndexOf(" ") - 1))
+            ).ToList();
 
             if (radio_Readfile_WarnAndAbort.Checked && commandList.Count != usernameOrCommandList.Count)
             {
@@ -490,6 +555,11 @@ namespace MassBanTool
 
             // Put in Queue
             twitchChat.addRawMessages(usernameOrCommandList);
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/releases");
         }
     }
 }

@@ -86,7 +86,10 @@
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.helpProvider1 = new System.Windows.Forms.HelpProvider();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.toolStripMenuItem_About = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStatusLabel_BanIndex = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -96,24 +99,26 @@
             this.tabUnban.SuspendLayout();
             this.tab_ReadFile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // txt_ToBan
             // 
             this.txt_ToBan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-            this.txt_ToBan.Location = new System.Drawing.Point(13, 38);
+            this.txt_ToBan.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_ToBan.Location = new System.Drawing.Point(13, 55);
             this.txt_ToBan.Multiline = true;
             this.txt_ToBan.Name = "txt_ToBan";
             this.txt_ToBan.ReadOnly = true;
             this.txt_ToBan.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_ToBan.Size = new System.Drawing.Size(315, 385);
+            this.txt_ToBan.Size = new System.Drawing.Size(315, 406);
             this.txt_ToBan.TabIndex = 10000;
             // 
             // progresBar_BanProgress
             // 
             this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 429);
+            this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 467);
             this.progresBar_BanProgress.Name = "progresBar_BanProgress";
             this.progresBar_BanProgress.Size = new System.Drawing.Size(315, 23);
             this.progresBar_BanProgress.TabIndex = 1;
@@ -122,7 +127,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(418, 28);
+            this.label1.Location = new System.Drawing.Point(419, 31);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(55, 13);
             this.label1.TabIndex = 2;
@@ -132,7 +137,7 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(403, 55);
+            this.label2.Location = new System.Drawing.Point(404, 58);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(70, 13);
             this.label2.TabIndex = 3;
@@ -141,7 +146,7 @@
             // btn_connect
             // 
             this.btn_connect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_connect.Location = new System.Drawing.Point(470, 107);
+            this.btn_connect.Location = new System.Drawing.Point(471, 110);
             this.btn_connect.Name = "btn_connect";
             this.btn_connect.Size = new System.Drawing.Size(109, 23);
             this.btn_connect.TabIndex = 4;
@@ -152,7 +157,7 @@
             // txt_username
             // 
             this.txt_username.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_username.Location = new System.Drawing.Point(479, 28);
+            this.txt_username.Location = new System.Drawing.Point(480, 31);
             this.txt_username.Name = "txt_username";
             this.txt_username.Size = new System.Drawing.Size(100, 20);
             this.txt_username.TabIndex = 0;
@@ -160,7 +165,7 @@
             // txt_oauth
             // 
             this.txt_oauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_oauth.Location = new System.Drawing.Point(479, 55);
+            this.txt_oauth.Location = new System.Drawing.Point(480, 58);
             this.txt_oauth.Name = "txt_oauth";
             this.txt_oauth.PasswordChar = '*';
             this.txt_oauth.Size = new System.Drawing.Size(100, 20);
@@ -170,7 +175,7 @@
             // 
             this.chk_showOauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.chk_showOauth.AutoSize = true;
-            this.chk_showOauth.Location = new System.Drawing.Point(586, 57);
+            this.chk_showOauth.Location = new System.Drawing.Point(587, 60);
             this.chk_showOauth.Name = "chk_showOauth";
             this.chk_showOauth.Size = new System.Drawing.Size(86, 17);
             this.chk_showOauth.TabIndex = 7;
@@ -182,7 +187,7 @@
             // txt_channel
             // 
             this.txt_channel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_channel.Location = new System.Drawing.Point(479, 81);
+            this.txt_channel.Location = new System.Drawing.Point(480, 84);
             this.txt_channel.Name = "txt_channel";
             this.txt_channel.Size = new System.Drawing.Size(100, 20);
             this.txt_channel.TabIndex = 3;
@@ -191,7 +196,7 @@
             // 
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(422, 84);
+            this.label3.Location = new System.Drawing.Point(423, 87);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(46, 13);
             this.label3.TabIndex = 8;
@@ -200,7 +205,8 @@
             // btn_OpenList
             // 
             this.btn_OpenList.Enabled = false;
-            this.btn_OpenList.Location = new System.Drawing.Point(13, 9);
+            this.btn_OpenList.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_OpenList.Location = new System.Drawing.Point(13, 26);
             this.btn_OpenList.Name = "btn_OpenList";
             this.btn_OpenList.Size = new System.Drawing.Size(75, 23);
             this.btn_OpenList.TabIndex = 10;
@@ -216,7 +222,7 @@
             // 
             this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pbModerator.Image = global::MassBanTool.Properties.Resources.moderator2;
-            this.pbModerator.Location = new System.Drawing.Point(586, 104);
+            this.pbModerator.Location = new System.Drawing.Point(587, 107);
             this.pbModerator.Name = "pbModerator";
             this.pbModerator.Size = new System.Drawing.Size(27, 26);
             this.pbModerator.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -227,7 +233,7 @@
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(678, 52);
+            this.button1.Location = new System.Drawing.Point(679, 55);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(66, 25);
             this.button1.TabIndex = 13;
@@ -241,17 +247,18 @@
             // lbl_list
             // 
             this.lbl_list.AutoSize = true;
-            this.lbl_list.Location = new System.Drawing.Point(203, 14);
+            this.lbl_list.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_list.Location = new System.Drawing.Point(219, 29);
             this.lbl_list.Name = "lbl_list";
-            this.lbl_list.Size = new System.Drawing.Size(43, 13);
+            this.lbl_list.Size = new System.Drawing.Size(49, 15);
             this.lbl_list.TabIndex = 14;
             this.lbl_list.Text = "<none>";
             // 
             // toolStripStatusLabel
             // 
             this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
-            this.toolStripStatusLabel.Text = "Ready";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(12, 17);
+            this.toolStripStatusLabel.Text = "-";
             // 
             // toolStripStatusLabelSeperator
             // 
@@ -280,8 +287,9 @@
             this.toolStripStatusLabel_Channel,
             this.toolStripStatusMod,
             this.toolStripWarning,
-            this.toolstripETA});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 460);
+            this.toolstripETA,
+            this.toolStripStatusLabel_BanIndex});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 498);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
             this.statusStrip1.TabIndex = 17;
@@ -309,9 +317,10 @@
             // btn_getFollows
             // 
             this.btn_getFollows.Enabled = false;
-            this.btn_getFollows.Location = new System.Drawing.Point(94, 9);
+            this.btn_getFollows.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_getFollows.Location = new System.Drawing.Point(94, 27);
             this.btn_getFollows.Name = "btn_getFollows";
-            this.btn_getFollows.Size = new System.Drawing.Size(103, 23);
+            this.btn_getFollows.Size = new System.Drawing.Size(119, 23);
             this.btn_getFollows.TabIndex = 18;
             this.btn_getFollows.Text = "Get Last Follows";
             this.toolTip1.SetToolTip(this.btn_getFollows, "Fetches the last 1000 Follows to the current channel from a public API.");
@@ -326,7 +335,7 @@
             this.tabControl.Controls.Add(this.tabMisc);
             this.tabControl.Controls.Add(this.tabUnban);
             this.tabControl.Controls.Add(this.tab_ReadFile);
-            this.tabControl.Location = new System.Drawing.Point(334, 189);
+            this.tabControl.Location = new System.Drawing.Point(334, 227);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
             this.tabControl.Size = new System.Drawing.Size(420, 263);
@@ -630,7 +639,7 @@
             // 
             // btn_saveLogin
             // 
-            this.btn_saveLogin.Location = new System.Drawing.Point(470, 136);
+            this.btn_saveLogin.Location = new System.Drawing.Point(471, 139);
             this.btn_saveLogin.Name = "btn_saveLogin";
             this.btn_saveLogin.Size = new System.Drawing.Size(109, 23);
             this.btn_saveLogin.TabIndex = 10001;
@@ -643,8 +652,9 @@
             // 
             // label6
             // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(596, 162);
+            this.label6.Location = new System.Drawing.Point(597, 165);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(148, 13);
             this.label6.TabIndex = 10002;
@@ -652,12 +662,13 @@
             // 
             // in_cooldown
             // 
+            this.in_cooldown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.in_cooldown.Increment = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.in_cooldown.Location = new System.Drawing.Point(599, 139);
+            this.in_cooldown.Location = new System.Drawing.Point(600, 142);
             this.in_cooldown.Maximum = new decimal(new int[] {
             50000,
             0,
@@ -682,7 +693,7 @@
             // btn_applyDelay
             // 
             this.btn_applyDelay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_applyDelay.Location = new System.Drawing.Point(669, 136);
+            this.btn_applyDelay.Location = new System.Drawing.Point(670, 139);
             this.btn_applyDelay.Name = "btn_applyDelay";
             this.btn_applyDelay.Size = new System.Drawing.Size(75, 23);
             this.btn_applyDelay.TabIndex = 10004;
@@ -691,11 +702,42 @@
             this.btn_applyDelay.UseVisualStyleBackColor = true;
             this.btn_applyDelay.Click += new System.EventHandler(this.btn_applyDelay_Click);
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem_About});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(754, 24);
+            this.menuStrip1.TabIndex = 10005;
+            // 
+            // toolStripMenuItem_About
+            // 
+            this.toolStripMenuItem_About.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem_Releases});
+            this.toolStripMenuItem_About.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolStripMenuItem_About.Name = "toolStripMenuItem_About";
+            this.toolStripMenuItem_About.Size = new System.Drawing.Size(52, 20);
+            this.toolStripMenuItem_About.Text = "About";
+            // 
+            // toolStripMenuItem_Releases
+            // 
+            this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
+            this.toolStripMenuItem_Releases.Text = "Releases";
+            this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
+            // toolStripStatusLabel_BanIndex
+            // 
+            this.toolStripStatusLabel_BanIndex.Name = "toolStripStatusLabel_BanIndex";
+            this.toolStripStatusLabel_BanIndex.Size = new System.Drawing.Size(0, 17);
+            // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(754, 482);
+            this.ClientSize = new System.Drawing.Size(754, 520);
             this.Controls.Add(this.btn_applyDelay);
             this.Controls.Add(this.in_cooldown);
             this.Controls.Add(this.label6);
@@ -703,6 +745,7 @@
             this.Controls.Add(this.tabControl);
             this.Controls.Add(this.btn_getFollows);
             this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.lbl_list);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.pbModerator);
@@ -718,10 +761,11 @@
             this.Controls.Add(this.progresBar_BanProgress);
             this.Controls.Add(this.txt_ToBan);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.2.9";
+            this.Text = "MassBanTool v. 0.3.0";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -735,6 +779,8 @@
             this.tab_ReadFile.ResumeLayout(false);
             this.tab_ReadFile.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -789,7 +835,6 @@
         private System.Windows.Forms.Button btn_run_unban;
         private System.Windows.Forms.Button btnRemovePrefixes;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.HelpProvider helpProvider1;
         private System.Windows.Forms.TabPage tab_ReadFile;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Button btn_AbortReadfile;
@@ -799,6 +844,10 @@
         private System.Windows.Forms.RadioButton radio_Readfile_Ignore;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.RadioButton radio_Readfile_WarnAndAbort;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_About;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Releases;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_BanIndex;
     }
 }
 

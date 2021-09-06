@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MassBanTool
 {
-    static class Program
+    public static class Program
     {
         // TODO add mutex
         // TODO check if multi channel support
         // TODO show count
         // TODO give feedback who has been banned
-        // TODO PAUSE option.
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
         /// </summary>
@@ -25,6 +20,7 @@ namespace MassBanTool
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form());
         }
+
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
