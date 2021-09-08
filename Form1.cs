@@ -139,6 +139,7 @@ namespace MassBanTool
 
                             btn_run_unban.Enabled = false;
                             btn_action_run.Enabled = false;
+                            txt_actions_ban_reason.Enabled = false;
                             break;
 
                         case ListType.Mixed:
@@ -148,12 +149,14 @@ namespace MassBanTool
                             btn_RunReadfile.Enabled = false;
                             btn_run_unban.Enabled = false;
                             btn_action_run.Enabled = false;
+                            txt_actions_ban_reason.Enabled = false;
                             break;
 
                         case ListType.UserList:
                             btn_run_regex.Enabled = true;
                             btn_action_run.Enabled = true;
                             btn_run_unban.Enabled = true;
+                            txt_actions_ban_reason.Enabled = true;
 
                             btnRemovePrefixes.Enabled = false;
                             btn_RunReadfile.Enabled = false;
@@ -543,6 +546,7 @@ namespace MassBanTool
 
         private void checkListType()
         {
+            inputListType = ListType.none;
             foreach (var line in txt_ToBan.Lines)
             {
                 if (line.StartsWith("/") || line.StartsWith("."))
@@ -663,6 +667,8 @@ namespace MassBanTool
             string URL = Interaction.InputBox("URL of the file.", "Destination");
 
             toolStripStatusLabel.Text = "Fetching List ...";
+
+            setEnableForControl(true);
 
             using (var client = new HttpClient())
             {
