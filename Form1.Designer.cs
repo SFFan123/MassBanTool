@@ -92,6 +92,7 @@
             this.fetchLastFollowersOfChannelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_About = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
+            this.lbl_listType = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -741,15 +742,24 @@
             // toolStripMenuItem_Releases
             // 
             this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
-            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
             this.toolStripMenuItem_Releases.Text = "Releases";
             this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
+            // lbl_listType
+            // 
+            this.lbl_listType.AutoSize = true;
+            this.lbl_listType.Location = new System.Drawing.Point(335, 211);
+            this.lbl_listType.Name = "lbl_listType";
+            this.lbl_listType.Size = new System.Drawing.Size(0, 13);
+            this.lbl_listType.TabIndex = 10006;
             // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 520);
+            this.Controls.Add(this.lbl_listType);
             this.Controls.Add(this.btn_applyDelay);
             this.Controls.Add(this.in_cooldown);
             this.Controls.Add(this.label6);
@@ -860,6 +870,7 @@
         private System.Windows.Forms.ToolStripMenuItem openListFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openListURLToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fetchLastFollowersOfChannelToolStripMenuItem;
+        private System.Windows.Forms.Label lbl_listType;
     }
 }
 

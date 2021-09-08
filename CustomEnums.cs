@@ -12,4 +12,12 @@
         Done,
         Importing
     }
+
+    public enum ListType
+    {
+        none = default,
+        UserList,
+        ReadFile,
+        Mixed
+    }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 
@@ -18,6 +19,8 @@ namespace MassBanTool
         private string oauth;
         TwitchChatClient twitchChat = null;
         private string uname;
+
+        private ListType inputListType = default;
 
 
         public Form()
@@ -124,11 +127,38 @@ namespace MassBanTool
                             toolStripStatusLabel.Text = "Done";
                             break;
                     }
-
                     break;
+                case nameof(inputListType):
+                    lbl_listType.Text = $"Listtype: {inputListType}";
+                    switch (inputListType)
+                    {
+                        case ListType.ReadFile:
+                            btn_RunReadfile.Enabled = true;
+                            btn_run_regex.Enabled = true;
+                            btnRemovePrefixes.Enabled = true;
 
+                            btn_run_unban.Enabled = false;
+                            btn_action_run.Enabled = false;
+                            break;
 
-                default:
+                        case ListType.Mixed:
+                            btn_run_regex.Enabled = true;
+                            btnRemovePrefixes.Enabled = true;
+
+                            btn_RunReadfile.Enabled = false;
+                            btn_run_unban.Enabled = false;
+                            btn_action_run.Enabled = false;
+                            break;
+
+                        case ListType.UserList:
+                            btn_run_regex.Enabled = true;
+                            btn_action_run.Enabled = true;
+                            btn_run_unban.Enabled = true;
+
+                            btnRemovePrefixes.Enabled = false;
+                            btn_RunReadfile.Enabled = false;
+                            break;
+                    }
                     break;
             }
         }
@@ -247,11 +277,6 @@ namespace MassBanTool
             System.Diagnostics.Process.Start("https://twitchapps.com/tmi/");
         }
 
-        private void btn_OpenList_Click(object sender, EventArgs e)
-        {
-            OpenListFromFile();
-        }
-
         private void setEnableForControl(bool enabled = true)
         {
             foreach (TabPage tab in tabControl.TabPages)
@@ -262,7 +287,6 @@ namespace MassBanTool
                 }
             }
         }
-
 
         private void btn_action_run_Click(object sender, EventArgs e)
         {
@@ -471,9 +495,8 @@ namespace MassBanTool
 
                 result.Add(_user);
             }
-
-            //usernameOrCommandList = result;
-            txt_ToBan.Lines = usernameOrCommandList.ToArray();
+            txt_ToBan.Lines = result.ToArray();
+            checkListType();
         }
 
         private void btn_RunReadfile_Click(object sender, EventArgs e)
@@ -518,6 +541,41 @@ namespace MassBanTool
             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/releases");
         }
 
+        private void checkListType()
+        {
+            foreach (var line in txt_ToBan.Lines)
+            {
+                if (line.StartsWith("/") || line.StartsWith("."))
+                {
+                    if (inputListType == ListType.none || inputListType == ListType.ReadFile)
+                    {
+                        inputListType = ListType.ReadFile;
+                    }
+                    else
+                    {
+                        inputListType = ListType.Mixed;
+                    }
+
+                    if (inputListType == ListType.Mixed)
+                    {
+                        twitchChat.NotifyPropertyChanged(nameof(inputListType));
+                        return;
+                    }
+                        
+                }
+                else if(line.Contains(" "))
+                {
+                    inputListType = ListType.Mixed;
+                    twitchChat.NotifyPropertyChanged(nameof(inputListType));
+                    return;
+                }
+            }
+
+            inputListType = inputListType == ListType.ReadFile ? ListType.ReadFile : ListType.UserList;
+
+            twitchChat.NotifyPropertyChanged(nameof(inputListType));
+        }
+
 
         private void OpenListFromFile()
         {
@@ -542,16 +600,15 @@ namespace MassBanTool
                 var fileContent = File.ReadLines(filePath).ToArray();
                 fileContent = fileContent.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
                 txt_ToBan.Lines = fileContent;
-                //usernameOrCommandList = fileContent.ToList();
-
 
                 twitchChat.CurrentStatus = ToolStatus.Ready;
                 twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
                 progresBar_BanProgress.Value = progresBar_BanProgress.Maximum;
                 progresBar_BanProgress.Refresh();
 
-
                 setEnableForControl(true);
+
+                checkListType();
             }
         }
 
@@ -597,6 +654,8 @@ namespace MassBanTool
             toolStripStatusLabel.Text = "Ready";
 
             setEnableForControl(true);
+
+            inputListType = ListType.UserList;
         }
 
         private void OpenListFromURL()
@@ -624,6 +683,8 @@ namespace MassBanTool
                     //usernameOrCommandList = result.ToList();
 
                     lbl_list.Text = URL + " @ " + DateTime.Now.ToString("T");
+
+                    checkListType();
 
                     toolStripStatusLabel.Text = "Ready";
                 }
