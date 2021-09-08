@@ -66,7 +66,7 @@ namespace MassBanTool
 
         public bool isBroadcaster { get; private set; }
 
-        public List<string> ChannelModerators { get; private set; }
+        public List<string> ChannelModerators { get; private set; } = new List<string>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -236,7 +236,7 @@ namespace MassBanTool
                 throw new ArgumentException("channel may not be empty");
             }
 
-            ChannelModerators.Clear();
+            ChannelModerators?.Clear();
 
             client.LeaveChannel(channel);
             channel = newChannel;
