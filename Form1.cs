@@ -24,9 +24,6 @@ namespace MassBanTool
         {
             InitializeComponent();
             getLogin();
-#if DEBUG
-            this.Text += " DEV";
-#endif
         }
 
         public List<string> usernameOrCommandList
