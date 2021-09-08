@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 
@@ -13,22 +12,26 @@ namespace MassBanTool
 {
     public partial class Form : System.Windows.Forms.Form
     {
-        private bool Broadcaster = false;
         private string channel;
-        Thread clientThread = null;
         private bool connected;
-        private bool Moderator = false;
+        private bool consoleIsShown = false;
         private string oauth;
         TwitchChatClient twitchChat = null;
         private string uname;
-        private List<string> usernameOrCommandList = new List<string>();
-        private bool consoleIsShown = false;
 
 
         public Form()
         {
             InitializeComponent();
             getLogin();
+#if DEBUG
+            this.Text += " DEV";
+#endif
+        }
+
+        public List<string> usernameOrCommandList
+        {
+            get => txt_ToBan.Lines.ToList();
         }
 
         public string Listinfo { get; set; } = "<none>";
@@ -51,7 +54,15 @@ namespace MassBanTool
             string channel = txt_channel.Text.Trim().ToLower();
             if (connected)
             {
-                twitchChat.switchChannel(channel);
+                try
+                {
+                    twitchChat.switchChannel(channel);
+                }
+                catch (ArgumentException exception)
+                {
+                    ThrowError(exception.Message, false);
+                }
+
                 return;
             }
 
@@ -128,8 +139,6 @@ namespace MassBanTool
 
         public void setMod(object sender, bool mod, bool broadcaster)
         {
-            this.Moderator = mod;
-            this.Broadcaster = broadcaster;
             if (InvokeRequired)
             {
                 toolStripStatusMod.Visible = mod || broadcaster;
@@ -165,15 +174,43 @@ namespace MassBanTool
             this.channel = channel;
             toolStripStatusLabel_Channel.Text = channel;
 
+            if (openListFileToolStripMenuItem.GetCurrentParent().InvokeRequired)
+            {
+                openListFileToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
+                {
+                    openListFileToolStripMenuItem.Enabled = true;
+                }));
+
+                openListURLToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
+                {
+                    openListURLToolStripMenuItem.Enabled = true;
+                }));
+
+                fetchLastFollowersOfChannelToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
+                {
+                    fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
+                }));
+            }
+            else
+            {
+                openListFileToolStripMenuItem.Enabled = true;
+                openListURLToolStripMenuItem.Enabled = true;
+                fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
+            }
 
             if (InvokeRequired)
             {
                 btn_connect.Invoke(new Action(() => { btn_connect.Text = "Switch Channel"; }));
-                btn_OpenList.Invoke(new Action(() => { btn_OpenList.Enabled = true; }));
                 btn_saveLogin.Invoke(new Action(() => { btn_saveLogin.Visible = true; }));
-                btn_getFollows.Invoke(new Action(() => { btn_getFollows.Enabled = true; }));
                 txt_oauth.Invoke(new Action(() => { txt_oauth.ReadOnly = true; }));
                 txt_username.Invoke(new Action(() => { txt_username.ReadOnly = true; }));
+            }
+            else
+            {
+                btn_connect.Text = "Switch Channel";
+                btn_saveLogin.Visible = true;
+                txt_oauth.ReadOnly = true;
+                txt_username.ReadOnly = true;
             }
         }
 
@@ -215,38 +252,7 @@ namespace MassBanTool
 
         private void btn_OpenList_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            openFileDialog1.FilterIndex = 2;
-            openFileDialog1.RestoreDirectory = true;
-
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                twitchChat.CurrentStatus = ToolStatus.Importing;
-                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
-
-
-                progresBar_BanProgress.Value = 0;
-                //Get the path of specified file
-                var filePath = openFileDialog1.FileName;
-
-                Listinfo = filePath;
-
-                lbl_list.Text = Listinfo;
-
-                var fileContent = File.ReadLines(filePath).ToArray();
-                fileContent = fileContent.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                txt_ToBan.Lines = fileContent;
-                usernameOrCommandList = fileContent.ToList();
-
-
-                twitchChat.CurrentStatus = ToolStatus.Ready;
-                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
-                progresBar_BanProgress.Value = progresBar_BanProgress.Maximum;
-                progresBar_BanProgress.Refresh();
-
-
-                setEnableForControl(true);
-            }
+            OpenListFromFile();
         }
 
         private void setEnableForControl(bool enabled = true)
@@ -304,51 +310,6 @@ namespace MassBanTool
             twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
         }
 
-        //TODO 
-        private void btn_getFollows_Click(object sender, EventArgs e)
-        {
-            if (channel.Equals(string.Empty))
-            {
-                MessageBox.Show("No Channel given can't fetch follows!");
-                return;
-            }
-
-
-            string input = Interaction.InputBox("Amount of Follows? must be between 0 and 5000", "Fetch amount");
-
-            if (input == string.Empty)
-                return;
-
-            if (!int.TryParse(input, out int follows) && follows < 5000 && follows > 0)
-            {
-                MessageBox.Show("Invalid Follow amount.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-
-            toolStripStatusLabel.Text = $"Fetching Last {follows} Follows from API...";
-            string[] c = getFollowsFromAPI(follows);
-            if (c.Length == 0)
-            {
-                MessageBox.Show("Fetching Follows failed.");
-                twitchChat.CurrentStatus = ToolStatus.Ready;
-                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
-                return;
-            }
-
-            usernameOrCommandList = c.ToList<string>();
-            txt_ToBan.Lines = c;
-
-            Listinfo = $"{channel} - last {follows} @{DateTime.Now.ToLocalTime():T}";
-            lbl_list.Text = Listinfo;
-
-            tabControl.SelectedTab = tabPageFiltering;
-
-            toolStripStatusLabel.Text = "Ready";
-
-            setEnableForControl(true);
-        }
-
         private string[] getFollowsFromAPI(int amount = 1000)
         {
             string URL = "https://cactus.tools/twitch/followers";
@@ -394,7 +355,7 @@ namespace MassBanTool
                 }
             }
 
-            usernameOrCommandList = newToBan;
+            //usernameOrCommandList = newToBan;
             txt_ToBan.Lines = usernameOrCommandList.ToArray();
             progresBar_BanProgress.Maximum = 100;
             progresBar_BanProgress.Value = 100;
@@ -482,8 +443,6 @@ namespace MassBanTool
                 consoleIsShown = Program.AllocConsole();
                 btn_showconsole.Text = "Hide Console";
             }
-            
-            
         }
 
         private void btn_Abort_Click(object sender, EventArgs e)
@@ -516,7 +475,7 @@ namespace MassBanTool
                 result.Add(_user);
             }
 
-            usernameOrCommandList = result;
+            //usernameOrCommandList = result;
             txt_ToBan.Lines = usernameOrCommandList.ToArray();
         }
 
@@ -560,6 +519,137 @@ namespace MassBanTool
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/releases");
+        }
+
+
+        private void OpenListFromFile()
+        {
+            openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                twitchChat.CurrentStatus = ToolStatus.Importing;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
+
+
+                progresBar_BanProgress.Value = 0;
+                //Get the path of specified file
+                var filePath = openFileDialog1.FileName;
+
+                Listinfo = filePath;
+
+                lbl_list.Text = Listinfo;
+
+                var fileContent = File.ReadLines(filePath).ToArray();
+                fileContent = fileContent.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                txt_ToBan.Lines = fileContent;
+                //usernameOrCommandList = fileContent.ToList();
+
+
+                twitchChat.CurrentStatus = ToolStatus.Ready;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
+                progresBar_BanProgress.Value = progresBar_BanProgress.Maximum;
+                progresBar_BanProgress.Refresh();
+
+
+                setEnableForControl(true);
+            }
+        }
+
+        private void FetchLastFollowers()
+        {
+            if (channel.Equals(string.Empty))
+            {
+                MessageBox.Show("No Channel given can't fetch follows!");
+                return;
+            }
+
+
+            string input = Interaction.InputBox("Amount of Follows? must be between 0 and 5000", "Fetch amount");
+
+            if (input == string.Empty)
+                return;
+
+            if (!int.TryParse(input, out int follows) && follows < 5000 && follows > 0)
+            {
+                MessageBox.Show("Invalid Follow amount.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+
+            toolStripStatusLabel.Text = $"Fetching Last {follows} Follows from API...";
+            string[] c = getFollowsFromAPI(follows);
+            if (c.Length == 0)
+            {
+                MessageBox.Show("Fetching Follows failed.");
+                twitchChat.CurrentStatus = ToolStatus.Ready;
+                twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
+                return;
+            }
+
+            //usernameOrCommandList = c.ToList<string>();
+            txt_ToBan.Lines = c;
+
+            Listinfo = $"{channel} - last {follows} @{DateTime.Now.ToLocalTime():T}";
+            lbl_list.Text = Listinfo;
+
+            tabControl.SelectedTab = tabPageFiltering;
+
+            toolStripStatusLabel.Text = "Ready";
+
+            setEnableForControl(true);
+        }
+
+        private void OpenListFromURL()
+        {
+            string URL = Interaction.InputBox("URL of the file.", "Destination");
+
+            toolStripStatusLabel.Text = "Fetching List ...";
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(URL);
+
+                HttpResponseMessage response = client.GetAsync(URL).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    // Parse the response body.
+                    string[] result = response.Content.ReadAsStringAsync()
+                        .Result
+                        .Split('\n')
+                        .Select(x => x.Trim())
+                        .Where(x => x != string.Empty)
+                        .ToArray();
+
+                    txt_ToBan.Lines = result;
+                    //usernameOrCommandList = result.ToList();
+
+                    lbl_list.Text = URL + " @ " + DateTime.Now.ToString("T");
+
+                    toolStripStatusLabel.Text = "Ready";
+                }
+                else
+                {
+                    ThrowError("Fetching of the File Failed.", false);
+                }
+            }
+        }
+
+        private void openListURLToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenListFromURL();
+        }
+
+        private void fetchLastFollowersOfChannelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FetchLastFollowers();
+        }
+
+        private void openListFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenListFromFile();
         }
     }
 }

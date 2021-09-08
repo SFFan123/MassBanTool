@@ -40,7 +40,6 @@
             this.chk_showOauth = new System.Windows.Forms.CheckBox();
             this.txt_channel = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.btn_OpenList = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.pbModerator = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
@@ -53,7 +52,7 @@
             this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
-            this.btn_getFollows = new System.Windows.Forms.Button();
+            this.toolStripStatusLabel_BanIndex = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPageBanning = new System.Windows.Forms.TabPage();
             this.btn_Abort = new System.Windows.Forms.Button();
@@ -87,9 +86,12 @@
             this.btn_applyDelay = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openListFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openListURLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fetchLastFollowersOfChannelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_About = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripStatusLabel_BanIndex = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -202,18 +204,6 @@
             this.label3.TabIndex = 8;
             this.label3.Text = "Channel";
             // 
-            // btn_OpenList
-            // 
-            this.btn_OpenList.Enabled = false;
-            this.btn_OpenList.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_OpenList.Location = new System.Drawing.Point(13, 26);
-            this.btn_OpenList.Name = "btn_OpenList";
-            this.btn_OpenList.Size = new System.Drawing.Size(75, 23);
-            this.btn_OpenList.TabIndex = 10;
-            this.btn_OpenList.Text = "Open List";
-            this.btn_OpenList.UseVisualStyleBackColor = true;
-            this.btn_OpenList.Click += new System.EventHandler(this.btn_OpenList_Click);
-            // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog";
@@ -248,7 +238,7 @@
             // 
             this.lbl_list.AutoSize = true;
             this.lbl_list.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_list.Location = new System.Drawing.Point(219, 29);
+            this.lbl_list.Location = new System.Drawing.Point(12, 29);
             this.lbl_list.Name = "lbl_list";
             this.lbl_list.Size = new System.Drawing.Size(49, 15);
             this.lbl_list.TabIndex = 14;
@@ -314,18 +304,10 @@
             this.toolstripETA.Size = new System.Drawing.Size(37, 17);
             this.toolstripETA.Text = "ETA: -";
             // 
-            // btn_getFollows
+            // toolStripStatusLabel_BanIndex
             // 
-            this.btn_getFollows.Enabled = false;
-            this.btn_getFollows.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_getFollows.Location = new System.Drawing.Point(94, 27);
-            this.btn_getFollows.Name = "btn_getFollows";
-            this.btn_getFollows.Size = new System.Drawing.Size(119, 23);
-            this.btn_getFollows.TabIndex = 18;
-            this.btn_getFollows.Text = "Get Last Follows";
-            this.toolTip1.SetToolTip(this.btn_getFollows, "Fetches the last 1000 Follows to the current channel from a public API.");
-            this.btn_getFollows.UseVisualStyleBackColor = true;
-            this.btn_getFollows.Click += new System.EventHandler(this.btn_getFollows_Click);
+            this.toolStripStatusLabel_BanIndex.Name = "toolStripStatusLabel_BanIndex";
+            this.toolStripStatusLabel_BanIndex.Size = new System.Drawing.Size(0, 17);
             // 
             // tabControl
             // 
@@ -706,11 +688,46 @@
             // 
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
             this.toolStripMenuItem_About});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(754, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(754, 25);
             this.menuStrip1.TabIndex = 10005;
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openListFileToolStripMenuItem,
+            this.openListURLToolStripMenuItem,
+            this.fetchLastFollowersOfChannelToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // openListFileToolStripMenuItem
+            // 
+            this.openListFileToolStripMenuItem.Enabled = false;
+            this.openListFileToolStripMenuItem.Name = "openListFileToolStripMenuItem";
+            this.openListFileToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
+            this.openListFileToolStripMenuItem.Text = "Open List <File>";
+            this.openListFileToolStripMenuItem.Click += new System.EventHandler(this.openListFileToolStripMenuItem_Click);
+            // 
+            // openListURLToolStripMenuItem
+            // 
+            this.openListURLToolStripMenuItem.Enabled = false;
+            this.openListURLToolStripMenuItem.Name = "openListURLToolStripMenuItem";
+            this.openListURLToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
+            this.openListURLToolStripMenuItem.Text = "Open List <URL>";
+            this.openListURLToolStripMenuItem.Click += new System.EventHandler(this.openListURLToolStripMenuItem_Click);
+            // 
+            // fetchLastFollowersOfChannelToolStripMenuItem
+            // 
+            this.fetchLastFollowersOfChannelToolStripMenuItem.Enabled = false;
+            this.fetchLastFollowersOfChannelToolStripMenuItem.Name = "fetchLastFollowersOfChannelToolStripMenuItem";
+            this.fetchLastFollowersOfChannelToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
+            this.fetchLastFollowersOfChannelToolStripMenuItem.Text = "Fetch Last Followers of Channel";
+            this.fetchLastFollowersOfChannelToolStripMenuItem.Click += new System.EventHandler(this.fetchLastFollowersOfChannelToolStripMenuItem_Click);
             // 
             // toolStripMenuItem_About
             // 
@@ -718,20 +735,15 @@
             this.toolStripMenuItem_Releases});
             this.toolStripMenuItem_About.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.toolStripMenuItem_About.Name = "toolStripMenuItem_About";
-            this.toolStripMenuItem_About.Size = new System.Drawing.Size(52, 20);
+            this.toolStripMenuItem_About.Size = new System.Drawing.Size(52, 21);
             this.toolStripMenuItem_About.Text = "About";
             // 
             // toolStripMenuItem_Releases
             // 
             this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
-            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem_Releases.Text = "Releases";
             this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
-            // 
-            // toolStripStatusLabel_BanIndex
-            // 
-            this.toolStripStatusLabel_BanIndex.Name = "toolStripStatusLabel_BanIndex";
-            this.toolStripStatusLabel_BanIndex.Size = new System.Drawing.Size(0, 17);
             // 
             // Form
             // 
@@ -743,13 +755,11 @@
             this.Controls.Add(this.label6);
             this.Controls.Add(this.btn_saveLogin);
             this.Controls.Add(this.tabControl);
-            this.Controls.Add(this.btn_getFollows);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.lbl_list);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.pbModerator);
-            this.Controls.Add(this.btn_OpenList);
             this.Controls.Add(this.txt_channel);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.chk_showOauth);
@@ -765,7 +775,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.3.0";
+            this.Text = "MassBanTool v. 0.3.2";
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -798,7 +808,6 @@
         private System.Windows.Forms.CheckBox chk_showOauth;
         private System.Windows.Forms.TextBox txt_channel;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Button btn_OpenList;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.PictureBox pbModerator;
         private System.Windows.Forms.Button button1;
@@ -809,7 +818,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Channel;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusMod;
-        private System.Windows.Forms.Button btn_getFollows;
         private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.TabPage tabPageBanning;
         private System.Windows.Forms.Button btn_actions_Stop;
@@ -848,6 +856,10 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_About;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Releases;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_BanIndex;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openListFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openListURLToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fetchLastFollowersOfChannelToolStripMenuItem;
     }
 }
 
