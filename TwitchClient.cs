@@ -107,11 +107,6 @@ namespace MassBanTool
             TwitchClient client;
             client = new TwitchClient(customClient);
             client.Initialize(credentials, channel);
-            AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-            {
-                running = false;
-                client.Disconnect();
-            };
             return client;
         }
 
@@ -120,13 +115,7 @@ namespace MassBanTool
         {
             CurrentStatus = ToolStatus.Disconnected;
             NotifyPropertyChanged(nameof(CurrentStatus));
-            if (!reconnect)
-            {
-                Console.WriteLine("Connection to Twitch closed");
-                return;
-            }
-
-
+            
             Console.WriteLine("Connection to Twitch lost");
 
             client = null; // Throw the client into the trashcan
