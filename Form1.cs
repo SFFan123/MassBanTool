@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 
@@ -54,6 +53,29 @@ namespace MassBanTool
             string channel = txt_channel.Text.Trim().ToLower();
             if (connected)
             {
+                if (twitchChat.MessagesQueue.Count > 0)
+                {
+                    bool wasrunning = TwitchChatClient.mt_pause;
+                    TwitchChatClient.mt_pause = true;
+                    var result = MessageBox.Show(
+                        "You are currently running an action, do you want to abort that action and change channels?",
+                        "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (result == DialogResult.Yes)
+                    {
+                        twitchChat.Abort();
+                        try
+                        {
+                            twitchChat.switchChannel(channel);
+                        }
+                        catch (ArgumentException exception)
+                        {
+                            ThrowError(exception.Message, false);
+                        }
+                    }
+                    TwitchChatClient.mt_pause = wasrunning;
+                    return;
+                    
+                }
                 try
                 {
                     twitchChat.switchChannel(channel);
@@ -623,14 +645,13 @@ namespace MassBanTool
                 MessageBox.Show("No Channel given can't fetch follows!");
                 return;
             }
-
-
-            string input = Interaction.InputBox("Amount of Follows? must be between 0 and 5000", "Fetch amount");
+            
+            string input = Interaction.InputBox("Amount of Follows? must be between 100 and 5000 - in steps of 100", "Fetch amount");
 
             if (input == string.Empty)
                 return;
 
-            if (!int.TryParse(input, out int follows) && follows < 5000 && follows > 0)
+            if (!int.TryParse(input, out int follows) && follows < 5000 && follows >= 100)
             {
                 MessageBox.Show("Invalid Follow amount.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -686,7 +707,6 @@ namespace MassBanTool
                         .ToArray();
 
                     txt_ToBan.Lines = result;
-                    //usernameOrCommandList = result.ToList();
 
                     lbl_list.Text = URL + " @ " + DateTime.Now.ToString("T");
 
