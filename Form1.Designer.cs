@@ -657,6 +657,7 @@
             0,
             0,
             0});
+            this.in_cooldown.KeyUp += new System.Windows.Forms.KeyEventHandler(this.in_cooldown_KeyUp);
             // 
             // btn_applyDelay
             // 
@@ -775,6 +776,7 @@
             this.comboBox_channel.Name = "comboBox_channel";
             this.comboBox_channel.Size = new System.Drawing.Size(121, 21);
             this.comboBox_channel.TabIndex = 10007;
+            this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
             // 
             // formBindingSource
             // 

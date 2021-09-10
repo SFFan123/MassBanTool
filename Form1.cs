@@ -485,14 +485,26 @@ namespace MassBanTool
                 a = a.Trim();
                 var data = DataWrapper.fromJson(a);
 
-                in_cooldown.Text = data.message_delay.ToString();
+                if (data.message_delay != default)
+                {
+                    in_cooldown.Text =  data.message_delay.ToString();
+                }
 
-                lastVisitedChannels = data.lastVisitedChannel;
+                if (data.lastVisitedChannel != null)
+                {
+                    lastVisitedChannels = data.lastVisitedChannel;
+                }
+                else
+                {
+                    lastVisitedChannels = new HashSet<string>();
+                }
 
-                textBoxAllowedActions.Lines = data.allowedActions.ToArray();
-
+                if (data.allowedActions != null)
+                {
+                    textBoxAllowedActions.Lines = data.allowedActions.ToArray();
+                }
+                
                 comboBox_channel.Items.AddRange(lastVisitedChannels.ToArray<object>());
-
             }
             catch (Exception)
             {
@@ -538,13 +550,27 @@ namespace MassBanTool
                 File.Create(fileName).Close();
             }
 
+            int delay;
+            if (twitchChat.cooldown == 301)
+            {
+                if (!int.TryParse(in_cooldown.Text, out delay))
+                {
+                    delay = 301;
+                }
+            }
+            else
+            {
+                delay = twitchChat.cooldown;
+            }
+
             var data = new DataWrapper()
             {
+                lastVisitedChannel = lastVisitedChannels,
                 allowedActions = textBoxAllowedActions.Lines
                     .Select(x => x.Trim())
                     .Where(x => x != string.Empty)
                     .ToHashSet(),
-                message_delay = twitchChat.cooldown
+                message_delay = delay
             };
 
             string result = data.toJSON();
@@ -553,11 +579,6 @@ namespace MassBanTool
             File.WriteAllText(fileName, result);
         }
 
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            
-        }
 
         private void btn_applyDelay_Click(object sender, EventArgs e)
         {
@@ -873,6 +894,22 @@ namespace MassBanTool
         private void saveLoginToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveLogin();
+        }
+
+        private void comboBox_channel_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btn_connect_Click(null, null);
+            }
+        }
+
+        private void in_cooldown_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btn_applyDelay_Click(null, null);
+            }
         }
     }
 }
