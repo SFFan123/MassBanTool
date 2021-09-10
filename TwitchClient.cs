@@ -29,7 +29,6 @@ namespace MassBanTool
 
         Task messageTask = null;
 
-        private bool reconnect = true;
 
         private bool running = true;
 
@@ -113,6 +112,8 @@ namespace MassBanTool
 
         private void Client_OnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
         {
+            TwitchChatClient.mt_pause = true;
+            messageTask.Dispose();
             CurrentStatus = ToolStatus.Disconnected;
             NotifyPropertyChanged(nameof(CurrentStatus));
             
@@ -161,6 +162,7 @@ namespace MassBanTool
         {
             messageTask = makeMessageSender();
             messageTask.Start();
+            mt_pause = false;
         }
 
 
@@ -210,8 +212,8 @@ namespace MassBanTool
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show($"{e.GetType().Name} {e.Message}", "ERROR");
-                    Environment.Exit(-1);
+                    form.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}");
+
                 }
             }, TaskCreationOptions.LongRunning);
         }

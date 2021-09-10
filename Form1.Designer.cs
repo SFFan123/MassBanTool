@@ -637,11 +637,11 @@
             // 
             this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(597, 165);
+            this.label6.Location = new System.Drawing.Point(599, 165);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(148, 13);
+            this.label6.Size = new System.Drawing.Size(151, 26);
             this.label6.TabIndex = 10002;
-            this.label6.Text = "Cooldown between messages";
+            this.label6.Text = "Cooldown between messages \r\nin ms";
             // 
             // in_cooldown
             // 
