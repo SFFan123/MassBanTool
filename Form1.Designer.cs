@@ -38,7 +38,6 @@
             this.txt_username = new System.Windows.Forms.TextBox();
             this.txt_oauth = new System.Windows.Forms.TextBox();
             this.chk_showOauth = new System.Windows.Forms.CheckBox();
-            this.txt_channel = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.pbModerator = new System.Windows.Forms.PictureBox();
@@ -80,7 +79,6 @@
             this.btn_AbortReadfile = new System.Windows.Forms.Button();
             this.btn_Pause_Readfile = new System.Windows.Forms.Button();
             this.btn_RunReadfile = new System.Windows.Forms.Button();
-            this.btn_saveLogin = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.in_cooldown = new System.Windows.Forms.NumericUpDown();
             this.btn_applyDelay = new System.Windows.Forms.Button();
@@ -90,9 +88,15 @@
             this.openListFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openListURLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fetchLastFollowersOfChannelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveLoginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_About = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
+            this.comboBox_channel = new System.Windows.Forms.ComboBox();
+            this.formBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.twitchChatClientBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -103,6 +107,8 @@
             this.tab_ReadFile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // txt_ToBan
@@ -186,14 +192,6 @@
             this.toolTip1.SetToolTip(this.chk_showOauth, "Toggles the hiding of the oauth token, since its a password.");
             this.chk_showOauth.UseVisualStyleBackColor = true;
             this.chk_showOauth.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
-            // txt_channel
-            // 
-            this.txt_channel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_channel.Location = new System.Drawing.Point(480, 84);
-            this.txt_channel.Name = "txt_channel";
-            this.txt_channel.Size = new System.Drawing.Size(100, 20);
-            this.txt_channel.TabIndex = 3;
             // 
             // label3
             // 
@@ -620,19 +618,6 @@
             this.btn_RunReadfile.UseVisualStyleBackColor = true;
             this.btn_RunReadfile.Click += new System.EventHandler(this.btn_RunReadfile_Click);
             // 
-            // btn_saveLogin
-            // 
-            this.btn_saveLogin.Location = new System.Drawing.Point(471, 139);
-            this.btn_saveLogin.Name = "btn_saveLogin";
-            this.btn_saveLogin.Size = new System.Drawing.Size(109, 23);
-            this.btn_saveLogin.TabIndex = 10001;
-            this.btn_saveLogin.Text = "Save Login*";
-            this.toolTip1.SetToolTip(this.btn_saveLogin, "Saves the username and oauth token to your %appdata%\r\nWarning the data will saved" +
-        " in clear text.");
-            this.btn_saveLogin.UseVisualStyleBackColor = true;
-            this.btn_saveLogin.Visible = false;
-            this.btn_saveLogin.Click += new System.EventHandler(this.button2_Click);
-            // 
             // label6
             // 
             this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -651,7 +636,7 @@
             0,
             0,
             0});
-            this.in_cooldown.Location = new System.Drawing.Point(600, 142);
+            this.in_cooldown.Location = new System.Drawing.Point(587, 142);
             this.in_cooldown.Maximum = new decimal(new int[] {
             50000,
             0,
@@ -663,7 +648,7 @@
             0,
             0});
             this.in_cooldown.Name = "in_cooldown";
-            this.in_cooldown.Size = new System.Drawing.Size(66, 20);
+            this.in_cooldown.Size = new System.Drawing.Size(79, 20);
             this.in_cooldown.TabIndex = 10003;
             this.toolTip1.SetToolTip(this.in_cooldown, "The Delay between messages sent to Twitch in ms.\r\nThe value can\'t be blow 301.\r\nT" +
         "o apply the changes hit the apply button to the right.");
@@ -690,6 +675,7 @@
             this.menuStrip1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.settingsToolStripMenuItem,
             this.toolStripMenuItem_About});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -730,6 +716,34 @@
             this.fetchLastFollowersOfChannelToolStripMenuItem.Text = "Fetch Last Followers of Channel";
             this.fetchLastFollowersOfChannelToolStripMenuItem.Click += new System.EventHandler(this.fetchLastFollowersOfChannelToolStripMenuItem_Click);
             // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveSettingsToolStripMenuItem,
+            this.saveLoginToolStripMenuItem});
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(66, 21);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            // 
+            // saveSettingsToolStripMenuItem
+            // 
+            this.saveSettingsToolStripMenuItem.Enabled = false;
+            this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
+            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.saveSettingsToolStripMenuItem.Text = "Save Settings";
+            this.saveSettingsToolStripMenuItem.ToolTipText = "Saves Cooldown, Allowed Actions in Readfile,... to the Appdata to load it later.";
+            this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
+            // 
+            // saveLoginToolStripMenuItem
+            // 
+            this.saveLoginToolStripMenuItem.Enabled = false;
+            this.saveLoginToolStripMenuItem.Name = "saveLoginToolStripMenuItem";
+            this.saveLoginToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.saveLoginToolStripMenuItem.Text = "Save Login *";
+            this.saveLoginToolStripMenuItem.ToolTipText = "Saves the username and oauth combo to your %appdata% direcotry.\r\n!Warning this ha" +
+    "ppens in clear text!";
+            this.saveLoginToolStripMenuItem.Click += new System.EventHandler(this.saveLoginToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem_About
             // 
             this.toolStripMenuItem_About.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -754,23 +768,38 @@
             this.lbl_listType.Size = new System.Drawing.Size(0, 13);
             this.lbl_listType.TabIndex = 10006;
             // 
+            // comboBox_channel
+            // 
+            this.comboBox_channel.FormattingEnabled = true;
+            this.comboBox_channel.Location = new System.Drawing.Point(480, 84);
+            this.comboBox_channel.Name = "comboBox_channel";
+            this.comboBox_channel.Size = new System.Drawing.Size(121, 21);
+            this.comboBox_channel.TabIndex = 10007;
+            // 
+            // formBindingSource
+            // 
+            this.formBindingSource.DataSource = typeof(MassBanTool.Form);
+            // 
+            // twitchChatClientBindingSource
+            // 
+            this.twitchChatClientBindingSource.DataSource = typeof(MassBanTool.TwitchChatClient);
+            // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 520);
+            this.Controls.Add(this.comboBox_channel);
             this.Controls.Add(this.lbl_listType);
             this.Controls.Add(this.btn_applyDelay);
             this.Controls.Add(this.in_cooldown);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.btn_saveLogin);
             this.Controls.Add(this.tabControl);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.lbl_list);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.pbModerator);
-            this.Controls.Add(this.txt_channel);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.chk_showOauth);
             this.Controls.Add(this.txt_oauth);
@@ -801,6 +830,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -816,7 +847,6 @@
         private System.Windows.Forms.TextBox txt_username;
         private System.Windows.Forms.TextBox txt_oauth;
         private System.Windows.Forms.CheckBox chk_showOauth;
-        private System.Windows.Forms.TextBox txt_channel;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.PictureBox pbModerator;
@@ -839,7 +869,6 @@
         private System.Windows.Forms.TextBox txt_uname_regex;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ToolStripStatusLabel toolStripWarning;
-        private System.Windows.Forms.Button btn_saveLogin;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.NumericUpDown in_cooldown;
         private System.Windows.Forms.Button btn_applyDelay;
@@ -871,6 +900,12 @@
         private System.Windows.Forms.ToolStripMenuItem openListURLToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fetchLastFollowersOfChannelToolStripMenuItem;
         private System.Windows.Forms.Label lbl_listType;
+        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveSettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveLoginToolStripMenuItem;
+        private System.Windows.Forms.ComboBox comboBox_channel;
+        private System.Windows.Forms.BindingSource formBindingSource;
+        private System.Windows.Forms.BindingSource twitchChatClientBindingSource;
     }
 }
 

@@ -18,6 +18,8 @@ namespace MassBanTool
         private string oauth;
         TwitchChatClient twitchChat = null;
         private string uname;
+        public HashSet<string> lastVisitedChannels { get; private set; }
+
 
         private ListType inputListType = default;
 
@@ -26,6 +28,7 @@ namespace MassBanTool
         {
             InitializeComponent();
             getLogin();
+            LoadData();
         }
 
         public List<string> usernameOrCommandList
@@ -50,7 +53,13 @@ namespace MassBanTool
 
         private void btn_connect_Click(object sender, EventArgs e)
         {
-            string channel = txt_channel.Text.Trim().ToLower();
+            string channel = comboBox_channel.Text.Trim().ToLower();
+            if (channel == string.Empty)
+            {
+                ThrowError("Invalid Channel", false);
+                return;
+            }
+
             if (connected)
             {
                 if (twitchChat.MessagesQueue.Count > 0)
@@ -226,6 +235,14 @@ namespace MassBanTool
             this.channel = channel;
             toolStripStatusLabel_Channel.Text = channel;
 
+            if (lastVisitedChannels == null)
+            {
+                lastVisitedChannels = new HashSet<string>();
+            }
+
+            lastVisitedChannels.Add(channel);
+            
+
             if (openListFileToolStripMenuItem.GetCurrentParent().InvokeRequired)
             {
                 openListFileToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
@@ -242,27 +259,57 @@ namespace MassBanTool
                 {
                     fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
                 }));
+
+                
             }
             else
             {
                 openListFileToolStripMenuItem.Enabled = true;
                 openListURLToolStripMenuItem.Enabled = true;
                 fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
+                
             }
+
+            if (saveSettingsToolStripMenuItem.GetCurrentParent().InvokeRequired)
+            {
+                saveSettingsToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
+                {
+                    saveSettingsToolStripMenuItem.Enabled = true;
+                }));
+
+                saveLoginToolStripMenuItem.GetCurrentParent().Invoke(new Action(() =>
+                {
+                    saveLoginToolStripMenuItem.Enabled = true;
+                }));
+
+            }
+            else
+            {
+                saveSettingsToolStripMenuItem.Enabled = true;
+                saveLoginToolStripMenuItem.Enabled = true;
+            }
+
+
 
             if (InvokeRequired)
             {
                 btn_connect.Invoke(new Action(() => { btn_connect.Text = "Switch Channel"; }));
-                btn_saveLogin.Invoke(new Action(() => { btn_saveLogin.Visible = true; }));
                 txt_oauth.Invoke(new Action(() => { txt_oauth.ReadOnly = true; }));
                 txt_username.Invoke(new Action(() => { txt_username.ReadOnly = true; }));
+                comboBox_channel.Invoke(new Action(() =>
+                {
+                    comboBox_channel.Items.Add(channel);
+                    comboBox_channel.Refresh();
+                }));
             }
             else
             {
                 btn_connect.Text = "Switch Channel";
-                btn_saveLogin.Visible = true;
                 txt_oauth.ReadOnly = true;
                 txt_username.ReadOnly = true;
+
+                comboBox_channel.Items.Add(channel);
+                comboBox_channel.Refresh();
             }
         }
 
@@ -428,6 +475,32 @@ namespace MassBanTool
             }
         }
 
+        private void LoadData()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            try
+            {
+                string a = File.ReadAllText(fileName);
+                a = a.Trim();
+                var data = DataWrapper.fromJson(a);
+
+                in_cooldown.Text = data.message_delay.ToString();
+
+                lastVisitedChannels = data.lastVisitedChannel;
+
+                textBoxAllowedActions.Lines = data.allowedActions.ToArray();
+
+                comboBox_channel.Items.AddRange(lastVisitedChannels.ToArray<object>());
+
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+
         private void saveLogin()
         {
             string fileName = Path.Combine(Environment.GetFolderPath(
@@ -448,9 +521,42 @@ namespace MassBanTool
             File.WriteAllText(fileName, uname + Environment.NewLine + oauth);
         }
 
+        private void saveData()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "MassBanTool");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            if (!File.Exists(fileName))
+            {
+                File.Create(fileName).Close();
+            }
+
+            var data = new DataWrapper()
+            {
+                allowedActions = textBoxAllowedActions.Lines
+                    .Select(x => x.Trim())
+                    .Where(x => x != string.Empty)
+                    .ToHashSet(),
+                message_delay = twitchChat.cooldown
+            };
+
+            string result = data.toJSON();
+
+
+            File.WriteAllText(fileName, result);
+        }
+
+
         private void button2_Click(object sender, EventArgs e)
         {
-            saveLogin();
+            
         }
 
         private void btn_applyDelay_Click(object sender, EventArgs e)
@@ -687,36 +793,59 @@ namespace MassBanTool
         {
             string URL = Interaction.InputBox("URL of the file.", "Destination");
 
+            if(string.Empty == URL)
+                return;
+
             toolStripStatusLabel.Text = "Fetching List ...";
 
             setEnableForControl(true);
 
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri(URL);
-
-                HttpResponseMessage response = client.GetAsync(URL).Result;
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    // Parse the response body.
-                    string[] result = response.Content.ReadAsStringAsync()
-                        .Result
-                        .Split('\n')
-                        .Select(x => x.Trim())
-                        .Where(x => x != string.Empty)
-                        .ToArray();
+                    client.BaseAddress = new Uri(URL);
+                    HttpResponseMessage response = client.GetAsync(URL).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Parse the response body.
+                        string[] result = response.Content.ReadAsStringAsync()
+                            .Result
+                            .Split('\n')
+                            .Select(x => x.Trim())
+                            .Where(x => x != string.Empty)
+                            .ToArray();
 
-                    txt_ToBan.Lines = result;
+                        if (result.Length == 0)
+                        {
+                            toolStripStatusLabel.Text = "Ready";
+                            return;
+                        }
 
-                    lbl_list.Text = URL + " @ " + DateTime.Now.ToString("T");
+                        txt_ToBan.Lines = result;
 
-                    checkListType();
+                        lbl_list.Text = URL + " @ " + DateTime.Now.ToString("T");
 
-                    toolStripStatusLabel.Text = "Ready";
+                        checkListType();
+
+                        toolStripStatusLabel.Text = "Ready";
+                    }
+                    else
+                    {
+                        ThrowError("Fetching of the File Failed.", false);
+                    }
                 }
-                else
+                catch (UriFormatException)
                 {
-                    ThrowError("Fetching of the File Failed.", false);
+                    ShowWarning("Invalid URL");
+                    toolStripStatusLabel.Text = "Ready";
+                    return;
+                }
+                catch (HttpRequestException e)
+                {
+                    ThrowError("Fetching of the File Failed.\n" + e.Message, false);
+                    toolStripStatusLabel.Text = "Ready";
+                    return;
                 }
             }
         }
@@ -734,6 +863,16 @@ namespace MassBanTool
         private void openListFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenListFromFile();
+        }
+
+        private void saveSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveData();
+        }
+
+        private void saveLoginToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveLogin();
         }
     }
 }
