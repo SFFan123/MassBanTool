@@ -911,5 +911,15 @@ namespace MassBanTool
                 btn_applyDelay_Click(null, null);
             }
         }
+
+        private void hELPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/wiki/ELP");
+        }
+
+        private void licenseToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/blob/master/LICENSE");
+        }
     }
 }

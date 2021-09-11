@@ -95,6 +95,8 @@
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
+            this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.formBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.twitchChatClientBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
@@ -653,7 +655,7 @@
             this.toolTip1.SetToolTip(this.in_cooldown, "The Delay between messages sent to Twitch in ms.\r\nThe value can\'t be blow 301.\r\nT" +
         "o apply the changes hit the apply button to the right.");
             this.in_cooldown.Value = new decimal(new int[] {
-            301,
+            500,
             0,
             0,
             0});
@@ -748,7 +750,9 @@
             // toolStripMenuItem_About
             // 
             this.toolStripMenuItem_About.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_Releases});
+            this.toolStripMenuItem_Releases,
+            this.hELPToolStripMenuItem,
+            this.licenseToolStripMenuItem});
             this.toolStripMenuItem_About.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.toolStripMenuItem_About.Name = "toolStripMenuItem_About";
             this.toolStripMenuItem_About.Size = new System.Drawing.Size(52, 21);
@@ -757,7 +761,7 @@
             // toolStripMenuItem_Releases
             // 
             this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
-            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem_Releases.Text = "Releases";
             this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
@@ -777,6 +781,20 @@
             this.comboBox_channel.Size = new System.Drawing.Size(121, 21);
             this.comboBox_channel.TabIndex = 10007;
             this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
+            // 
+            // hELPToolStripMenuItem
+            // 
+            this.hELPToolStripMenuItem.Name = "hELPToolStripMenuItem";
+            this.hELPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hELPToolStripMenuItem.Text = "HELP";
+            this.hELPToolStripMenuItem.Click += new System.EventHandler(this.hELPToolStripMenuItem_Click);
+            // 
+            // licenseToolStripMenuItem
+            // 
+            this.licenseToolStripMenuItem.Name = "licenseToolStripMenuItem";
+            this.licenseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.licenseToolStripMenuItem.Text = "License";
+            this.licenseToolStripMenuItem.Click += new System.EventHandler(this.licenseToolStripMenuItem_Click);
             // 
             // formBindingSource
             // 
@@ -908,6 +926,8 @@
         private System.Windows.Forms.ComboBox comboBox_channel;
         private System.Windows.Forms.BindingSource formBindingSource;
         private System.Windows.Forms.BindingSource twitchChatClientBindingSource;
+        private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem licenseToolStripMenuItem;
     }
 }
 

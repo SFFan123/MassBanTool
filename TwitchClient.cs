@@ -53,7 +53,7 @@ namespace MassBanTool
 
         public string channel { get; set; }
 
-        public int cooldown { get; set; } = 301;
+        public int cooldown { get; set; } = 500;
 
         public string oauth { get; set; }
 
