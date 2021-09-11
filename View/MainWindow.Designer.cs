@@ -1,6 +1,6 @@
 ﻿namespace MassBanTool
 {
-    partial class Form
+    partial class MainWindow
     {
         /// <summary>
         /// Erforderliche Designervariable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.txt_ToBan = new System.Windows.Forms.TextBox();
             this.progresBar_BanProgress = new System.Windows.Forms.ProgressBar();
             this.label1 = new System.Windows.Forms.Label();
@@ -40,7 +40,6 @@
             this.chk_showOauth = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.pbModerator = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
             this.lbl_list = new System.Windows.Forms.Label();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -48,7 +47,6 @@
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_Channel = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_BanIndex = new System.Windows.Forms.ToolStripStatusLabel();
@@ -64,8 +62,8 @@
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabMisc = new System.Windows.Forms.TabPage();
+            this.btn_showConsole = new System.Windows.Forms.Button();
             this.btnRemovePrefixes = new System.Windows.Forms.Button();
-            this.btn_showconsole = new System.Windows.Forms.Button();
             this.tabUnban = new System.Windows.Forms.TabPage();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
@@ -93,13 +91,14 @@
             this.saveLoginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_About = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
-            this.lbl_listType = new System.Windows.Forms.Label();
-            this.comboBox_channel = new System.Windows.Forms.ComboBox();
             this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lbl_listType = new System.Windows.Forms.Label();
+            this.comboBox_channel = new System.Windows.Forms.ComboBox();
+            this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
+            this.pbModerator = new System.Windows.Forms.PictureBox();
             this.formBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.twitchChatClientBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -109,6 +108,7 @@
             this.tab_ReadFile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).BeginInit();
             this.SuspendLayout();
@@ -209,18 +209,6 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog";
             // 
-            // pbModerator
-            // 
-            this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbModerator.Image = global::MassBanTool.Properties.Resources.moderator2;
-            this.pbModerator.Location = new System.Drawing.Point(587, 107);
-            this.pbModerator.Name = "pbModerator";
-            this.pbModerator.Size = new System.Drawing.Size(27, 26);
-            this.pbModerator.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbModerator.TabIndex = 12;
-            this.pbModerator.TabStop = false;
-            this.pbModerator.Visible = false;
-            // 
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -285,14 +273,6 @@
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
             this.statusStrip1.TabIndex = 17;
             this.statusStrip1.Text = "statusStrip1";
-            // 
-            // toolStripStatusMod
-            // 
-            this.toolStripStatusMod.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripStatusMod.Image = global::MassBanTool.Properties.Resources.moderator2;
-            this.toolStripStatusMod.Name = "toolStripStatusMod";
-            this.toolStripStatusMod.Size = new System.Drawing.Size(16, 17);
-            this.toolStripStatusMod.Visible = false;
             // 
             // toolStripWarning
             // 
@@ -437,8 +417,8 @@
             // 
             // tabMisc
             // 
+            this.tabMisc.Controls.Add(this.btn_showConsole);
             this.tabMisc.Controls.Add(this.btnRemovePrefixes);
-            this.tabMisc.Controls.Add(this.btn_showconsole);
             this.tabMisc.Location = new System.Drawing.Point(4, 22);
             this.tabMisc.Name = "tabMisc";
             this.tabMisc.Padding = new System.Windows.Forms.Padding(3);
@@ -447,10 +427,20 @@
             this.tabMisc.Text = "Misc";
             this.tabMisc.UseVisualStyleBackColor = true;
             // 
+            // btn_showConsole
+            // 
+            this.btn_showConsole.Location = new System.Drawing.Point(6, 35);
+            this.btn_showConsole.Name = "btn_showConsole";
+            this.btn_showConsole.Size = new System.Drawing.Size(96, 23);
+            this.btn_showConsole.TabIndex = 2;
+            this.btn_showConsole.Text = "Show Console";
+            this.btn_showConsole.UseVisualStyleBackColor = true;
+            this.btn_showConsole.Click += new System.EventHandler(this.btn_showConsole_Click);
+            // 
             // btnRemovePrefixes
             // 
             this.btnRemovePrefixes.Enabled = false;
-            this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 35);
+            this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 6);
             this.btnRemovePrefixes.Name = "btnRemovePrefixes";
             this.btnRemovePrefixes.Size = new System.Drawing.Size(96, 23);
             this.btnRemovePrefixes.TabIndex = 1;
@@ -458,17 +448,6 @@
             this.toolTip1.SetToolTip(this.btnRemovePrefixes, "Removes .ban /ban .mod /ban /somecommand form the nameslist.");
             this.btnRemovePrefixes.UseVisualStyleBackColor = true;
             this.btnRemovePrefixes.Click += new System.EventHandler(this.btnRemovePrefixes_Click);
-            // 
-            // btn_showconsole
-            // 
-            this.btn_showconsole.Location = new System.Drawing.Point(6, 6);
-            this.btn_showconsole.Name = "btn_showconsole";
-            this.btn_showconsole.Size = new System.Drawing.Size(96, 23);
-            this.btn_showconsole.TabIndex = 0;
-            this.btn_showconsole.Text = "Show Console";
-            this.toolTip1.SetToolTip(this.btn_showconsole, "Shows the Console where all messages from Twitch are shown.");
-            this.btn_showconsole.UseVisualStyleBackColor = true;
-            this.btn_showconsole.Click += new System.EventHandler(this.btn_showconsole_Click);
             // 
             // tabUnban
             // 
@@ -761,9 +740,23 @@
             // toolStripMenuItem_Releases
             // 
             this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
-            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
             this.toolStripMenuItem_Releases.Text = "Releases";
             this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
+            // hELPToolStripMenuItem
+            // 
+            this.hELPToolStripMenuItem.Name = "hELPToolStripMenuItem";
+            this.hELPToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.hELPToolStripMenuItem.Text = "HELP";
+            this.hELPToolStripMenuItem.Click += new System.EventHandler(this.hELPToolStripMenuItem_Click);
+            // 
+            // licenseToolStripMenuItem
+            // 
+            this.licenseToolStripMenuItem.Name = "licenseToolStripMenuItem";
+            this.licenseToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.licenseToolStripMenuItem.Text = "License";
+            this.licenseToolStripMenuItem.Click += new System.EventHandler(this.licenseToolStripMenuItem_Click);
             // 
             // lbl_listType
             // 
@@ -782,27 +775,25 @@
             this.comboBox_channel.TabIndex = 10007;
             this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
             // 
-            // hELPToolStripMenuItem
+            // toolStripStatusMod
             // 
-            this.hELPToolStripMenuItem.Name = "hELPToolStripMenuItem";
-            this.hELPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.hELPToolStripMenuItem.Text = "HELP";
-            this.hELPToolStripMenuItem.Click += new System.EventHandler(this.hELPToolStripMenuItem_Click);
+            this.toolStripStatusMod.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripStatusMod.Image = global::MassBanTool.Properties.Resources.moderator2;
+            this.toolStripStatusMod.Name = "toolStripStatusMod";
+            this.toolStripStatusMod.Size = new System.Drawing.Size(16, 17);
+            this.toolStripStatusMod.Visible = false;
             // 
-            // licenseToolStripMenuItem
+            // pbModerator
             // 
-            this.licenseToolStripMenuItem.Name = "licenseToolStripMenuItem";
-            this.licenseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.licenseToolStripMenuItem.Text = "License";
-            this.licenseToolStripMenuItem.Click += new System.EventHandler(this.licenseToolStripMenuItem_Click);
-            // 
-            // formBindingSource
-            // 
-            this.formBindingSource.DataSource = typeof(MassBanTool.Form);
-            // 
-            // twitchChatClientBindingSource
-            // 
-            this.twitchChatClientBindingSource.DataSource = typeof(MassBanTool.TwitchChatClient);
+            this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.pbModerator.Image = global::MassBanTool.Properties.Resources.moderator2;
+            this.pbModerator.Location = new System.Drawing.Point(587, 107);
+            this.pbModerator.Name = "pbModerator";
+            this.pbModerator.Size = new System.Drawing.Size(27, 26);
+            this.pbModerator.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pbModerator.TabIndex = 12;
+            this.pbModerator.TabStop = false;
+            this.pbModerator.Visible = false;
             // 
             // Form
             // 
@@ -832,10 +823,9 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(770, 521);
-            this.Name = "Form";
+            this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MassBanTool v. 0.3.5";
-            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
@@ -850,6 +840,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).EndInit();
             this.ResumeLayout(false);
@@ -894,7 +885,6 @@
         private System.Windows.Forms.Button btn_applyDelay;
         private System.Windows.Forms.ToolStripStatusLabel toolstripETA;
         private System.Windows.Forms.TabPage tabMisc;
-        private System.Windows.Forms.Button btn_showconsole;
         private System.Windows.Forms.Button btn_Abort;
         private System.Windows.Forms.TabPage tabUnban;
         private System.Windows.Forms.Button button2;
@@ -928,6 +918,7 @@
         private System.Windows.Forms.BindingSource twitchChatClientBindingSource;
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem licenseToolStripMenuItem;
+        private System.Windows.Forms.Button btn_showConsole;
     }
 }
 

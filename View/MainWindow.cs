@@ -4,27 +4,31 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
+using MassBanTool.View;
 using Microsoft.VisualBasic;
 
 namespace MassBanTool
 {
-    public partial class Form : System.Windows.Forms.Form
+    public partial class MainWindow : Form
     {
         private string channel;
         private bool connected;
-        private bool consoleIsShown = false;
         private string oauth;
         TwitchChatClient twitchChat = null;
         private string uname;
+        private Mutex channelMutex;
+        
         public HashSet<string> lastVisitedChannels { get; private set; }
 
 
         private ListType inputListType = default;
 
 
-        public Form()
+        public MainWindow()
         {
             InitializeComponent();
             getLogin();
@@ -35,6 +39,8 @@ namespace MassBanTool
         {
             get => txt_ToBan.Lines.ToList();
         }
+
+        public static LogWindow logwindow { get; private set; }
 
         public string Listinfo { get; set; } = "<none>";
 
@@ -59,6 +65,14 @@ namespace MassBanTool
                 ThrowError("Invalid Channel", false);
                 return;
             }
+
+            if (!CheckMutex(channel))
+            {
+                ShowWarning("There is already an instance running in the channel.");
+                return;
+            }
+
+            
 
             if (connected)
             {
@@ -125,6 +139,27 @@ namespace MassBanTool
 
             twitchChat.PropertyChanged += ClientPropChanged;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <returns>True if there is no mutex for the desired Channel.</returns>
+        private bool CheckMutex(string channel)
+        {
+            try
+            {
+                channelMutex = new Mutex(true, "MassBanTool_" + channel);
+                return channelMutex.WaitOne(TimeSpan.Zero, true);
+
+            }
+            catch (Exception )
+            {
+                return false;
+            }
+        }
+
+
 
         private void ClientPropChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -472,6 +507,7 @@ namespace MassBanTool
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                log(e.ToString());
             }
         }
 
@@ -603,21 +639,7 @@ namespace MassBanTool
         {
             MessageBox.Show(message, "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
-        private void btn_showconsole_Click(object sender, EventArgs e)
-        {
-            if (consoleIsShown)
-            {
-                consoleIsShown = Program.FreeConsole();
-                btn_showconsole.Text = "Show Console";
-            }
-            else
-            {
-                consoleIsShown = Program.AllocConsole();
-                btn_showconsole.Text = "Hide Console";
-            }
-        }
-
+        
         private void btn_Abort_Click(object sender, EventArgs e)
         {
             twitchChat.Abort();
@@ -772,11 +794,18 @@ namespace MassBanTool
                 MessageBox.Show("No Channel given can't fetch follows!");
                 return;
             }
-            
-            string input = Interaction.InputBox("Amount of Follows? must be between 100 and 5000 - in steps of 100", "Fetch amount");
 
-            if (input == string.Empty)
+            var input_field = new NumericUpDown();
+            input_field.Minimum = 100;
+            input_field.Maximum = 5000;
+            input_field.Increment = 100;
+
+            var diag = InputDialog.Show("Amount of Follows? must be between 100 and 5000 - in steps of 100", "Fetch amount", input_field,out string input);
+
+            if (diag != DialogResult.OK)
+            {
                 return;
+            }
 
             if (!int.TryParse(input, out int follows) && follows < 5000 && follows >= 100)
             {
@@ -812,11 +841,19 @@ namespace MassBanTool
 
         private void OpenListFromURL()
         {
-            string URL = Interaction.InputBox("URL of the file.", "Destination");
+            var diag = InputDialog.Show("URL of the file.", "Destination", new TextBox() ,out string URL);
 
-            if(string.Empty == URL)
+            if (diag != DialogResult.OK)
+            {
                 return;
+            }
 
+            if (string.Empty == URL)
+            {
+                ShowWarning("Invalid URL");
+                return;
+            }
+                
             toolStripStatusLabel.Text = "Fetching List ...";
 
             setEnableForControl(true);
@@ -920,6 +957,45 @@ namespace MassBanTool
         private void licenseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/blob/master/LICENSE");
+        }
+
+        public void increaseDelay(int cooldown)
+        {
+            if (in_cooldown.InvokeRequired)
+            {
+                in_cooldown.Invoke(new Action(() =>
+                {
+                    in_cooldown.Text = cooldown.ToString();
+                }));
+                
+            }
+            else
+            {
+                in_cooldown.Text = cooldown.ToString();
+            }
+        }
+
+        private void btn_showConsole_Click(object sender, EventArgs e)
+        {
+            if (logwindow == null)
+            {
+                logwindow = new LogWindow();
+                logwindow.Show();
+            }
+            else
+            {
+                logwindow.WindowState = FormWindowState.Normal;
+                logwindow.Top = this.Top;
+                logwindow.Left = this.Left;
+                logwindow.TopMost = true;
+                logwindow.TopMost = false;
+            }
+        }
+
+        private void log(string line)
+        {
+            if(logwindow != null && !logwindow.IsDisposed)
+                logwindow.Log(line);
         }
     }
 }

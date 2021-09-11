@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Extensions;
@@ -25,16 +24,16 @@ namespace MassBanTool
 
         private ConnectionCredentials credentials;
 
-        private Form form;
+        private MainWindow _mainWindow;
 
         Task messageTask = null;
 
 
         private bool running = true;
 
-        public TwitchChatClient(string user, string oauth, string channel, Form f)
+        public TwitchChatClient(string user, string oauth, string channel, MainWindow f)
         {
-            form = f;
+            _mainWindow = f;
             this.user = user;
             this.oauth = oauth;
             credentials = new ConnectionCredentials(user, oauth);
@@ -89,7 +88,7 @@ namespace MassBanTool
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
-            form.setInfo(this, e.Channel);
+            _mainWindow.setInfo(this, e.Channel);
             CurrentStatus = ToolStatus.Ready;
             NotifyPropertyChanged(nameof(CurrentStatus));
         }
@@ -118,6 +117,8 @@ namespace MassBanTool
             NotifyPropertyChanged(nameof(CurrentStatus));
             
             Console.WriteLine("Connection to Twitch lost");
+            log("Connection to Twitch lost");
+
 
             client = null; // Throw the client into the trashcan
 
@@ -137,25 +138,25 @@ namespace MassBanTool
             isBroadcaster = string.Equals(e.UserState.Channel, e.UserState.DisplayName,
                 StringComparison.CurrentCultureIgnoreCase);
 
-            form.setMod(this, isMod, isBroadcaster);
+            _mainWindow.setMod(this, isMod, isBroadcaster);
 
             if (isBroadcaster)
             {
                 client.GetChannelModerators(client.JoinedChannels.First());
-                //form.ShowWarning(
-                //    "You are the Broadcaster, this mean you could also ban your mods/bots by accident! Make sure they aren't in the list you going to ban!");
             }
 
             if (!isMod && !isBroadcaster)
             {
-                form.ThrowError("Neither Broadcaster nor Mod in the given channel!, Exiting.");
+                _mainWindow.ThrowError("Neither Broadcaster nor Mod in the given channel!, Exiting.");
             }
         }
 
 
         private void Client_OnLog(object sender, OnLogArgs e)
         {
-            Console.WriteLine($"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}");
+            string to_log = $"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}";
+            log(to_log);
+            Console.WriteLine(to_log);
         }
 
         private void Client_OnConnected(object sender, OnConnectedArgs e)
@@ -178,30 +179,33 @@ namespace MassBanTool
                     {
                         while (mt_pause)
                         {
-                            Task.Delay(1000);
+                            Thread.Sleep(1000);
                         }
 
                         if (MessagesQueue.Count > 0)
                         {
                             message = MessagesQueue[0];
-                            MessagesQueue.RemoveAt(0);
+
                             int banindex = ActionListLenght - MessagesQueue.Count;
                             if (banindex % 10 == 0)
                             {
                                 eta = TimeSpan.FromMilliseconds((MessagesQueue.Count * cooldown));
-                                form.setBanProgress(this, banindex, ActionListLenght);
-                                form.setETA(this, eta.ToString("g"));
+                                _mainWindow.setBanProgress(this, banindex, ActionListLenght);
+                                _mainWindow.setETA(this, eta.ToString("g"));
                             }
-
                             client.SendMessage(channel, message);
+
                             if (MessagesQueue.Count == 0)
                             {
-                                form.setBanProgress(this, 100, 100);
-                                form.setETA(this, "-");
+                                _mainWindow.setBanProgress(this, 100, 100);
+                                _mainWindow.setETA(this, "-");
                             }
 
-                            Console.WriteLine($"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}");
+                            string to_log = $"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}";
+                            Console.WriteLine(to_log);
+                            log(to_log);
 
+                            MessagesQueue.RemoveAt(0);
                             Thread.Sleep(cooldown);
                         }
                         else
@@ -210,10 +214,15 @@ namespace MassBanTool
                         }
                     }
                 }
+                catch (NullReferenceException)
+                {
+                    cooldown += 10;
+                    _mainWindow.increaseDelay(cooldown);
+                    Thread.Sleep(10);
+                }
                 catch (Exception e)
                 {
-                    form.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}");
-
+                    _mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -303,6 +312,13 @@ namespace MassBanTool
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
+        }
+
+
+        private void log(string line)
+        {
+            if(MainWindow.logwindow != null && !MainWindow.logwindow.IsDisposed)
+             MainWindow.logwindow.Log(line);
         }
     }
 }
