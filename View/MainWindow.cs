@@ -4,12 +4,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using MassBanTool.View;
-using Microsoft.VisualBasic;
 
 namespace MassBanTool
 {
@@ -65,15 +63,7 @@ namespace MassBanTool
                 ThrowError("Invalid Channel", false);
                 return;
             }
-
-            if (!CheckMutex(channel))
-            {
-                ShowWarning("There is already an instance running in the channel.");
-                return;
-            }
-
             
-
             if (connected)
             {
                 if (twitchChat.MessagesQueue.Count > 0)
@@ -135,6 +125,12 @@ namespace MassBanTool
             uname = username;
             this.channel = channel;
 
+            if (!CheckMutex())
+            {
+                ShowWarning("There is already an instance running with that username.");
+                return;
+            }
+
             twitchChat = new TwitchChatClient(username, oauth, channel, this);
 
             twitchChat.PropertyChanged += ClientPropChanged;
@@ -145,11 +141,11 @@ namespace MassBanTool
         /// </summary>
         /// <param name="channel"></param>
         /// <returns>True if there is no mutex for the desired Channel.</returns>
-        private bool CheckMutex(string channel)
+        private bool CheckMutex()
         {
             try
             {
-                channelMutex = new Mutex(true, "MassBanTool_" + channel);
+                channelMutex = new Mutex(true, "MassBanTool_" + uname);
                 return channelMutex.WaitOne(TimeSpan.Zero, true);
 
             }
