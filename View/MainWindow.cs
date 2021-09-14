@@ -127,7 +127,7 @@ namespace MassBanTool
 
             if (!CheckMutex())
             {
-                ShowWarning("There is already an instance running with that username.");
+                ShowWarning("There is already an instance running with that username.\nIf you just closed the other instance wait 2 secs and try again.");
                 return;
             }
 
@@ -139,8 +139,7 @@ namespace MassBanTool
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="channel"></param>
-        /// <returns>True if there is no mutex for the desired Channel.</returns>
+        /// <returns>True if there is no mutex for the desired username.</returns>
         private bool CheckMutex()
         {
             try

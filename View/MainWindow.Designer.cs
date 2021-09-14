@@ -47,6 +47,7 @@
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_Channel = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripWarning = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolstripETA = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_BanIndex = new System.Windows.Forms.ToolStripStatusLabel();
@@ -95,7 +96,6 @@
             this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
-            this.toolStripStatusMod = new System.Windows.Forms.ToolStripStatusLabel();
             this.pbModerator = new System.Windows.Forms.PictureBox();
             this.formBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.twitchChatClientBindingSource = new System.Windows.Forms.BindingSource(this.components);
@@ -273,6 +273,14 @@
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
             this.statusStrip1.TabIndex = 17;
             this.statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripStatusMod
+            // 
+            this.toolStripStatusMod.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripStatusMod.Image = global::MassBanTool.Properties.Resources.moderator2;
+            this.toolStripStatusMod.Name = "toolStripStatusMod";
+            this.toolStripStatusMod.Size = new System.Drawing.Size(16, 17);
+            this.toolStripStatusMod.Visible = false;
             // 
             // toolStripWarning
             // 
@@ -775,14 +783,6 @@
             this.comboBox_channel.TabIndex = 10007;
             this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
             // 
-            // toolStripStatusMod
-            // 
-            this.toolStripStatusMod.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripStatusMod.Image = global::MassBanTool.Properties.Resources.moderator2;
-            this.toolStripStatusMod.Name = "toolStripStatusMod";
-            this.toolStripStatusMod.Size = new System.Drawing.Size(16, 17);
-            this.toolStripStatusMod.Visible = false;
-            // 
             // pbModerator
             // 
             this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -795,7 +795,7 @@
             this.pbModerator.TabStop = false;
             this.pbModerator.Visible = false;
             // 
-            // Form
+            // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -825,7 +825,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.3.5";
+            this.Text = "MassBanTool v. 0.4.0 Beta";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
