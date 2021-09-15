@@ -16,7 +16,17 @@ namespace MassBanTool
 {
     public class TwitchChatClient : INotifyPropertyChanged
     {
-        public static bool mt_pause = false;
+        private static bool _mtpause = false;
+
+        public static bool mt_pause
+        {
+            get => _mtpause;
+            set
+            {
+                log($"Pause flag set to {value}", true);
+                _mtpause = value;
+            }
+        }
 
         private int ActionListLenght = 0;
 
@@ -195,17 +205,18 @@ namespace MassBanTool
                             }
                             client.SendMessage(channel, message);
 
+                            string to_log = $"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}";
+                            Console.WriteLine(to_log);
+                            log(to_log);
+
+                            MessagesQueue.RemoveAt(0);
+
                             if (MessagesQueue.Count == 0)
                             {
                                 _mainWindow.setBanProgress(this, 100, 100);
                                 _mainWindow.setETA(this, "-");
                             }
 
-                            string to_log = $"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}";
-                            Console.WriteLine(to_log);
-                            log(to_log);
-
-                            MessagesQueue.RemoveAt(0);
                             Thread.Sleep(cooldown);
                         }
                         else
@@ -315,10 +326,17 @@ namespace MassBanTool
         }
 
 
-        private void log(string line)
+        private static void log(string line, bool addTimeStamp = false)
         {
-            if(MainWindow.logwindow != null && !MainWindow.logwindow.IsDisposed)
-             MainWindow.logwindow.Log(line);
+            if (MainWindow.logwindow != null && !MainWindow.logwindow.IsDisposed)
+            {
+                if (addTimeStamp)
+                {
+                    line = DateTime.Now.ToString("G") + " " + line;
+                    MainWindow.logwindow.Log(line);
+                }
+                    
+            }
         }
     }
 }

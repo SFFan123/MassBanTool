@@ -417,21 +417,41 @@ namespace MassBanTool
         private void btn_actions_Stop_Click(object sender, EventArgs e)
         {
             TwitchChatClient.mt_pause = !TwitchChatClient.mt_pause;
-
-            twitchChat.TargetStatus_for_pause = twitchChat.CurrentStatus;
+            
             if (TwitchChatClient.mt_pause)
             {
-                btn_actions_Stop.Text = "RESUME";
+                twitchChat.TargetStatus_for_pause = twitchChat.CurrentStatus;
                 twitchChat.CurrentStatus = ToolStatus.Paused;
             }
             else
             {
-                btn_actions_Stop.Text = "PAUSE";
                 twitchChat.CurrentStatus = twitchChat.TargetStatus_for_pause;
             }
 
+            pauseButtonToggleText();
+
             twitchChat.NotifyPropertyChanged(nameof(twitchChat.CurrentStatus));
         }
+
+        private void pauseButtonToggleText()
+        {
+            string resume = "RESUME";
+            string pause = "PAUSE";
+            if (TwitchChatClient.mt_pause)
+            {
+                btn_actions_Stop.Text = resume;
+                btn_Pause_Readfile.Text = resume;
+                button3.Text = resume;
+            }
+            else
+            {
+                btn_actions_Stop.Text = pause;
+                btn_Pause_Readfile.Text = pause;
+                button3.Text = pause;
+                
+            }
+        }
+
 
         private string[] getFollowsFromAPI(int amount = 1000)
         {
