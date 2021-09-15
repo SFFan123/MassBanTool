@@ -31,13 +31,7 @@ jobs:
       - name: Build Solution
         run: |
           msbuild.exe MassBanTool.sln /p:platform="Any CPU" /p:configuration="Release"
-          
-      - uses: MCJack123/ghaction-generate-release-hashes@v1
-        name: Get File Hashes
-        with:
-          hash-type: sha1,md5
-          file-name: hashes.txt
-          
+                    
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
@@ -45,4 +39,3 @@ jobs:
           name: GitHubBuild
           path: |
               D:\a\MassBanTool\MassBanTool\bin\Release\MassBanTool.exe*
-              D:\a\MassBanTool\MassBanTool\bin\Release\hashes.txt
