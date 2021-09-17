@@ -6,8 +6,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using CredentialManagement;
 using MassBanTool.View;
+using DialogResult = System.Windows.Forms.DialogResult;
 
 namespace MassBanTool
 {
@@ -63,7 +66,10 @@ namespace MassBanTool
                 ThrowError("Invalid Channel", false);
                 return;
             }
-            
+
+            List<string> channelList = channel.Split(',').Select(x => x.Trim()).ToList();
+
+
             if (connected)
             {
                 if (twitchChat.MessagesQueue.Count > 0)
@@ -78,7 +84,7 @@ namespace MassBanTool
                         twitchChat.Abort();
                         try
                         {
-                            twitchChat.switchChannel(channel);
+                            twitchChat.switchChannel(channelList);
                         }
                         catch (ArgumentException exception)
                         {
@@ -91,7 +97,7 @@ namespace MassBanTool
                 }
                 try
                 {
-                    twitchChat.switchChannel(channel);
+                    twitchChat.switchChannel(channelList);
                 }
                 catch (ArgumentException exception)
                 {
@@ -131,7 +137,7 @@ namespace MassBanTool
                 return;
             }
 
-            twitchChat = new TwitchChatClient(username, oauth, channel, this);
+            twitchChat = new TwitchChatClient(username, oauth, channelList, this);
 
             twitchChat.PropertyChanged += ClientPropChanged;
         }
@@ -233,29 +239,8 @@ namespace MassBanTool
             if (InvokeRequired)
             {
                 toolStripStatusMod.Visible = mod || broadcaster;
-                if (broadcaster)
-                {
-                    toolStripStatusMod.Image = Properties.Resources.broadcaster2;
-                }
-
-                if (mod)
-                {
-                    toolStripStatusMod.Image = Properties.Resources.moderator2;
-                }
-
-                pbModerator.Invoke(new Action(() =>
-                {
-                    pbModerator.Visible = mod || broadcaster;
-                    if (broadcaster)
-                    {
-                        pbModerator.Image = Properties.Resources.broadcaster2;
-                    }
-
-                    if (mod)
-                    {
-                        pbModerator.Image = Properties.Resources.moderator2;
-                    }
-                }));
+                
+                toolStripStatusMod.Image = Properties.Resources.moderator2;
             }
         }
 
@@ -508,22 +493,52 @@ namespace MassBanTool
 
         private void getLogin()
         {
-            string fileName = Path.Combine(Environment.GetFolderPath(
-                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
-            try
+            using (var cred = new Credential())
             {
-                string[] a = File.ReadAllLines(fileName);
-                if (a.Length == 2)
+                cred.Target = "MassBanTool";
+                cred.Load();
+                if (cred.Exists())
                 {
-                    txt_username.Text = a[0];
-                    txt_oauth.Text = a[1];
+                    txt_username.Text = cred.Username;
+                    txt_oauth.Text = cred.Password;
                 }
+                
+                string fileName = Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
+            
+                if (!cred.Exists() && File.Exists(fileName))
+                {
+                    try
+                    {
+                        string[] a = File.ReadAllLines(fileName);
+                        if (a.Length == 2)
+                        {
+                            txt_username.Text = a[0];
+                            txt_oauth.Text = a[1];
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        log(e.ToString());
+                    }
+                }
+
+                if (File.Exists(fileName))
+                {
+                    Shown += movelogin;
+                }
+                
             }
-            catch (Exception e)
+        }
+
+        private void movelogin(object sender, EventArgs eventArgs)
+        {
+            var tsk = Task.Run(() =>
             {
-                Console.WriteLine(e);
-                log(e.ToString());
-            }
+                saveLogin();
+                Shown -= movelogin;
+            });
         }
 
         private void LoadData()
@@ -566,22 +581,32 @@ namespace MassBanTool
 
         private void saveLogin()
         {
+            if (string.IsNullOrEmpty(uname) || string.IsNullOrEmpty(oauth))
+            {
+                uname = txt_username.Text.Trim();
+                oauth = txt_oauth.Text.Trim();
+
+                if (string.IsNullOrEmpty(uname) || string.IsNullOrEmpty(oauth))
+                    return;
+            }
+
             string fileName = Path.Combine(Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
-            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "MassBanTool");
-
-            if (!Directory.Exists(folderPath))
+            if (File.Exists(fileName))
             {
-                Directory.CreateDirectory(folderPath);
+                File.Delete(fileName);
             }
+                
 
-            if (!File.Exists(fileName))
+            using (var cred = new Credential())
             {
-                File.Create(fileName).Close();
+                cred.Password = oauth;
+                cred.Target = "MassBanTool";
+                cred.Username = uname;
+                cred.Type = CredentialType.Generic;
+                cred.PersistanceType = PersistanceType.LocalComputer;
+                cred.Save();
             }
-
-            File.WriteAllText(fileName, uname + Environment.NewLine + oauth);
         }
 
         private void saveData()
@@ -643,8 +668,22 @@ namespace MassBanTool
             }
         }
 
-        public void ThrowError(string message, bool exitonThrow = true)
+        public void ThrowError(string message, bool exitonThrow = true, bool hardError = false)
         {
+            if (hardError)
+            {
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        this.Enabled = false;
+                    }));
+                }
+                else
+                {
+                    Enabled = false;
+                }
+            }
             MessageBox.Show(message, "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             if (exitonThrow)
                 Environment.Exit(-1);

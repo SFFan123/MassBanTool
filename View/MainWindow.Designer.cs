@@ -96,9 +96,6 @@
             this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
-            this.pbModerator = new System.Windows.Forms.PictureBox();
-            this.formBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.twitchChatClientBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -108,9 +105,6 @@
             this.tab_ReadFile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // txt_ToBan
@@ -439,9 +433,9 @@
             // 
             this.btn_showConsole.Location = new System.Drawing.Point(6, 35);
             this.btn_showConsole.Name = "btn_showConsole";
-            this.btn_showConsole.Size = new System.Drawing.Size(96, 23);
+            this.btn_showConsole.Size = new System.Drawing.Size(102, 23);
             this.btn_showConsole.TabIndex = 2;
-            this.btn_showConsole.Text = "Show Console";
+            this.btn_showConsole.Text = "Show Logwindow";
             this.btn_showConsole.UseVisualStyleBackColor = true;
             this.btn_showConsole.Click += new System.EventHandler(this.btn_showConsole_Click);
             // 
@@ -450,7 +444,7 @@
             this.btnRemovePrefixes.Enabled = false;
             this.btnRemovePrefixes.Location = new System.Drawing.Point(6, 6);
             this.btnRemovePrefixes.Name = "btnRemovePrefixes";
-            this.btnRemovePrefixes.Size = new System.Drawing.Size(96, 23);
+            this.btnRemovePrefixes.Size = new System.Drawing.Size(102, 23);
             this.btnRemovePrefixes.TabIndex = 1;
             this.btnRemovePrefixes.Text = "Remove clutter";
             this.toolTip1.SetToolTip(this.btnRemovePrefixes, "Removes .ban /ban .mod /ban /somecommand form the nameslist.");
@@ -719,7 +713,7 @@
             // 
             this.saveSettingsToolStripMenuItem.Enabled = false;
             this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
-            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveSettingsToolStripMenuItem.Text = "Save Settings";
             this.saveSettingsToolStripMenuItem.ToolTipText = "Saves Cooldown, Allowed Actions in Readfile,... to the Appdata to load it later.";
             this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
@@ -728,10 +722,9 @@
             // 
             this.saveLoginToolStripMenuItem.Enabled = false;
             this.saveLoginToolStripMenuItem.Name = "saveLoginToolStripMenuItem";
-            this.saveLoginToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
-            this.saveLoginToolStripMenuItem.Text = "Save Login *";
-            this.saveLoginToolStripMenuItem.ToolTipText = "Saves the username and oauth combo to your %appdata% direcotry.\r\n!Warning this ha" +
-    "ppens in clear text!";
+            this.saveLoginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveLoginToolStripMenuItem.Text = "Save Login";
+            this.saveLoginToolStripMenuItem.ToolTipText = "Saves the username and oauth combo to the Windows Credential Manager.";
             this.saveLoginToolStripMenuItem.Click += new System.EventHandler(this.saveLoginToolStripMenuItem_Click);
             // 
             // toolStripMenuItem_About
@@ -776,24 +769,13 @@
             // 
             // comboBox_channel
             // 
+            this.comboBox_channel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBox_channel.FormattingEnabled = true;
             this.comboBox_channel.Location = new System.Drawing.Point(480, 84);
             this.comboBox_channel.Name = "comboBox_channel";
             this.comboBox_channel.Size = new System.Drawing.Size(121, 21);
             this.comboBox_channel.TabIndex = 10007;
             this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
-            // 
-            // pbModerator
-            // 
-            this.pbModerator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbModerator.Image = global::MassBanTool.Properties.Resources.moderator2;
-            this.pbModerator.Location = new System.Drawing.Point(587, 107);
-            this.pbModerator.Name = "pbModerator";
-            this.pbModerator.Size = new System.Drawing.Size(27, 26);
-            this.pbModerator.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pbModerator.TabIndex = 12;
-            this.pbModerator.TabStop = false;
-            this.pbModerator.Visible = false;
             // 
             // MainWindow
             // 
@@ -810,7 +792,6 @@
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.lbl_list);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.pbModerator);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.chk_showOauth);
             this.Controls.Add(this.txt_oauth);
@@ -825,7 +806,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 521);
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.4.0 Beta";
+            this.Text = "MassBanTool v. 0.4.5 Beta";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
@@ -840,9 +821,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbModerator)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.formBindingSource)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.twitchChatClientBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -860,7 +838,6 @@
         private System.Windows.Forms.CheckBox chk_showOauth;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private System.Windows.Forms.PictureBox pbModerator;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label lbl_list;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
@@ -914,8 +891,6 @@
         private System.Windows.Forms.ToolStripMenuItem saveSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveLoginToolStripMenuItem;
         private System.Windows.Forms.ComboBox comboBox_channel;
-        private System.Windows.Forms.BindingSource formBindingSource;
-        private System.Windows.Forms.BindingSource twitchChatClientBindingSource;
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem licenseToolStripMenuItem;
         private System.Windows.Forms.Button btn_showConsole;

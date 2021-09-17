@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Client;
@@ -18,15 +19,9 @@ namespace MassBanTool
     {
         private static bool _mtpause = false;
 
-        public static bool mt_pause
-        {
-            get => _mtpause;
-            set
-            {
-                log($"Pause flag set to {value}", true);
-                _mtpause = value;
-            }
-        }
+        private MainWindow _mainWindow;
+
+        private bool abort = false;
 
         private int ActionListLenght = 0;
 
@@ -34,19 +29,20 @@ namespace MassBanTool
 
         private ConnectionCredentials credentials;
 
-        private MainWindow _mainWindow;
+        private Regex ircBanConfirmrRegex = new Regex(@"", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         Task messageTask = null;
 
 
         private bool running = true;
 
-        public TwitchChatClient(string user, string oauth, string channel, MainWindow f)
+        public TwitchChatClient(string user, string oauth, List<string> channel, MainWindow f)
         {
             _mainWindow = f;
             this.user = user;
             this.oauth = oauth;
             credentials = new ConnectionCredentials(user, oauth);
+
 
             this.channel = channel;
 
@@ -57,10 +53,20 @@ namespace MassBanTool
             client.Connect();
         }
 
+        public static bool mt_pause
+        {
+            get => _mtpause;
+            set
+            {
+                log($"Pause flag set to {value}", true);
+                _mtpause = value;
+            }
+        }
+
         public ToolStatus CurrentStatus { get; set; } = ToolStatus.Disconnected;
         public ToolStatus TargetStatus_for_pause { get; set; }
 
-        public string channel { get; set; }
+        public List<string> channel { get; set; }
 
         public int cooldown { get; set; } = 500;
 
@@ -74,26 +80,46 @@ namespace MassBanTool
 
         public bool isBroadcaster { get; private set; }
 
-        public List<string> ChannelModerators { get; private set; } = new List<string>();
+        public Dictionary<string, List<string>> ChannelModerators { get; private set; } =
+            new Dictionary<string, List<string>>();
+
+        public Dictionary<string, List<string>> ChannelVIPs { get; private set; } =
+            new Dictionary<string, List<string>>();
 
         public event PropertyChangedEventHandler PropertyChanged;
+
 
         private void RegisterClientEventHandler(TwitchClient client)
         {
             client.OnLog += Client_OnLog;
+            client.OnIncorrectLogin += ClientOnOnIncorrectLogin;
+            client.OnUserBanned += Client_OnUserBanned;
             client.OnConnected += Client_OnConnected;
             client.OnJoinedChannel += Client_OnJoinedChannel;
             client.OnUserStateChanged += Client_OnUserStateChanged;
             client.OnDisconnected += Client_OnDisconnected;
             client.OnModeratorsReceived += ClientOnOnModeratorsReceived;
+            client.OnVIPsReceived += ClientOnOnVIPsReceived;
+        }
+
+        private void ClientOnOnVIPsReceived(object sender, OnVIPsReceivedArgs e)
+        {
+            ChannelVIPs[e.Channel.ToLowerInvariant()] = e.VIPs;
+        }
+
+        private void Client_OnUserBanned(object sender, OnUserBannedArgs e)
+        {
+            //Console.WriteLine(e.UserBan.Username);
+        }
+
+        private void ClientOnOnIncorrectLogin(object sender, OnIncorrectLoginArgs e)
+        {
+            _mainWindow.ThrowError($"Invalid Credentials.", false);
         }
 
         private void ClientOnOnModeratorsReceived(object sender, OnModeratorsReceivedArgs e)
         {
-            if (string.Equals(channel, e.Channel, StringComparison.CurrentCultureIgnoreCase))
-            {
-                ChannelModerators = e.Moderators;
-            }
+            ChannelModerators[e.Channel.ToLowerInvariant()] = e.Moderators;
         }
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
@@ -125,7 +151,7 @@ namespace MassBanTool
             messageTask.Dispose();
             CurrentStatus = ToolStatus.Disconnected;
             NotifyPropertyChanged(nameof(CurrentStatus));
-            
+
             Console.WriteLine("Connection to Twitch lost");
             log("Connection to Twitch lost");
 
@@ -150,21 +176,19 @@ namespace MassBanTool
 
             _mainWindow.setMod(this, isMod, isBroadcaster);
 
-            if (isBroadcaster)
-            {
-                client.GetChannelModerators(client.JoinedChannels.First());
-            }
+            client.GetChannelModerators(e.UserState.Channel);
+            client.GetVIPs(e.UserState.Channel);
 
             if (!isMod && !isBroadcaster)
             {
-                _mainWindow.ThrowError("Neither Broadcaster nor Mod in the given channel!, Exiting.");
+                _mainWindow.ThrowError("Neither Broadcaster nor Mod in the given channel!, Exiting.", true, true);
             }
         }
 
 
         private void Client_OnLog(object sender, OnLogArgs e)
         {
-            string to_log = $"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}";
+            string to_log = $"{e.DateTime}: {e.BotUsername} - {e.Data}";
             log(to_log);
             Console.WriteLine(to_log);
         }
@@ -187,6 +211,13 @@ namespace MassBanTool
                     string message;
                     while (running)
                     {
+                        if (abort)
+                        {
+                            MessagesQueue.Clear();
+                            log("Queue cleared", true);
+                            abort = false;
+                        }
+
                         while (mt_pause)
                         {
                             Thread.Sleep(1000);
@@ -203,11 +234,18 @@ namespace MassBanTool
                                 _mainWindow.setBanProgress(this, banindex, ActionListLenght);
                                 _mainWindow.setETA(this, eta.ToString("g"));
                             }
-                            client.SendMessage(channel, message);
 
-                            string to_log = $"MT: {DateTime.Now.ToString("dd.MM H:mm:ss")} > {message}";
-                            Console.WriteLine(to_log);
-                            log(to_log);
+                            foreach (var channel in client.JoinedChannels)
+                            {
+                                client.SendMessage(channel, message);
+
+                                string to_log = $"MT: {DateTime.Now:HH:mm:ss fff} >#{channel.Channel} - {message}";
+                                Console.WriteLine(to_log);
+                                log(to_log);
+
+                                Thread.Sleep(cooldown);
+                            }
+
 
                             MessagesQueue.RemoveAt(0);
 
@@ -217,7 +255,7 @@ namespace MassBanTool
                                 _mainWindow.setETA(this, "-");
                             }
 
-                            Thread.Sleep(cooldown);
+                            //Thread.Sleep(cooldown);
                         }
                         else
                         {
@@ -231,27 +269,41 @@ namespace MassBanTool
                     _mainWindow.increaseDelay(cooldown);
                     Thread.Sleep(10);
                 }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    if (!mt_pause)
+                    {
+                        _mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
+                    }
+                }
                 catch (Exception e)
                 {
                     _mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent);
         }
 
 
-        public void switchChannel(string newChannel)
+        public void switchChannel(List<string> newChannel)
         {
-            newChannel = newChannel.Trim();
-            if (newChannel.Equals(string.Empty))
+            var joinedChannels = client.JoinedChannels.Select(x => x.Channel.ToLower());
+
+            var toleave = joinedChannels.Except(newChannel).ToList();
+
+            var tojoin = newChannel.Except(joinedChannels).ToList();
+
+            foreach (var channel in toleave)
             {
-                throw new ArgumentException("channel may not be empty");
+                client.LeaveChannel(channel);
+                ChannelModerators[channel]?.Clear();
             }
 
-            ChannelModerators?.Clear();
+            foreach (var channel in tojoin)
+            {
+                client.JoinChannel(channel, true);
+            }
 
-            client.LeaveChannel(channel);
-            channel = newChannel;
-            client.JoinChannel(channel);
+
             CurrentStatus = ToolStatus.Ready;
             NotifyPropertyChanged(nameof(CurrentStatus));
         }
@@ -267,27 +319,36 @@ namespace MassBanTool
 
             CurrentStatus = ToolStatus.Banning;
             NotifyPropertyChanged(nameof(CurrentStatus));
+
+            List<string> allSpecialChannelUser = new List<string>();
+
+            foreach (var elm in ChannelModerators)
+            {
+                allSpecialChannelUser.AddRange(elm.Value);
+            }
+
+            foreach (var elm in ChannelVIPs)
+            {
+                allSpecialChannelUser.AddRange(elm.Value);
+            }
+
+
             for (int i = 0; i < toBan.Count; i++)
             {
-                if (isBroadcaster)
+                if (allSpecialChannelUser.Contains(toBan[i].ToLower()))
                 {
-                    if (ChannelModerators.Contains(toBan[i].ToLower()))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
-                MessagesQueue.Add(($"/ban {toBan[i].Trim()} {reason.Trim()}").Trim());
+                MessagesQueue.Add(($"/ban {toBan[i].Trim()} {reason.Trim()}"));
             }
         }
 
 
         public void Abort()
         {
+            abort = true;
             CurrentStatus = ToolStatus.Aborted;
-            mt_pause = true;
-            MessagesQueue.Clear();
-            mt_pause = false;
         }
 
         public void setToUNBann(List<string> toUnBan)
@@ -333,9 +394,9 @@ namespace MassBanTool
                 if (addTimeStamp)
                 {
                     line = DateTime.Now.ToString("G") + " " + line;
-                    MainWindow.logwindow.Log(line);
                 }
-                    
+
+                MainWindow.logwindow.Log(line);
             }
         }
     }
