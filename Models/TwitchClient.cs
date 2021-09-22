@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Exceptions;
 using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
@@ -255,7 +256,6 @@ namespace MassBanTool
                                 _mainWindow.setETA(this, "-");
                             }
 
-                            //Thread.Sleep(cooldown);
                         }
                         else
                         {
@@ -275,6 +275,10 @@ namespace MassBanTool
                     {
                         _mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
                     }
+                }
+                catch (BadStateException)
+                {
+                    abort = true;
                 }
                 catch (Exception e)
                 {

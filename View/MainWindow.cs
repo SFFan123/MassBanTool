@@ -22,6 +22,7 @@ namespace MassBanTool
         TwitchChatClient twitchChat = null;
         private string uname;
         private Mutex channelMutex;
+        private Regex channelRegex = new Regex(@"^\w{4,26}$");
         
         public HashSet<string> lastVisitedChannels { get; private set; }
 
@@ -68,6 +69,16 @@ namespace MassBanTool
             }
 
             List<string> channelList = channel.Split(',').Select(x => x.Trim()).ToList();
+
+            
+            foreach (var chl in channelList)
+            {
+                if (!channelRegex.IsMatch(chl))
+                {
+                    ShowWarning($"Invalid Channel name '{chl}'.");
+                    return;
+                }
+            }
 
 
             if (connected)
