@@ -69,7 +69,7 @@ namespace MassBanTool
             // saveLogAsToolStripMenuItem
             // 
             this.saveLogAsToolStripMenuItem.Name = "saveLogAsToolStripMenuItem";
-            this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveLogAsToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.saveLogAsToolStripMenuItem.Text = "Save log as";
             this.saveLogAsToolStripMenuItem.Click += new System.EventHandler(this.saveLogAsToolStripMenuItem_Click);
             // 

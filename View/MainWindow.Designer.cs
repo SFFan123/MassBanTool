@@ -117,13 +117,13 @@
             this.txt_ToBan.Name = "txt_ToBan";
             this.txt_ToBan.ReadOnly = true;
             this.txt_ToBan.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_ToBan.Size = new System.Drawing.Size(315, 406);
+            this.txt_ToBan.Size = new System.Drawing.Size(315, 407);
             this.txt_ToBan.TabIndex = 10000;
             // 
             // progresBar_BanProgress
             // 
             this.progresBar_BanProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 467);
+            this.progresBar_BanProgress.Location = new System.Drawing.Point(13, 468);
             this.progresBar_BanProgress.Name = "progresBar_BanProgress";
             this.progresBar_BanProgress.Size = new System.Drawing.Size(315, 23);
             this.progresBar_BanProgress.TabIndex = 1;
@@ -262,7 +262,7 @@
             this.toolStripWarning,
             this.toolstripETA,
             this.toolStripStatusLabel_BanIndex});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 498);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 499);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(754, 22);
             this.statusStrip1.TabIndex = 17;
@@ -300,7 +300,7 @@
             this.tabControl.Controls.Add(this.tabMisc);
             this.tabControl.Controls.Add(this.tabUnban);
             this.tabControl.Controls.Add(this.tab_ReadFile);
-            this.tabControl.Location = new System.Drawing.Point(334, 227);
+            this.tabControl.Location = new System.Drawing.Point(334, 228);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
             this.tabControl.Size = new System.Drawing.Size(420, 263);
@@ -713,7 +713,7 @@
             // 
             this.saveSettingsToolStripMenuItem.Enabled = false;
             this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
-            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.saveSettingsToolStripMenuItem.Text = "Save Settings";
             this.saveSettingsToolStripMenuItem.ToolTipText = "Saves Cooldown, Allowed Actions in Readfile,... to the Appdata to load it later.";
             this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
@@ -722,7 +722,7 @@
             // 
             this.saveLoginToolStripMenuItem.Enabled = false;
             this.saveLoginToolStripMenuItem.Name = "saveLoginToolStripMenuItem";
-            this.saveLoginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveLoginToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.saveLoginToolStripMenuItem.Text = "Save Login";
             this.saveLoginToolStripMenuItem.ToolTipText = "Saves the username and oauth combo to the Windows Credential Manager.";
             this.saveLoginToolStripMenuItem.Click += new System.EventHandler(this.saveLoginToolStripMenuItem_Click);
@@ -781,7 +781,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(754, 520);
+            this.ClientSize = new System.Drawing.Size(754, 521);
             this.Controls.Add(this.comboBox_channel);
             this.Controls.Add(this.lbl_listType);
             this.Controls.Add(this.btn_applyDelay);
@@ -803,7 +803,7 @@
             this.Controls.Add(this.txt_ToBan);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(770, 521);
+            this.MinimumSize = new System.Drawing.Size(770, 560);
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MassBanTool v. 0.4.5 Beta";

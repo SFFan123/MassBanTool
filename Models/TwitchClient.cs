@@ -136,7 +136,7 @@ namespace MassBanTool
             {
                 MessagesAllowedInPeriod = 100,
                 ThrottlingPeriod = TimeSpan.FromSeconds(30),
-                UseSsl = true,
+                UseSsl = true
             };
             WebSocketClient customClient = new WebSocketClient(clientOptions);
             TwitchClient client;
