@@ -1062,5 +1062,11 @@ namespace MassBanTool
             if(logwindow != null && !logwindow.IsDisposed)
                 logwindow.Log(line);
         }
+
+        private void linkLabel_CooldownInfo_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            linkLabel_CooldownInfo.LinkVisited = true;
+            System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages");
+        }
     }
 }

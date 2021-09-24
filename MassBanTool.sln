@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassBanTool", "MassBanTool.csproj", "{F7FBEF3D-A42D-431F-8259-33C809B75462}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassBanTool", "MassBanTool\MassBanTool.csproj", "{F7FBEF3D-A42D-431F-8259-33C809B75462}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassBanToolWPF", "..\MassBanToolWPF\MassBanToolWPF.csproj", "{0D440C7D-3637-427E-810F-502C81E36992}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassBanToolWPF", "MassBanToolWPF\MassBanToolWPF.csproj", "{0D440C7D-3637-427E-810F-502C81E36992}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

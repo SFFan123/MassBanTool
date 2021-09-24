@@ -96,6 +96,7 @@
             this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
+            this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -777,11 +778,24 @@
             this.comboBox_channel.TabIndex = 10007;
             this.comboBox_channel.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox_channel_KeyUp);
             // 
+            // linkLabel_CooldownInfo
+            // 
+            this.linkLabel_CooldownInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabel_CooldownInfo.AutoSize = true;
+            this.linkLabel_CooldownInfo.Location = new System.Drawing.Point(676, 178);
+            this.linkLabel_CooldownInfo.Name = "linkLabel_CooldownInfo";
+            this.linkLabel_CooldownInfo.Size = new System.Drawing.Size(74, 13);
+            this.linkLabel_CooldownInfo.TabIndex = 10008;
+            this.linkLabel_CooldownInfo.TabStop = true;
+            this.linkLabel_CooldownInfo.Text = "Cooldown info";
+            this.linkLabel_CooldownInfo.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel_CooldownInfo_LinkClicked);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 521);
+            this.Controls.Add(this.linkLabel_CooldownInfo);
             this.Controls.Add(this.comboBox_channel);
             this.Controls.Add(this.lbl_listType);
             this.Controls.Add(this.btn_applyDelay);
@@ -894,6 +908,7 @@
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem licenseToolStripMenuItem;
         private System.Windows.Forms.Button btn_showConsole;
+        private System.Windows.Forms.LinkLabel linkLabel_CooldownInfo;
     }
 }
 
