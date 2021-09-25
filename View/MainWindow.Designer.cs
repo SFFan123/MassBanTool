@@ -174,7 +174,7 @@
             this.txt_oauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_oauth.Location = new System.Drawing.Point(480, 58);
             this.txt_oauth.Name = "txt_oauth";
-            this.txt_oauth.PasswordChar = '*';
+            this.txt_oauth.PasswordChar = '\u25CF';
             this.txt_oauth.Size = new System.Drawing.Size(100, 20);
             this.txt_oauth.TabIndex = 2;
             // 

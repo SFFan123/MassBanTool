@@ -55,7 +55,7 @@ namespace MassBanTool
             }
             else
             {
-                txt_oauth.PasswordChar = '*';
+                txt_oauth.PasswordChar = '\u25CF';
             }
         }
 
@@ -1115,5 +1115,7 @@ namespace MassBanTool
             linkLabel_CooldownInfo.LinkVisited = true;
             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages");
         }
+
+
     }
 }
