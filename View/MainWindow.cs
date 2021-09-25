@@ -769,7 +769,7 @@ namespace MassBanTool
             
             // TODO
             // username regex?
-            Regex readfileParseRegex = new Regex(@"^(?:.|\/)([a-zA-Z]+) (\w+)( .+)?$", RegexOptions.Compiled);
+            Regex readfileParseRegex = new Regex(@"^(?:.|\/)([a-zA-Z]+) (\w{4,25})( .+)?$", RegexOptions.Compiled);
 
             List<string> filteredCommands = new List<string>();
             foreach (string line in usernameOrCommandList)
@@ -780,8 +780,7 @@ namespace MassBanTool
                 {
                     if (showWarning)
                     {
-                        ShowWarning("Cannot parse Readfile.");
-                        //ShowWarning("Mismatch between allowed commands and commands used in the file.");
+                        ShowWarning("Cannot parse Readfile. Reasons for this can be invalid usernames or invalid command syntax.");
                         return;
                     }
                     continue;
