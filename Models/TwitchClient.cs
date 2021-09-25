@@ -29,9 +29,7 @@ namespace MassBanTool
         TwitchClient client;
 
         private ConnectionCredentials credentials;
-
-        private Regex ircBanConfirmrRegex = new Regex(@"", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
+        
         Task messageTask = null;
 
 
@@ -86,6 +84,29 @@ namespace MassBanTool
 
         public Dictionary<string, List<string>> ChannelVIPs { get; private set; } =
             new Dictionary<string, List<string>>();
+
+
+
+        public List<string> allSpecialChannelUser
+        {
+            get
+            {
+                List<string> result = new List<string>();
+                foreach (var elm in ChannelModerators)
+                {
+                    result.AddRange(elm.Value);
+                }
+
+                foreach (var elm in ChannelVIPs)
+                {
+                    result.AddRange(elm.Value);
+                }
+
+                return result;
+            }
+        }
+
+        
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -323,18 +344,6 @@ namespace MassBanTool
 
             CurrentStatus = ToolStatus.Banning;
             NotifyPropertyChanged(nameof(CurrentStatus));
-
-            List<string> allSpecialChannelUser = new List<string>();
-
-            foreach (var elm in ChannelModerators)
-            {
-                allSpecialChannelUser.AddRange(elm.Value);
-            }
-
-            foreach (var elm in ChannelVIPs)
-            {
-                allSpecialChannelUser.AddRange(elm.Value);
-            }
 
 
             for (int i = 0; i < toBan.Count; i++)

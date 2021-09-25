@@ -97,6 +97,7 @@
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
             this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
+            this.checkBox_readfile_protectVIPMods = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -500,6 +501,7 @@
             // 
             // tab_ReadFile
             // 
+            this.tab_ReadFile.Controls.Add(this.checkBox_readfile_protectVIPMods);
             this.tab_ReadFile.Controls.Add(this.radio_Readfile_Ignore);
             this.tab_ReadFile.Controls.Add(this.label8);
             this.tab_ReadFile.Controls.Add(this.textBoxAllowedActions);
@@ -790,6 +792,18 @@
             this.linkLabel_CooldownInfo.Text = "Cooldown info";
             this.linkLabel_CooldownInfo.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel_CooldownInfo_LinkClicked);
             // 
+            // checkBox_readfile_protectVIPMods
+            // 
+            this.checkBox_readfile_protectVIPMods.AutoSize = true;
+            this.checkBox_readfile_protectVIPMods.Checked = true;
+            this.checkBox_readfile_protectVIPMods.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_readfile_protectVIPMods.Location = new System.Drawing.Point(142, 66);
+            this.checkBox_readfile_protectVIPMods.Name = "checkBox_readfile_protectVIPMods";
+            this.checkBox_readfile_protectVIPMods.Size = new System.Drawing.Size(193, 17);
+            this.checkBox_readfile_protectVIPMods.TabIndex = 20;
+            this.checkBox_readfile_protectVIPMods.Text = "Protect Mods/VIPs from commands";
+            this.checkBox_readfile_protectVIPMods.UseVisualStyleBackColor = true;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -909,6 +923,7 @@
         private System.Windows.Forms.ToolStripMenuItem licenseToolStripMenuItem;
         private System.Windows.Forms.Button btn_showConsole;
         private System.Windows.Forms.LinkLabel linkLabel_CooldownInfo;
+        private System.Windows.Forms.CheckBox checkBox_readfile_protectVIPMods;
     }
 }
 

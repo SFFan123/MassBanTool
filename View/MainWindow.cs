@@ -250,8 +250,16 @@ namespace MassBanTool
             if (InvokeRequired)
             {
                 toolStripStatusMod.Visible = mod || broadcaster;
+
+                if (mod)
+                {
+                    toolStripStatusMod.Image = Properties.Resources.moderator2;
+                }
+                else if (broadcaster)
+                {
+                    toolStripStatusMod.Image = Properties.Resources.broadcaster2;
+                }
                 
-                toolStripStatusMod.Image = Properties.Resources.moderator2;
             }
         }
 
@@ -740,6 +748,10 @@ namespace MassBanTool
 
         private void btn_RunReadfile_Click(object sender, EventArgs e)
         {
+            bool showWarning = radio_Readfile_WarnAndAbort.Checked;
+            bool protectVIPMods = checkBox_readfile_protectVIPMods.Checked;
+
+
             // get allow list
 
             var allowList = textBoxAllowedActions
@@ -754,25 +766,61 @@ namespace MassBanTool
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            
+            // TODO
+            // username regex?
+            Regex readfileParseRegex = new Regex(@"^(?:.|\/)([a-zA-Z]+) (\w+)( .+)?$", RegexOptions.Compiled);
 
-            allowList = allowList.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // Filter list
-            // broken.
-            var commandList = usernameOrCommandList.Where(x => x != String.Empty && allowList.Contains(
-                //TODO check if command prefix
-                x.Substring(1, x.IndexOf(" ") - 1))
-            ).ToList();
-
-            if (radio_Readfile_WarnAndAbort.Checked && commandList.Count != usernameOrCommandList.Count)
+            List<string> filteredCommands = new List<string>();
+            foreach (string line in usernameOrCommandList)
             {
-                MessageBox.Show("Missmatch between allowed commands and commands used in the file.", "Warning",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                var match = readfileParseRegex.Match(line);
 
+                if (!match.Success)
+                {
+                    if (showWarning)
+                    {
+                        ShowWarning("Cannot parse Readfile.");
+                        //ShowWarning("Mismatch between allowed commands and commands used in the file.");
+                        return;
+                    }
+                    continue;
+                }
+
+                // check if command is allowed.
+                if (allowList.Contains(match.Groups[1].Value))
+                {
+                    if (protectVIPMods)
+                    {
+                        if (twitchChat.allSpecialChannelUser.Contains(match.Groups[2].Value))
+                        {
+                            if (showWarning)
+                            {
+                                ShowWarning($"Protected user '{match.Groups[2].Value}' targeted in the file.");
+                                return;
+                            }
+                            continue;
+                        }
+                        filteredCommands.Add(line);
+                    }
+                    else
+                    {
+                        filteredCommands.Add(line);
+                    }
+                }
+                else
+                {
+                    if (showWarning)
+                    {
+                        ShowWarning("Mismatch between allowed commands and commands used in the file.");
+                        return;
+                    }
+                    continue;
+                }
+            }
+            
             // Put in Queue
-            twitchChat.addRawMessages(usernameOrCommandList);
+            twitchChat.addRawMessages(filteredCommands);
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
