@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MassBanTool.Models;
@@ -30,7 +29,7 @@ namespace MassBanTool
         TwitchClient client;
 
         private ConnectionCredentials credentials;
-        
+
         Task messageTask = null;
 
 
@@ -87,7 +86,6 @@ namespace MassBanTool
             new Dictionary<string, List<string>>();
 
 
-
         public List<string> allSpecialChannelUser
         {
             get
@@ -107,7 +105,6 @@ namespace MassBanTool
             }
         }
 
-        
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -174,6 +171,7 @@ namespace MassBanTool
             {
                 return;
             }
+
             TwitchChatClient.mt_pause = true;
             messageTask.Dispose();
             CurrentStatus = ToolStatus.Disconnected;
@@ -281,7 +279,6 @@ namespace MassBanTool
                                 _mainWindow.setBanProgress(this, 100, 100);
                                 _mainWindow.setETA(this, "-");
                             }
-
                         }
                         else
                         {

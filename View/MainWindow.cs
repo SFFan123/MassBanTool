@@ -19,17 +19,15 @@ namespace MassBanTool
     public partial class MainWindow : Form
     {
         private string channel;
-        private bool connected;
-        private string oauth;
-        TwitchChatClient twitchChat = null;
-        private string uname;
         private Mutex channelMutex;
         private Regex channelRegex = new Regex(@"^\w{4,26}$");
-        
-        public HashSet<string> lastVisitedChannels { get; private set; }
+        private bool connected;
 
 
         private ListType inputListType = default;
+        private string oauth;
+        TwitchChatClient twitchChat = null;
+        private string uname;
 
 
         public MainWindow()
@@ -38,6 +36,8 @@ namespace MassBanTool
             getLogin();
             LoadData();
         }
+
+        public HashSet<string> lastVisitedChannels { get; private set; }
 
         public List<string> usernameOrCommandList
         {
@@ -72,7 +72,7 @@ namespace MassBanTool
 
             List<string> channelList = channel.Split(',').Select(x => x.Trim()).ToList();
 
-            
+
             foreach (var chl in channelList)
             {
                 if (!channelRegex.IsMatch(chl))
@@ -104,10 +104,11 @@ namespace MassBanTool
                             ThrowError(exception.Message, false);
                         }
                     }
+
                     TwitchChatClient.mt_pause = wasrunning;
                     return;
-                    
                 }
+
                 try
                 {
                     twitchChat.switchChannel(channelList);
@@ -146,7 +147,8 @@ namespace MassBanTool
 
             if (!CheckMutex())
             {
-                ShowWarning("There is already an instance running with that username.\nIf you just closed the other instance wait 2 secs and try again.");
+                ShowWarning(
+                    "There is already an instance running with that username.\nIf you just closed the other instance wait 2 secs and try again.");
                 return;
             }
 
@@ -165,14 +167,12 @@ namespace MassBanTool
             {
                 channelMutex = new Mutex(true, "MassBanTool_" + uname);
                 return channelMutex.WaitOne(TimeSpan.Zero, true);
-
             }
-            catch (Exception )
+            catch (Exception)
             {
                 return false;
             }
         }
-
 
 
         private void ClientPropChanged(object sender, PropertyChangedEventArgs e)
@@ -207,6 +207,7 @@ namespace MassBanTool
                             toolStripStatusLabel.Text = "Done";
                             break;
                     }
+
                     break;
                 case nameof(inputListType):
                     lbl_listType.Text = $"Listtype: {inputListType}";
@@ -257,6 +258,7 @@ namespace MassBanTool
                             lbl_listType.ForeColor = Color.Red;
                             break;
                     }
+
                     break;
             }
         }
@@ -276,7 +278,6 @@ namespace MassBanTool
                 {
                     toolStripStatusMod.Image = Properties.Resources.broadcaster2;
                 }
-                
             }
         }
 
@@ -292,7 +293,7 @@ namespace MassBanTool
             }
 
             lastVisitedChannels.Add(channel);
-            
+
 
             if (openListFileToolStripMenuItem.GetCurrentParent().InvokeRequired)
             {
@@ -310,15 +311,12 @@ namespace MassBanTool
                 {
                     fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
                 }));
-
-                
             }
             else
             {
                 openListFileToolStripMenuItem.Enabled = true;
                 openListURLToolStripMenuItem.Enabled = true;
                 fetchLastFollowersOfChannelToolStripMenuItem.Enabled = true;
-                
             }
 
             if (saveSettingsToolStripMenuItem.GetCurrentParent().InvokeRequired)
@@ -332,14 +330,12 @@ namespace MassBanTool
                 {
                     saveLoginToolStripMenuItem.Enabled = true;
                 }));
-
             }
             else
             {
                 saveSettingsToolStripMenuItem.Enabled = true;
                 saveLoginToolStripMenuItem.Enabled = true;
             }
-
 
 
             if (InvokeRequired)
@@ -438,7 +434,7 @@ namespace MassBanTool
         private void btn_actions_Stop_Click(object sender, EventArgs e)
         {
             TwitchChatClient.mt_pause = !TwitchChatClient.mt_pause;
-            
+
             if (TwitchChatClient.mt_pause)
             {
                 twitchChat.TargetStatus_for_pause = twitchChat.CurrentStatus;
@@ -469,7 +465,6 @@ namespace MassBanTool
                 btn_actions_Stop.Text = pause;
                 btn_Pause_Readfile.Text = pause;
                 button3.Text = pause;
-                
             }
         }
 
@@ -538,10 +533,10 @@ namespace MassBanTool
                     txt_username.Text = cred.Username;
                     txt_oauth.Text = cred.Password;
                 }
-                
+
                 string fileName = Path.Combine(Environment.GetFolderPath(
                     Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolLogin.txt");
-            
+
                 if (!cred.Exists() && File.Exists(fileName))
                 {
                     try
@@ -564,7 +559,6 @@ namespace MassBanTool
                 {
                     Shown += movelogin;
                 }
-                
             }
         }
 
@@ -589,7 +583,7 @@ namespace MassBanTool
 
                 if (data.message_delay != default)
                 {
-                    in_cooldown.Text =  data.message_delay.ToString();
+                    in_cooldown.Text = data.message_delay.ToString();
                 }
 
                 if (data.lastVisitedChannel != null)
@@ -605,7 +599,7 @@ namespace MassBanTool
                 {
                     textBoxAllowedActions.Lines = data.allowedActions.ToArray();
                 }
-                
+
                 comboBox_channel.Items.AddRange(lastVisitedChannels.ToArray<object>());
             }
             catch (Exception)
@@ -632,7 +626,7 @@ namespace MassBanTool
             {
                 File.Delete(fileName);
             }
-                
+
 
             using (var cred = new Credential())
             {
@@ -710,16 +704,14 @@ namespace MassBanTool
             {
                 if (InvokeRequired)
                 {
-                    Invoke(new Action(() =>
-                    {
-                        this.Enabled = false;
-                    }));
+                    Invoke(new Action(() => { this.Enabled = false; }));
                 }
                 else
                 {
                     Enabled = false;
                 }
             }
+
             MessageBox.Show(message, "ERROR!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             if (exitonThrow)
                 Environment.Exit(-1);
@@ -729,7 +721,7 @@ namespace MassBanTool
         {
             MessageBox.Show(message, "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-        
+
         private void btn_Abort_Click(object sender, EventArgs e)
         {
             twitchChat.Abort();
@@ -759,6 +751,7 @@ namespace MassBanTool
 
                 result.Add(_user);
             }
+
             txt_ToBan.Lines = result.ToArray();
             checkListType();
         }
@@ -783,7 +776,7 @@ namespace MassBanTool
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             // TODO
             // username regex?
             Regex readfileParseRegex = new Regex(@"^(?:.|\/)([a-zA-Z]+) (\w{4,25})( .+)?$", RegexOptions.Compiled);
@@ -797,9 +790,11 @@ namespace MassBanTool
                 {
                     if (showWarning)
                     {
-                        ShowWarning("Cannot parse Readfile. Reasons for this can be invalid usernames or invalid command syntax.");
+                        ShowWarning(
+                            "Cannot parse Readfile. Reasons for this can be invalid usernames or invalid command syntax.");
                         return;
                     }
+
                     continue;
                 }
 
@@ -815,8 +810,10 @@ namespace MassBanTool
                                 ShowWarning($"Protected user '{match.Groups[2].Value}' targeted in the file.");
                                 return;
                             }
+
                             continue;
                         }
+
                         filteredCommands.Add(line);
                     }
                     else
@@ -831,10 +828,11 @@ namespace MassBanTool
                         ShowWarning("Mismatch between allowed commands and commands used in the file.");
                         return;
                     }
+
                     continue;
                 }
             }
-            
+
             // Put in Queue
             twitchChat.addRawMessages(filteredCommands);
         }
@@ -857,7 +855,8 @@ namespace MassBanTool
                     }
                     else
                     {
-                        log($"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Mixed");
+                        log(
+                            $"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Mixed");
                         inputListType = ListType.Mixed;
                     }
 
@@ -866,11 +865,11 @@ namespace MassBanTool
                         twitchChat.NotifyPropertyChanged(nameof(inputListType));
                         return;
                     }
-                        
                 }
-                else if(line.Contains(" "))
+                else if (line.Contains(" "))
                 {
-                    log($"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Malformed");
+                    log(
+                        $"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Malformed");
                     inputListType = ListType.Malformed;
                     twitchChat.NotifyPropertyChanged(nameof(inputListType));
                     return;
@@ -931,7 +930,8 @@ namespace MassBanTool
             input_field.Maximum = 5000;
             input_field.Increment = 100;
 
-            var diag = InputDialog.Show("Amount of Follows? must be between 100 and 5000 - in steps of 100", "Fetch amount", input_field,out string input);
+            var diag = InputDialog.Show("Amount of Follows? must be between 100 and 5000 - in steps of 100",
+                "Fetch amount", input_field, out string input);
 
             if (diag != DialogResult.OK)
             {
@@ -972,7 +972,7 @@ namespace MassBanTool
 
         private void OpenListFromURL()
         {
-            var diag = InputDialog.Show("URL of the file.", "Destination", new TextBox() ,out string URL);
+            var diag = InputDialog.Show("URL of the file.", "Destination", new TextBox(), out string URL);
 
             if (diag != DialogResult.OK)
             {
@@ -984,7 +984,7 @@ namespace MassBanTool
                 ShowWarning("Invalid URL");
                 return;
             }
-                
+
             toolStripStatusLabel.Text = "Fetching List ...";
 
             setEnableForControl(true);
@@ -1094,11 +1094,7 @@ namespace MassBanTool
         {
             if (in_cooldown.InvokeRequired)
             {
-                in_cooldown.Invoke(new Action(() =>
-                {
-                    in_cooldown.Text = cooldown.ToString();
-                }));
-                
+                in_cooldown.Invoke(new Action(() => { in_cooldown.Text = cooldown.ToString(); }));
             }
             else
             {
@@ -1125,7 +1121,7 @@ namespace MassBanTool
 
         private void log(string line)
         {
-            if(logwindow != null && !logwindow.IsDisposed)
+            if (logwindow != null && !logwindow.IsDisposed)
                 logwindow.Log(line);
         }
 
@@ -1134,7 +1130,5 @@ namespace MassBanTool
             linkLabel_CooldownInfo.LinkVisited = true;
             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages");
         }
-
-
     }
 }

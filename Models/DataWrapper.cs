@@ -10,7 +10,7 @@ namespace MassBanTool
         public HashSet<string> allowedActions { get; set; }
 
         public int message_delay { get; set; }
-        
+
 
         public string toJSON()
         {

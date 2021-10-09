@@ -4,21 +4,18 @@ using System.Windows.Forms;
 
 namespace MassBanTool
 {
-    
     public partial class LogWindow : System.Windows.Forms.Form
     {
         public LogWindow()
         {
             InitializeComponent();
         }
-        public void Log (string line)
+
+        public void Log(string line)
         {
             if (txt_log.InvokeRequired)
             {
-                txt_log.Invoke(new Action(() =>
-                {
-                    txt_log.AppendText(line + Environment.NewLine);
-                }));
+                txt_log.Invoke(new Action(() => { txt_log.AppendText(line + Environment.NewLine); }));
             }
             else
             {
@@ -53,6 +50,5 @@ namespace MassBanTool
 
             File.WriteAllText(fileName, txt_log.Text + Environment.NewLine);
         }
-
     }
 }

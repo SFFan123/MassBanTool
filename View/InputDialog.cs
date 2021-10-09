@@ -1,25 +1,18 @@
 ﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MassBanTool.View
 {
     public partial class InputDialog : Form
     {
+        string input = String.Empty;
+
         private InputDialog()
         {
             InitializeComponent();
         }
-
-        string input = String.Empty;
 
         public static DialogResult Show(
             string text,
@@ -38,7 +31,7 @@ namespace MassBanTool.View
 
             inputtype.Width = parent.Width - 10;
             inputtype.Height = parent.Height - 10;
-            
+
             parent.Controls.Add(inputtype);
 
             parent = diag.Controls.Find("panel1", false).First();
@@ -48,9 +41,9 @@ namespace MassBanTool.View
             Question.MaximumSize = new Size(parent.Width - 10, 0);
             Question.AutoSize = true;
             parent.Controls.Add(Question);
-            
+
             DialogResult dagResult = diag.ShowDialog();
-            
+
             result = inputtype.Text;
 
             diag.Dispose();
