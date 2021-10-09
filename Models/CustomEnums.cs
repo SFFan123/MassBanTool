@@ -1,4 +1,4 @@
-﻿namespace MassBanTool
+﻿namespace MassBanTool.Models
 {
     public enum ToolStatus
     {
@@ -15,9 +15,10 @@
 
     public enum ListType
     {
-        none = default,
+        None = default,
         UserList,
         ReadFile,
-        Mixed
+        Mixed,
+        Malformed
     }
 }

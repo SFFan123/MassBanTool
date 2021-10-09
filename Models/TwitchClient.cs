@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MassBanTool.Models;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Exceptions;
@@ -169,6 +170,10 @@ namespace MassBanTool
 
         private void Client_OnDisconnected(object sender, TwitchLib.Communication.Events.OnDisconnectedEventArgs e)
         {
+            if (messageTask == null)
+            {
+                return;
+            }
             TwitchChatClient.mt_pause = true;
             messageTask.Dispose();
             CurrentStatus = ToolStatus.Disconnected;

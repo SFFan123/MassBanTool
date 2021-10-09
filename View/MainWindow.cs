@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CredentialManagement;
+using MassBanTool.Models;
 using MassBanTool.View;
 using DialogResult = System.Windows.Forms.DialogResult;
 
@@ -218,6 +220,7 @@ namespace MassBanTool
                             btn_run_unban.Enabled = false;
                             btn_action_run.Enabled = false;
                             txt_actions_ban_reason.Enabled = false;
+                            lbl_listType.ForeColor = DefaultForeColor;
                             break;
 
                         case ListType.Mixed:
@@ -228,6 +231,7 @@ namespace MassBanTool
                             btn_run_unban.Enabled = false;
                             btn_action_run.Enabled = false;
                             txt_actions_ban_reason.Enabled = false;
+                            lbl_listType.ForeColor = DefaultForeColor;
                             break;
 
                         case ListType.UserList:
@@ -238,6 +242,19 @@ namespace MassBanTool
 
                             btnRemovePrefixes.Enabled = false;
                             btn_RunReadfile.Enabled = false;
+                            lbl_listType.ForeColor = DefaultForeColor;
+                            break;
+
+                        default:
+                            btn_run_regex.Enabled = false;
+                            btn_action_run.Enabled = false;
+                            btn_run_unban.Enabled = false;
+                            txt_actions_ban_reason.Enabled = false;
+
+                            btnRemovePrefixes.Enabled = false;
+                            btn_RunReadfile.Enabled = false;
+
+                            lbl_listType.ForeColor = Color.Red;
                             break;
                     }
                     break;
@@ -829,17 +846,18 @@ namespace MassBanTool
 
         private void checkListType()
         {
-            inputListType = ListType.none;
+            inputListType = ListType.None;
             foreach (var line in txt_ToBan.Lines)
             {
                 if (line.StartsWith("/") || line.StartsWith("."))
                 {
-                    if (inputListType == ListType.none || inputListType == ListType.ReadFile)
+                    if (inputListType == ListType.None || inputListType == ListType.ReadFile)
                     {
                         inputListType = ListType.ReadFile;
                     }
                     else
                     {
+                        log($"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Mixed");
                         inputListType = ListType.Mixed;
                     }
 
@@ -852,7 +870,8 @@ namespace MassBanTool
                 }
                 else if(line.Contains(" "))
                 {
-                    inputListType = ListType.Mixed;
+                    log($"INFO: Line {txt_ToBan.Lines.ToList().IndexOf(line)} -> '{line}' --- triggered Listtype Malformed");
+                    inputListType = ListType.Malformed;
                     twitchChat.NotifyPropertyChanged(nameof(inputListType));
                     return;
                 }
@@ -1089,7 +1108,7 @@ namespace MassBanTool
 
         private void btn_showConsole_Click(object sender, EventArgs e)
         {
-            if (logwindow == null)
+            if (logwindow == null || logwindow.IsDisposed)
             {
                 logwindow = new LogWindow();
                 logwindow.Show();

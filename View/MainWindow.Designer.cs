@@ -70,6 +70,7 @@
             this.button3 = new System.Windows.Forms.Button();
             this.btn_run_unban = new System.Windows.Forms.Button();
             this.tab_ReadFile = new System.Windows.Forms.TabPage();
+            this.checkBox_readfile_protectVIPMods = new System.Windows.Forms.CheckBox();
             this.radio_Readfile_Ignore = new System.Windows.Forms.RadioButton();
             this.label8 = new System.Windows.Forms.Label();
             this.textBoxAllowedActions = new System.Windows.Forms.TextBox();
@@ -97,7 +98,6 @@
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
             this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
-            this.checkBox_readfile_protectVIPMods = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -174,7 +174,7 @@
             this.txt_oauth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_oauth.Location = new System.Drawing.Point(480, 58);
             this.txt_oauth.Name = "txt_oauth";
-            this.txt_oauth.PasswordChar = '\u25CF';
+            this.txt_oauth.PasswordChar = '●';
             this.txt_oauth.Size = new System.Drawing.Size(100, 20);
             this.txt_oauth.TabIndex = 2;
             // 
@@ -518,6 +518,18 @@
             this.tab_ReadFile.Text = "Readfile";
             this.tab_ReadFile.UseVisualStyleBackColor = true;
             // 
+            // checkBox_readfile_protectVIPMods
+            // 
+            this.checkBox_readfile_protectVIPMods.AutoSize = true;
+            this.checkBox_readfile_protectVIPMods.Checked = true;
+            this.checkBox_readfile_protectVIPMods.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_readfile_protectVIPMods.Location = new System.Drawing.Point(142, 66);
+            this.checkBox_readfile_protectVIPMods.Name = "checkBox_readfile_protectVIPMods";
+            this.checkBox_readfile_protectVIPMods.Size = new System.Drawing.Size(193, 17);
+            this.checkBox_readfile_protectVIPMods.TabIndex = 20;
+            this.checkBox_readfile_protectVIPMods.Text = "Protect Mods/VIPs from commands";
+            this.checkBox_readfile_protectVIPMods.UseVisualStyleBackColor = true;
+            // 
             // radio_Readfile_Ignore
             // 
             this.radio_Readfile_Ignore.AutoSize = true;
@@ -791,18 +803,6 @@
             this.linkLabel_CooldownInfo.TabStop = true;
             this.linkLabel_CooldownInfo.Text = "Cooldown info";
             this.linkLabel_CooldownInfo.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel_CooldownInfo_LinkClicked);
-            // 
-            // checkBox_readfile_protectVIPMods
-            // 
-            this.checkBox_readfile_protectVIPMods.AutoSize = true;
-            this.checkBox_readfile_protectVIPMods.Checked = true;
-            this.checkBox_readfile_protectVIPMods.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_readfile_protectVIPMods.Location = new System.Drawing.Point(142, 66);
-            this.checkBox_readfile_protectVIPMods.Name = "checkBox_readfile_protectVIPMods";
-            this.checkBox_readfile_protectVIPMods.Size = new System.Drawing.Size(193, 17);
-            this.checkBox_readfile_protectVIPMods.TabIndex = 20;
-            this.checkBox_readfile_protectVIPMods.Text = "Protect Mods/VIPs from commands";
-            this.checkBox_readfile_protectVIPMods.UseVisualStyleBackColor = true;
             // 
             // MainWindow
             // 
