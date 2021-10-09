@@ -246,6 +246,18 @@ namespace MassBanTool
                             lbl_listType.ForeColor = DefaultForeColor;
                             break;
 
+                        case ListType.Malformed:
+                            btn_run_regex.Enabled = false;
+                            btn_action_run.Enabled = false;
+                            btn_run_unban.Enabled = false;
+                            txt_actions_ban_reason.Enabled = false;
+
+                            btnRemovePrefixes.Enabled = false;
+                            btn_RunReadfile.Enabled = false;
+
+                            lbl_listType.ForeColor = Color.Red;
+                            break;
+
                         default:
                             btn_run_regex.Enabled = false;
                             btn_action_run.Enabled = false;
