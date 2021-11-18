@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
-            this.txt_ToBan = new System.Windows.Forms.TextBox();
             this.progresBar_BanProgress = new System.Windows.Forms.ProgressBar();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -95,9 +94,15 @@
             this.toolStripMenuItem_Releases = new System.Windows.Forms.ToolStripMenuItem();
             this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.licenseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdatesNowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.UpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.includePrereleasesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdatesOnStartupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lbl_listType = new System.Windows.Forms.Label();
             this.comboBox_channel = new System.Windows.Forms.ComboBox();
             this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
+            this.listBox_toBan = new System.Windows.Forms.ListView();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -108,19 +113,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.in_cooldown)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // txt_ToBan
-            // 
-            this.txt_ToBan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.txt_ToBan.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txt_ToBan.Location = new System.Drawing.Point(13, 55);
-            this.txt_ToBan.Multiline = true;
-            this.txt_ToBan.Name = "txt_ToBan";
-            this.txt_ToBan.ReadOnly = true;
-            this.txt_ToBan.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_ToBan.Size = new System.Drawing.Size(315, 407);
-            this.txt_ToBan.TabIndex = 10000;
             // 
             // progresBar_BanProgress
             // 
@@ -747,7 +739,9 @@
             this.toolStripMenuItem_About.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem_Releases,
             this.hELPToolStripMenuItem,
-            this.licenseToolStripMenuItem});
+            this.licenseToolStripMenuItem,
+            this.checkForUpdatesNowToolStripMenuItem,
+            this.UpdatesToolStripMenuItem});
             this.toolStripMenuItem_About.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.toolStripMenuItem_About.Name = "toolStripMenuItem_About";
             this.toolStripMenuItem_About.Size = new System.Drawing.Size(52, 21);
@@ -756,23 +750,53 @@
             // toolStripMenuItem_Releases
             // 
             this.toolStripMenuItem_Releases.Name = "toolStripMenuItem_Releases";
-            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(118, 22);
+            this.toolStripMenuItem_Releases.Size = new System.Drawing.Size(217, 22);
             this.toolStripMenuItem_Releases.Text = "Releases";
             this.toolStripMenuItem_Releases.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // hELPToolStripMenuItem
             // 
             this.hELPToolStripMenuItem.Name = "hELPToolStripMenuItem";
-            this.hELPToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.hELPToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.hELPToolStripMenuItem.Text = "HELP";
             this.hELPToolStripMenuItem.Click += new System.EventHandler(this.hELPToolStripMenuItem_Click);
             // 
             // licenseToolStripMenuItem
             // 
             this.licenseToolStripMenuItem.Name = "licenseToolStripMenuItem";
-            this.licenseToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.licenseToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.licenseToolStripMenuItem.Text = "License";
             this.licenseToolStripMenuItem.Click += new System.EventHandler(this.licenseToolStripMenuItem_Click);
+            // 
+            // checkForUpdatesNowToolStripMenuItem
+            // 
+            this.checkForUpdatesNowToolStripMenuItem.Name = "checkForUpdatesNowToolStripMenuItem";
+            this.checkForUpdatesNowToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.checkForUpdatesNowToolStripMenuItem.Text = "Check for new version now";
+            this.checkForUpdatesNowToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdatesNowToolStripMenuItem_Click);
+            // 
+            // UpdatesToolStripMenuItem
+            // 
+            this.UpdatesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.includePrereleasesToolStripMenuItem,
+            this.checkForUpdatesOnStartupToolStripMenuItem});
+            this.UpdatesToolStripMenuItem.Name = "UpdatesToolStripMenuItem";
+            this.UpdatesToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.UpdatesToolStripMenuItem.Text = "Update Check Options";
+            // 
+            // includePrereleasesToolStripMenuItem
+            // 
+            this.includePrereleasesToolStripMenuItem.Name = "includePrereleasesToolStripMenuItem";
+            this.includePrereleasesToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.includePrereleasesToolStripMenuItem.Text = "Include Prereleases";
+            this.includePrereleasesToolStripMenuItem.Click += new System.EventHandler(this.includePrereleasesToolStripMenuItem_Click);
+            // 
+            // checkForUpdatesOnStartupToolStripMenuItem
+            // 
+            this.checkForUpdatesOnStartupToolStripMenuItem.Name = "checkForUpdatesOnStartupToolStripMenuItem";
+            this.checkForUpdatesOnStartupToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.checkForUpdatesOnStartupToolStripMenuItem.Text = "Check For new version on startup";
+            this.checkForUpdatesOnStartupToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdatesOnStartToolStripMenuItem_Click);
             // 
             // lbl_listType
             // 
@@ -804,11 +828,33 @@
             this.linkLabel_CooldownInfo.Text = "Cooldown info";
             this.linkLabel_CooldownInfo.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel_CooldownInfo_LinkClicked);
             // 
+            // listBox_toBan
+            // 
+            this.listBox_toBan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.listBox_toBan.CausesValidation = false;
+            this.listBox_toBan.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader1});
+            this.listBox_toBan.HideSelection = false;
+            this.listBox_toBan.Location = new System.Drawing.Point(12, 47);
+            this.listBox_toBan.Name = "listBox_toBan";
+            this.listBox_toBan.Size = new System.Drawing.Size(316, 420);
+            this.listBox_toBan.TabIndex = 10009;
+            this.listBox_toBan.UseCompatibleStateImageBehavior = false;
+            this.listBox_toBan.View = System.Windows.Forms.View.Details;
+            this.listBox_toBan.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBox_toBan_KeyPress);
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Name";
+            this.columnHeader1.Width = 312;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 521);
+            this.Controls.Add(this.listBox_toBan);
             this.Controls.Add(this.linkLabel_CooldownInfo);
             this.Controls.Add(this.comboBox_channel);
             this.Controls.Add(this.lbl_listType);
@@ -828,7 +874,6 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.progresBar_BanProgress);
-            this.Controls.Add(this.txt_ToBan);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(770, 560);
@@ -855,8 +900,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox txt_ToBan;
         private System.Windows.Forms.ProgressBar progresBar_BanProgress;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -924,6 +967,12 @@
         private System.Windows.Forms.Button btn_showConsole;
         private System.Windows.Forms.LinkLabel linkLabel_CooldownInfo;
         private System.Windows.Forms.CheckBox checkBox_readfile_protectVIPMods;
+        private System.Windows.Forms.ListView listBox_toBan;
+        private System.Windows.Forms.ToolStripMenuItem UpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesNowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem includePrereleasesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem checkForUpdatesOnStartupToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
     }
 }
 

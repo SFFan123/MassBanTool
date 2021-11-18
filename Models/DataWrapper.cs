@@ -11,6 +11,9 @@ namespace MassBanTool
 
         public int message_delay { get; set; }
 
+        public bool checkForUpdates { get; set; }
+
+        public bool includePrereleases { get; set; }
 
         public string toJSON()
         {
