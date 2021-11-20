@@ -103,6 +103,7 @@
             this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
             this.listBox_toBan = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btn_reEvaluateListType = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -413,6 +414,7 @@
             // 
             // tabMisc
             // 
+            this.tabMisc.Controls.Add(this.btn_reEvaluateListType);
             this.tabMisc.Controls.Add(this.btn_showConsole);
             this.tabMisc.Controls.Add(this.btnRemovePrefixes);
             this.tabMisc.Location = new System.Drawing.Point(4, 22);
@@ -849,6 +851,16 @@
             this.columnHeader1.Text = "Name";
             this.columnHeader1.Width = 312;
             // 
+            // btn_reEvaluateListType
+            // 
+            this.btn_reEvaluateListType.Location = new System.Drawing.Point(6, 64);
+            this.btn_reEvaluateListType.Name = "btn_reEvaluateListType";
+            this.btn_reEvaluateListType.Size = new System.Drawing.Size(102, 23);
+            this.btn_reEvaluateListType.TabIndex = 3;
+            this.btn_reEvaluateListType.Text = "Check List";
+            this.btn_reEvaluateListType.UseVisualStyleBackColor = true;
+            this.btn_reEvaluateListType.Click += new System.EventHandler(this.button4_Click_1);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -973,6 +985,7 @@
         private System.Windows.Forms.ToolStripMenuItem includePrereleasesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem checkForUpdatesOnStartupToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.Button btn_reEvaluateListType;
     }
 }
 

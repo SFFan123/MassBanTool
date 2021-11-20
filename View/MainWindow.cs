@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -22,10 +21,10 @@ namespace MassBanTool
     {
         public const string version = "v.0.4.5.1";
         private string channel;
-        private Mutex channelMutex;
+        private Mutex userMutex;
         private Regex channelRegex = new Regex(@"^\w{4,26}$");
-        private bool connected;
         private bool checkForUpdatesOnStartUp;
+        private bool connected;
         private bool includePrereleasesUpdates;
 
 
@@ -40,25 +39,35 @@ namespace MassBanTool
             InitializeComponent();
             getLogin();
             LoadData();
-            Shown += delegate(object sender, EventArgs args) { Task.Run( () => checkForUpdates() ); };
+            if (checkForUpdatesOnStartUp)
+            {
+                Shown += delegate(object sender, EventArgs args) { Task.Run(() => checkForUpdates()); };
+            }
         }
+
+        public HashSet<string> lastVisitedChannels { get; private set; }
+
+        public List<string> usernameOrCommandList
+        {
+            get => listBox_toBan.Items.Cast<string>().ToList();
+        }
+
+        public static LogWindow logwindow { get; private set; }
+
+        public string Listinfo { get; set; } = "<none>";
 
         private void checkForUpdates(bool manual = false)
         {
-            if (!checkForUpdatesOnStartUp && !manual)
-            {
-                return;
-            }
-
             string url = "https://api.github.com/repos/SFFan123/MassBanTool/releases";
 
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri(url);
 
-                client.DefaultRequestHeaders.Accept.Add( new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");//Set the User Agent to "request"
+                client.DefaultRequestHeaders.UserAgent.TryParseAdd("request"); //Set the User Agent to "request"
 
                 HttpResponseMessage response = client.GetAsync(url).Result;
                 if (response.IsSuccessStatusCode)
@@ -76,8 +85,8 @@ namespace MassBanTool
                     if (!includePrereleasesUpdates)
                         releases = releases.Where(x => !(bool)x["prerelease"]).ToList();
 
-                    
-                    string remoteversion = Regex.Match( (string)releases[0]["tag_name"], @"^v\.(\d+\.)+\d+").Value;
+
+                    string remoteversion = Regex.Match((string)releases[0]["tag_name"], @"^v\.(\d+\.)+\d+").Value;
 
                     var current = Version.Parse(version.Replace("v.", ""));
                     var remote = Version.Parse(remoteversion.Replace("v.", ""));
@@ -86,7 +95,8 @@ namespace MassBanTool
                     {
                         var diag_result = MessageBox.Show($"Version {releases[0]["name"]} is available on Github.\n" +
                                                           $"Released on: {DateTime.Parse(releases[0]["published_at"].ToString()):D}\n" +
-                                                          "Click Yes to open the release page, no to discard this dialog.", "New Version Avaibale", MessageBoxButtons.YesNo,
+                                                          "Click Yes to open the release page, no to discard this dialog.",
+                            "New Version Avaibale", MessageBoxButtons.YesNo,
                             MessageBoxIcon.Information);
 
                         if (diag_result == DialogResult.Yes)
@@ -94,22 +104,9 @@ namespace MassBanTool
                             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/releases/latest");
                         }
                     }
-
                 }
             }
         }
-
-        public HashSet<string> lastVisitedChannels { get; private set; }
-
-        public List<string> usernameOrCommandList
-        {
-            get => listBox_toBan.Items.Cast<string>().ToList();
-        }
-
-        public static LogWindow logwindow { get; private set; }
-
-        public string Listinfo { get; set; } = "<none>";
-
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
@@ -227,8 +224,8 @@ namespace MassBanTool
         {
             try
             {
-                channelMutex = new Mutex(true, "MassBanTool_" + uname);
-                return channelMutex.WaitOne(TimeSpan.Zero, true);
+                userMutex = new Mutex(true, "MassBanTool_" + uname);
+                return userMutex.WaitOne(TimeSpan.Zero, true);
             }
             catch (Exception)
             {
@@ -582,7 +579,7 @@ namespace MassBanTool
             Regex rgx = new Regex(sregex);
             List<string> newToBan = new List<string>();
             progresBar_BanProgress.Maximum = usernameOrCommandList.Count;
-            
+
             for (int i = 0; i < usernameOrCommandList.Count; i++)
             {
                 if (i % 10 == 0)
@@ -746,7 +743,11 @@ namespace MassBanTool
             }
 
             int delay;
-            if (twitchChat.cooldown == 301)
+            if (twitchChat == null)
+            {
+                delay = int.Parse(in_cooldown.Text);
+            }
+            else if (twitchChat.cooldown == 301)
             {
                 if (!int.TryParse(in_cooldown.Text, out delay))
                 {
@@ -842,6 +843,7 @@ namespace MassBanTool
 
                 result.Add(_user);
             }
+
             setListBoxRows(result.ToArray());
             checkListType();
         }
@@ -948,7 +950,7 @@ namespace MassBanTool
                     {
                         log($"INFO: Line {listEnumerator} -> '{line.Text}' --- triggered Listtype Mixed");
                         inputListType = ListType.Mixed;
-                        listBox_toBan.Items[listEnumerator].BackColor = Color.Yellow;
+                        line.BackColor = Color.Yellow;
                     }
 
                     if (inputListType == ListType.Mixed)
@@ -963,9 +965,11 @@ namespace MassBanTool
                         $"INFO: Line {listEnumerator} -> '{line.Text}' --- triggered Listtype Malformed");
                     inputListType = ListType.Malformed;
                     twitchChat.NotifyPropertyChanged(nameof(inputListType));
-                    listBox_toBan.Items[listEnumerator].BackColor = Color.Red;
+                    line.BackColor = Color.Red;
                     return;
                 }
+
+                listEnumerator++;
             }
 
             inputListType = inputListType == ListType.ReadFile ? ListType.ReadFile : ListType.UserList;
@@ -1004,7 +1008,7 @@ namespace MassBanTool
                 progresBar_BanProgress.Refresh();
 
                 setEnableForControl(true);
-
+                
                 checkListType();
             }
         }
@@ -1233,6 +1237,7 @@ namespace MassBanTool
                 {
                     listBox_toBan.Items.Remove((ListViewItem)objecttoRemove);
                 }
+
                 listBox_toBan.Select();
                 GC.Collect();
             }
@@ -1242,17 +1247,24 @@ namespace MassBanTool
         {
             checkForUpdatesOnStartUp = !checkForUpdatesOnStartUp;
             UpdatesToolStripMenuItem.Checked = checkForUpdatesOnStartUp;
+            saveData();
         }
 
         private void includePrereleasesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             includePrereleasesUpdates = !includePrereleasesUpdates;
             includePrereleasesToolStripMenuItem.Checked = includePrereleasesUpdates;
+            saveData();
         }
 
         private void checkForUpdatesNowToolStripMenuItem_Click(object sender, EventArgs e)
         {
             checkForUpdates(true);
+        }
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            checkListType();
         }
     }
 }
