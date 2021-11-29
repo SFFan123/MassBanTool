@@ -62,6 +62,8 @@
             this.txt_uname_regex = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabMisc = new System.Windows.Forms.TabPage();
+            this.btn_sort = new System.Windows.Forms.Button();
+            this.btn_reEvaluateListType = new System.Windows.Forms.Button();
             this.btn_showConsole = new System.Windows.Forms.Button();
             this.btnRemovePrefixes = new System.Windows.Forms.Button();
             this.tabUnban = new System.Windows.Forms.TabPage();
@@ -103,7 +105,6 @@
             this.linkLabel_CooldownInfo = new System.Windows.Forms.LinkLabel();
             this.listBox_toBan = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.btn_reEvaluateListType = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabPageBanning.SuspendLayout();
@@ -414,6 +415,7 @@
             // 
             // tabMisc
             // 
+            this.tabMisc.Controls.Add(this.btn_sort);
             this.tabMisc.Controls.Add(this.btn_reEvaluateListType);
             this.tabMisc.Controls.Add(this.btn_showConsole);
             this.tabMisc.Controls.Add(this.btnRemovePrefixes);
@@ -424,6 +426,26 @@
             this.tabMisc.TabIndex = 2;
             this.tabMisc.Text = "Misc";
             this.tabMisc.UseVisualStyleBackColor = true;
+            // 
+            // btn_sort
+            // 
+            this.btn_sort.Location = new System.Drawing.Point(6, 93);
+            this.btn_sort.Name = "btn_sort";
+            this.btn_sort.Size = new System.Drawing.Size(102, 23);
+            this.btn_sort.TabIndex = 4;
+            this.btn_sort.Text = "Sort List";
+            this.btn_sort.UseVisualStyleBackColor = true;
+            this.btn_sort.Click += new System.EventHandler(this.btn_sort_Click);
+            // 
+            // btn_reEvaluateListType
+            // 
+            this.btn_reEvaluateListType.Location = new System.Drawing.Point(6, 64);
+            this.btn_reEvaluateListType.Name = "btn_reEvaluateListType";
+            this.btn_reEvaluateListType.Size = new System.Drawing.Size(102, 23);
+            this.btn_reEvaluateListType.TabIndex = 3;
+            this.btn_reEvaluateListType.Text = "Check List";
+            this.btn_reEvaluateListType.UseVisualStyleBackColor = true;
+            this.btn_reEvaluateListType.Click += new System.EventHandler(this.button4_Click_1);
             // 
             // btn_showConsole
             // 
@@ -848,18 +870,8 @@
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Name";
+            this.columnHeader1.Text = "Entry";
             this.columnHeader1.Width = 312;
-            // 
-            // btn_reEvaluateListType
-            // 
-            this.btn_reEvaluateListType.Location = new System.Drawing.Point(6, 64);
-            this.btn_reEvaluateListType.Name = "btn_reEvaluateListType";
-            this.btn_reEvaluateListType.Size = new System.Drawing.Size(102, 23);
-            this.btn_reEvaluateListType.TabIndex = 3;
-            this.btn_reEvaluateListType.Text = "Check List";
-            this.btn_reEvaluateListType.UseVisualStyleBackColor = true;
-            this.btn_reEvaluateListType.Click += new System.EventHandler(this.button4_Click_1);
             // 
             // MainWindow
             // 
@@ -986,6 +998,7 @@
         private System.Windows.Forms.ToolStripMenuItem checkForUpdatesOnStartupToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.Button btn_reEvaluateListType;
+        private System.Windows.Forms.Button btn_sort;
     }
 }
 

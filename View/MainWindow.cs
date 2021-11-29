@@ -19,7 +19,7 @@ namespace MassBanTool
 {
     public partial class MainWindow : Form
     {
-        public const string version = "v.0.4.5.1";
+        public const string version = "v.0.4.5.0";
         private string channel;
         private Mutex userMutex;
         private Regex channelRegex = new Regex(@"^\w{4,26}$");
@@ -56,6 +56,7 @@ namespace MassBanTool
 
         public string Listinfo { get; set; } = "<none>";
 
+
         private void checkForUpdates(bool manual = false)
         {
             string url = "https://api.github.com/repos/SFFan123/MassBanTool/releases";
@@ -81,9 +82,16 @@ namespace MassBanTool
                     {
                         releases.Add(JObject.Parse(item.ToString()));
                     }
-
+                    
                     if (!includePrereleasesUpdates)
-                        releases = releases.Where(x => !(bool)x["prerelease"]).ToList();
+                    {
+                        releases = releases.Where(x => !(bool)x["prerelease"]).Where(x => !(bool)x["draft"]).ToList();
+                    }
+                    else
+                    {
+                        releases = releases.Where(x => !(bool)x["draft"]).ToList();
+                    }
+
 
 
                     string remoteversion = Regex.Match((string)releases[0]["tag_name"], @"^v\.(\d+\.)+\d+").Value;
@@ -103,6 +111,10 @@ namespace MassBanTool
                         {
                             System.Diagnostics.Process.Start("https://github.com/SFFan123/MassBanTool/releases/latest");
                         }
+                    }
+                    else if (manual)
+                    {
+                        MessageBox.Show("No new Version available", "You are using the newest version.");
                     }
                 }
             }
@@ -140,8 +152,7 @@ namespace MassBanTool
                     return;
                 }
             }
-
-
+            
             if (connected)
             {
                 if (twitchChat.MessagesQueue.Count > 0)
@@ -232,8 +243,7 @@ namespace MassBanTool
                 return false;
             }
         }
-
-
+        
         private void ClientPropChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -333,7 +343,6 @@ namespace MassBanTool
                     break;
             }
         }
-
 
         public void setMod(object sender, bool mod, bool broadcaster)
         {
@@ -554,6 +563,7 @@ namespace MassBanTool
                 {
                     // Parse the response body.
                     string[] result = response.Content.ReadAsStringAsync().Result.Split('\n');
+                    result = result.Take(amount).ToArray();
                     return result;
                 }
                 else
@@ -1051,7 +1061,6 @@ namespace MassBanTool
                 return;
             }
 
-            //usernameOrCommandList = c.ToList<string>();
             setListBoxRows(c);
 
             Listinfo = $"{channel} - last {follows} @{DateTime.Now.ToLocalTime():T}";
@@ -1265,6 +1274,11 @@ namespace MassBanTool
         private void button4_Click_1(object sender, EventArgs e)
         {
             checkListType();
+        }
+
+        private void btn_sort_Click(object sender, EventArgs e)
+        {
+            listBox_toBan.Sort();
         }
     }
 }
