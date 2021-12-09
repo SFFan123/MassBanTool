@@ -903,7 +903,7 @@
             this.MinimumSize = new System.Drawing.Size(770, 560);
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MassBanTool v. 0.4.5 Beta";
+            this.Text = "MassBanTool v. 0.4.5";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
