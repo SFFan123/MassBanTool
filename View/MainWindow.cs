@@ -49,7 +49,15 @@ namespace MassBanTool
 
         public List<string> usernameOrCommandList
         {
-            get => listBox_toBan.Items.Cast<string>().ToList();
+            get
+            {
+                List<string> result = new List<string>();
+                foreach (ListViewItem item in listBox_toBan.Items)
+                {
+                    result.Add(item.Text);
+                }
+                return result;
+            }
         }
 
         public static LogWindow logwindow { get; private set; }
