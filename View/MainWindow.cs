@@ -233,6 +233,9 @@ namespace MassBanTool
             twitchChat = new TwitchChatClient(username, oauth, channelList, this);
 
             twitchChat.PropertyChanged += ClientPropChanged;
+
+            btn_reEvaluateListType.Enabled = true;
+            btn_sort.Enabled = true;
         }
 
         /// <summary>
@@ -954,6 +957,13 @@ namespace MassBanTool
 
         private void checkListType()
         {
+            if (listBox_toBan.Items.Count == 0)
+            {
+                log($"INFO: List is empty.");
+                inputListType = ListType.None;
+                return;
+            }
+
             inputListType = ListType.None;
             int listEnumerator = 0;
             foreach (ListViewItem line in listBox_toBan.Items)

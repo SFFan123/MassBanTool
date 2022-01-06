@@ -429,6 +429,7 @@
             // 
             // btn_sort
             // 
+            this.btn_sort.Enabled = false;
             this.btn_sort.Location = new System.Drawing.Point(6, 93);
             this.btn_sort.Name = "btn_sort";
             this.btn_sort.Size = new System.Drawing.Size(102, 23);
@@ -439,6 +440,7 @@
             // 
             // btn_reEvaluateListType
             // 
+            this.btn_reEvaluateListType.Enabled = false;
             this.btn_reEvaluateListType.Location = new System.Drawing.Point(6, 64);
             this.btn_reEvaluateListType.Name = "btn_reEvaluateListType";
             this.btn_reEvaluateListType.Size = new System.Drawing.Size(102, 23);
