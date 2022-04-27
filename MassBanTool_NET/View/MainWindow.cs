@@ -19,10 +19,10 @@ namespace MassBanTool
 {
     public partial class MainWindow : Form
     {
-        public const string version = "v.0.4.5.0";
+        public const string version = "v.0.4.5.1";
         private string channel;
         private Mutex userMutex;
-        private Regex channelRegex = new Regex(@"^\w{4,26}$");
+        private Regex channelRegex = new Regex(@"^\w{2,26}$");
         private bool checkForUpdatesOnStartUp;
         private bool connected;
         private bool includePrereleasesUpdates;
