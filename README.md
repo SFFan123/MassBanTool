@@ -44,4 +44,4 @@ You know have an exe in the specified output dir, the console of VS tells you wh
 <hr />
 
 ## Special thanks
-Silenful
+Sileniful
