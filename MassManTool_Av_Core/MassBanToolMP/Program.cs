@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using System.Diagnostics;
 using CredentialManagement;
 
 namespace MassBanToolMP
@@ -24,28 +25,6 @@ namespace MassBanToolMP
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI();
-        }
-        
-        public static Tuple<string, string> GetCredentials()
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                using (var cred = new Credential())
-                {
-                    cred.Target = "MassBanTool";
-                    cred.Load();
-                    if (cred.Exists())
-                    {
-                        return new Tuple<string, string>(cred.Username, cred.Password);
-                    }
-                }
-            }
-
-
-            return new Tuple<string, string>("", "");
-
-            //TODO
-            throw new NotImplementedException();
         }
     }
 }

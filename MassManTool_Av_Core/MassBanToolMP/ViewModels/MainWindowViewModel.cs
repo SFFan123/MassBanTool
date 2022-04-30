@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Avalonia.Controls;
+using Avalonia.Metadata;
 using DynamicData;
 using MassBanToolMP.Models;
 using ReactiveUI;
@@ -19,16 +20,18 @@ namespace MassBanToolMP.ViewModels
         private const string MESSAGE_DELAY_TOO_LOW = "Delay may not be under 300ms";
         private const string MESSAGE_DELAY_INVALID_TYPE = "Message Delay must be a postive number.";
         private const string CHANNEL_INVALID = "Invalid Channel Name";
+
         private readonly string allowedActions;
         private string _channel_s = String.Empty;
-        private uint _messageDelay = 301;
+        private int _messageDelay = 301;
         private string _oAuth;
         private string _username;
         private List<string> channels = new List<string>();
 
         public DataGrid DataGrid;
-        private TwitchChatClient twitchChatClient;
+        private TwitchChatClient? twitchChatClient;
         private Mutex userMutex;
+        private int _banProgress;
 
         public MainWindowViewModel()
         {
@@ -36,14 +39,26 @@ namespace MassBanToolMP.ViewModels
             DebugCommand = ReactiveCommand.Create(Debug);
             OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
             ConnectCommand = ReactiveCommand.Create(Connect);
+            LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
 
             Entries = new ObservableCollection<Entry>();
 
             allowedActions = string.Join("\n", Helper.DefaultAllowedActions);
+        }
 
-            var cred = Program.GetCredentials();
-            _username = cred.Item1;
-            _oAuth = cred.Item2;
+        private async void LoadCredentials()
+        {
+            try
+            {
+                var cred = SecretHelper.GetCredentials();
+                Username = cred.Item1;
+                OAuth = cred.Item2;
+            }
+            catch (Exception e)
+            {
+                //TODO
+                Console.WriteLine(e);
+            }
         }
 
         public bool CanConnect
@@ -81,7 +96,7 @@ namespace MassBanToolMP.ViewModels
             get => _messageDelay.ToString();
             set
             {
-                if (uint.TryParse(value, out uint val))
+                if (int.TryParse(value, out int val))
                 {
                     ClearError(nameof(MessageDelay), MESSAGE_DELAY_INVALID_TYPE);
                 }
@@ -126,12 +141,23 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
+        public int BanProgress
+        {
+            get => _banProgress;
+            set
+            {
+                SetProperty(ref _banProgress, value);
+                RaisePropertyChanged(nameof(ETA));
+            } 
+        }
+
 
         private ReactiveCommand<Window, Unit> ExitCommand { get; }
         private ReactiveCommand<Unit, Unit> DebugCommand { get; }
         private ReactiveCommand<Window, Unit> OpenFileCommand { get; }
 
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
+        public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
 
         public ObservableCollection<Entry> Entries { get; set; }
 
@@ -165,6 +191,18 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
+        [DependsOn(nameof(MessageDelay))]
+        [DependsOn(nameof(Entries))]
+        [DependsOn(nameof(Channel_s))]
+        public TimeSpan ETA
+        {
+            get
+            {
+                int milisecondseconds = Entries.Count * channels.Count * _messageDelay;
+                return TimeSpan.FromMilliseconds(milisecondseconds);
+            }
+        }
+
         private void Exit(Window obj)
         {
             obj.Close();
@@ -172,6 +210,7 @@ namespace MassBanToolMP.ViewModels
 
         async void Debug()
         {
+            BanProgress += 5;
             //string header = "Test";
             //DataGrid.Columns.Add(new DataGridTextColumn() {Header = header, Binding = new Binding(){Path = $"Result[_{header}]"} });
         }
@@ -212,7 +251,10 @@ namespace MassBanToolMP.ViewModels
 
         private async void Connect()
         {
-            // double check can excecute
+            if (!CanConnect)
+            {
+                return;
+            }
 
 
             if (!CheckMutex())
@@ -252,12 +294,26 @@ namespace MassBanToolMP.ViewModels
 
         public async void MissingPermissions(string userStateChannel)
         {
-            await MessageBox.Show("Login incorrect.", "Login error");
+            string toRemove = channels.First(x => x.Equals(userStateChannel, StringComparison.CurrentCultureIgnoreCase));
+            channels.Remove(toRemove);
+
+            _channel_s = string.Join(", ", channels);
+            RaisePropertyChanged(nameof(Channel_s));
+
+            await MessageBox.Show("Channel: " + userStateChannel + Environment.NewLine + "Disconnecting.", "Missing Permissions in channel.");
+
+            twitchChatClient = null;
         }
 
         private void OnUserBanned(object? sender, OnUserBannedArgs e)
         {
-            //TODO
+            var item = Entries.FirstOrDefault(x =>
+                x.Name.Equals(e.UserBan.Username, StringComparison.InvariantCultureIgnoreCase));
+
+            if (item != null)
+            {
+                item.Result[e.UserBan.Channel] = "BANNED";
+            }
         }
 
 
@@ -303,7 +359,7 @@ namespace MassBanToolMP.ViewModels
             // TODO check listtype
 
             Regex userlistRegex = new Regex(@"^\w{2,}$", RegexOptions.Compiled);
-            Regex readfileRegex = new Regex(@"^\.|\\(\w) (\w{2,})( .+)?$", RegexOptions.Compiled);
+            Regex readfileRegex = new Regex(@"^(\.|\/\w+) (\w{2,}) ?(.+)?$", RegexOptions.Compiled);
 
             List<Entry> entryList = new List<Entry>();
 
@@ -335,6 +391,7 @@ namespace MassBanToolMP.ViewModels
                 }
                 else
                 {
+                    //TODO
                     //log
                 }
             }

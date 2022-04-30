@@ -8,7 +8,7 @@ namespace MassBanToolMP.Models
         private string command;
         private string name;
         private string reason;
-        private Dictionary<string, string> result;
+        private Dictionary<string, string> result = new Dictionary<string, string>();
 
         public string Command
         {

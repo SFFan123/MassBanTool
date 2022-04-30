@@ -99,8 +99,10 @@ namespace MassBanToolMP
             {
                 return;
             }
-
+            
             owner.MissingPermissions(e.UserState.Channel);
+
+            ManualDisconnect = true;
             client.Disconnect();
         }
 

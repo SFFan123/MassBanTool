@@ -3,7 +3,7 @@
         xmlns:vm="using:MassBanToolMP.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="MassBanToolMP.Views.MainWindow"
         Icon="/Assets/moderator.ico"
         Title="MassBanToolMP"
@@ -21,7 +21,26 @@
                 <Separator />
                 <MenuItem Header="_Exit" Command="{Binding ExitCommand}" CommandParameter="{Binding ElementName=Window}"/>
             </MenuItem>
+            <MenuItem Header="_Settings">
+                <MenuItem Header="Credentials" IsEnabled="False"/>
+                <MenuItem Header="_Load From Credential Manager" Command="{Binding LoadCredentialsCommand}" />
+                <MenuItem Header="_Save Credential"/>
+                <MenuItem Header="_Get New Credentials"/>
+                <Separator/>
+                <MenuItem Header="App Settings" IsEnabled="False"/>
+                <MenuItem Header="_Save"/>
+            </MenuItem>
         </Menu>
+
+        <StackPanel DockPanel.Dock="Bottom" Name="StatusStrip" Orientation="Horizontal"
+                    Margin="2,8,2,4">
+            <TextBlock Text="ETA: "/>
+            <TextBlock Text="{Binding ETA}"/>
+            <Separator Foreground="White" Margin="5,0,5,0" />
+            <TextBlock Text="Warnings: "/>
+            <TextBlock Text="0"/>
+        </StackPanel>
+
         <Grid Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -36,7 +55,7 @@
             
             <!-- List -->
             <DataGrid Grid.Row="0"
-                      Grid.RowSpan="4"
+                      Grid.RowSpan="3"
                       Grid.Column="0"
                       Margin="0,9"
                       Name="DataGrid"
@@ -47,6 +66,14 @@
                     <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}"/>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <ProgressBar 
+                Grid.Column="0" 
+                Grid.Row="3" 
+                VerticalAlignment="Bottom"
+                Foreground="Green"
+                ShowProgressText="True" 
+                Value="{Binding BanProgress}" />
 
             <!-- Login -->
             <StackPanel DockPanel.Dock="Right"

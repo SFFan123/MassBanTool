@@ -8,9 +8,13 @@ this is a side project.
 
 Code is probably ugly, but it's 'working' so.
 
+## Important Notice
+Currently rewriting the tool on .net (core) 6 so it can run on Windows and Linux. This is still in Progress and the App on .net 6 is not working yet.
+The old version ist still in this Repo (/MassBanTool_NET)
 
+## Info
 Using a delay of under 1500 ms between messages will negatively impact your ability to write in other channels which you do not have moderation privileges.
-(over other clients like webbrowers, Chatterino 2, ...).
+(over other clients like webbrowser, Chatterino 2, ...).
 
 
 ## Safety Measures
@@ -22,7 +26,7 @@ Using a delay of under 1500 ms between messages will negatively impact your abil
 
 ## Build it yourself
 
-1. Get Visual Studio 2019 (Community/Professional/Enterprise) -> https://visualstudio.microsoft.com/de/free-developer-offers/
+1. Get Visual Studio 2019/2022 (Community) -> https://visualstudio.microsoft.com/de/free-developer-offers/
 2. Install Workflow Desktop C#
    - Additional Features SDK for .Net Framework 4.8
 3. Start Visual Studio
@@ -31,7 +35,13 @@ Using a delay of under 1500 ms between messages will negatively impact your abil
 6. Choose your target build (Debug or Release)
    - Release is designed to run alone, outside VS.
    - Debug is build to allow diagnostics tools of VS or other debugger to hook into the app to diagnose bugs.
-7. Right-click on the Solution and choose Build Solution 
+7. Right-click on the the MassBanTool_NET Project and choose Build. 
    - this step might need to be done multiple times because vs is fetching the nugets in the background.
 
 You know have an exe in the specified output dir, the console of VS tells you where it is.
+
+
+<hr />
+
+## Special thanks
+Silenful
