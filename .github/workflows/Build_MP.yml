@@ -1,0 +1,33 @@
+name: Build_MP
+
+on:  
+  push:
+    branches: [master]
+  pull_request:
+    branches: [ master ]
+
+jobs:  
+  build:    
+    runs-on: windows-latest
+    
+    steps:      
+      - uses: actions/checkout@v2
+     
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore .\MassBanTool_MP\MassBanToolMP.csproj
+    
+      - name: Build
+        run: dotnet build .\MassBanTool_MP\MassBanToolMP.csproj -c Release --no-restore
+                    
+      # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: GitHubBuild_MP
+          path: |
+              D:\a\MassBanTool\MassBanTool_MP\bin\Release\net6.0\*

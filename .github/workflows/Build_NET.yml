@@ -1,4 +1,4 @@
-name: Build
+name: Build_NET
 
 on:  
   push:
@@ -17,16 +17,13 @@ jobs:
         uses: microsoft/setup-msbuild@v1
 
       - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.5
+        uses: NuGet/setup-nuget@v1.0.6
         
-      - name: Setup VSTest
-        uses: darenm/Setup-VSTest@v1
-
       - name: Navigate to Workspace
         run: cd $GITHUB_WORKSPACE
 
       - name: Restore Packages
-        run: nuget restore -PackagesDirectory packages MassBanTool_NET/MassBanTool.csproj 
+        run: nuget restore 
 
       - name: Build MassBanTool_NET
         run: |
