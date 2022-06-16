@@ -29,6 +29,17 @@
                 <Separator/>
                 <MenuItem Header="App Settings" IsEnabled="False"/>
                 <MenuItem Header="_Save"/>
+                <Separator/>
+                <MenuItem Header="Special User">
+                    <CheckBox Content="Protect VIPs/Mods from Commands"
+                              IsChecked="{Binding ProtectSpecialUsers}"/>
+                    <RadioButton GroupName="SpecialUserMode"
+                                 IsChecked="{Binding ProtectedUserMode_Skip}"
+                                 Content="Skip Commands targeting User"/>
+                    <RadioButton GroupName="SpecialUserMode" 
+                                 IsChecked="{Binding ProtectedUserMode_Cancel}"
+                                 Content="Abort Action (default)"/>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
@@ -161,9 +172,9 @@
                         <Label Content="Ban Reason: " />
                         <TextBox Height="40" Margin="0,0,0,20" />
 
-                        <Button Content="PAUSE" Margin="0,5,0,0"/>
-                        <Button Content="Abort" Margin="0,5,0,0"/>
-                        <Button Content="RUN" Margin="0,5,0,0"/>
+                        <Button Content="PAUSE" Margin="0,5,0,0" Command="{Binding OnClickPauseActionCommand}"/>
+                        <Button Content="Abort" Margin="0,5,0,0" Command="{Binding OnClickCancelActionCommand}"/>
+                        <Button Content="RUN" Margin="0,5,0,0" Command="{Binding RunBanCommand}"/>
                     </StackPanel>
                 </TabItem>
 

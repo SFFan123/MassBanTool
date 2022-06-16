@@ -45,6 +45,7 @@ namespace MassBanToolMP.ViewModels
 
         private Task Worker;
         private ListType listType;
+        private bool protectSpecialUsers = true;
 
         public MainWindowViewModel()
         {
@@ -273,6 +274,25 @@ namespace MassBanToolMP.ViewModels
                 return TimeSpan.FromMilliseconds(milisecondseconds);
             }
         }
+
+        public bool ProtectSpecialUsers
+        {
+            get => protectSpecialUsers;
+            set => SetProperty(ref protectSpecialUsers, value);
+        }
+
+        public bool ProtectedUserMode_Skip
+        {
+            get;
+            set;
+        }
+
+        public bool ProtectedUserMode_Cancel
+        {
+            get;
+            set;
+        } = true;
+
 
         private void RemoveNotAllowedActions()
         {
@@ -696,7 +716,7 @@ namespace MassBanToolMP.ViewModels
         }
 
 
-        private bool FilterEntriesForSpecialUsers()
+        private async Task<bool> FilterEntriesForSpecialUsers()
         {
             List<Entry> toRemove = new List<Entry>();
             foreach (Entry entry in Entries)
@@ -710,15 +730,21 @@ namespace MassBanToolMP.ViewModels
 
             bool res = toRemove.Any();
 
-            // TODO get if stop here.
-            //if()
-
-            foreach (Entry entry in toRemove)
+            if (res && ProtectSpecialUsers && ProtectedUserMode_Cancel)
             {
-                Entries.Remove(entry);
+                await MessageBox.Show("Protected user in list detected","Action Aborted");
+                return true;
             }
 
-            RaisePropertyChanged(nameof(Entries));
+            if (res && ProtectSpecialUsers && ProtectedUserMode_Skip)
+            {
+                foreach (Entry entry in toRemove)
+                {
+                    Entries.Remove(entry);
+                }
+                RaisePropertyChanged(nameof(Entries));
+                await MessageBox.Show("Protected user in list detected, entries removed","Protected user removed from list");
+            }
             return res;
         }
 
@@ -745,9 +771,9 @@ namespace MassBanToolMP.ViewModels
             throw new NotImplementedException();
         }
 
-        private void CheckForProtectedUser()
+        private async void CheckForProtectedUser()
         {
-            //TODO
+            await FilterEntriesForSpecialUsers();
         }
 
 
@@ -757,6 +783,8 @@ namespace MassBanToolMP.ViewModels
             {
                 throw new ArgumentException();
             }
+
+            CheckForProtectedUser();
 
             return Task.Factory.StartNew(async () =>
             {
