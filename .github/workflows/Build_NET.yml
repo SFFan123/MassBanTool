@@ -23,7 +23,7 @@ jobs:
         run: cd $GITHUB_WORKSPACE
 
       - name: Restore Packages
-        run: nuget restore -PackagesDirectory packages MassBanTool_NET/MassBanTool.csproj 
+        run: nuget restore 
 
       - name: Build MassBanTool_NET
         run: |
@@ -35,4 +35,4 @@ jobs:
         with:
           name: GitHubBuild_NET
           path: |
-              D:\a\MassBanTool\MassBanTool_NET\bin\Release\MassBanTool.exe*
+              D:\a\MassBanTool\MassBanTool_NET\bin\Release\*
