@@ -1,6 +1,5 @@
 # MassBanTool
 
-[![Build](https://github.com/SFFan123/MassBanTool/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/SFFan123/MassBanTool/actions/workflows/main.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/SFFan123/MassBanTool/blob/master/LICENSE)
 
 
