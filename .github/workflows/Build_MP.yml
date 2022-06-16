@@ -22,7 +22,7 @@ jobs:
         run: dotnet restore .\MassBanTool_MP\MassBanToolMP.csproj
     
       - name: Build
-        run: dotnet build .\MassBanTool_MP\MassBanToolMP.csproj -c Release --no-restore
+        run: dotnet build .\MassBanTool_MP\MassBanToolMP.csproj -c Release
                     
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
       - name: Upload build artifacts
@@ -30,4 +30,4 @@ jobs:
         with:
           name: GitHubBuild_MP
           path: |
-              D:\a\MassBanTool\MassBanTool_MP\bin\Release\net6.0\*
+              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\*
