@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassBanTool", "MassBanTool_NET\MassBanTool.csproj", "{F7FBEF3D-A42D-431F-8259-33C809B75462}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassBanToolMP", "MassManTool_Av_Core\MassBanToolMP\MassBanToolMP.csproj", "{3383A758-D84A-4347-B7A8-2C8CA009BCF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassBanToolMP", "MassBanTool_MP\MassBanToolMP.csproj", "{3383A758-D84A-4347-B7A8-2C8CA009BCF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
