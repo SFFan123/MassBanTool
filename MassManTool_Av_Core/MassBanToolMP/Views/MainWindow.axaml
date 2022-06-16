@@ -37,8 +37,8 @@
             <TextBlock Text="ETA: "/>
             <TextBlock Text="{Binding ETA}"/>
             <Separator Foreground="White" Margin="5,0,5,0" />
-            <TextBlock Text="Warnings: "/>
-            <TextBlock Text="0"/>
+            <TextBlock Text="List type: "/>
+            <TextBlock Text="{Binding ListType}"/>
         </StackPanel>
 
         <Grid Margin="5">
@@ -55,17 +55,42 @@
             
             <!-- List -->
             <DataGrid Grid.Row="0"
-                      Grid.RowSpan="3"
+                      Grid.RowSpan="4"
                       Grid.Column="0"
-                      Margin="0,9"
+                      Margin="0,9, 0, 30"
                       Name="DataGrid"
-                      Items="{Binding Entries}">
+                      Items="{Binding Entries}"
+                      IsReadOnly="False"
+                      GridLinesVisibility="Horizontal" Background="Black">
+
+                <DataGrid.KeyBindings>
+                    <KeyBinding Gesture="delete" 
+                                CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
+                                Command="{Binding OnDataGridRemoveEntry}"/>
+                </DataGrid.KeyBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" Binding="{Binding Command}"/>
+                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="True" Binding="{Binding Command}"/>
                     <DataGridTextColumn Header="Name" CanUserReorder="False" Binding="{Binding Name}"/>
                     <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}"/>
                 </DataGrid.Columns>
+
+                <DataGrid.ContextMenu>
+                    <ContextMenu PlacementMode="Pointer">
+                        <MenuItem
+                            Command="{Binding OnClickPropertiesAddEntry}"
+                            CommandParameter="{Binding ElementName=Window}"
+                            Header="Add Entry">
+                        </MenuItem>
+
+                        <MenuItem
+                            Command="{Binding OnClickPropertiesPasteClipboard}"
+                            Header="Paste from Clipboard">
+                        </MenuItem>
+
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
             </DataGrid>
+
 
             <ProgressBar 
                 Grid.Column="0" 
@@ -107,7 +132,7 @@
                 </Grid>
 
                 <Button 
-                    Content="Connect" 
+                    Content="{Binding ConButtonText}" 
                     Width="200" 
                     Margin="0,5,0,0" 
                     Command="{Binding ConnectCommand}" 
@@ -196,11 +221,13 @@
 
                 <TabItem Header="Misc" Cursor="Hand">
                     <WrapPanel Orientation="Vertical">
-                        <Button Content="Remove clutter" Margin="2"/>
-                        <Button Content="Check listtype" Margin="2"/>
-                        <Button Content="Sort list" Margin="2"/>
-                        <Button Content="Remove for not allowed commands" Margin="2"/>
-                        <Button Content="Show Logwindow" Margin="2"/>
+                        <Button Content="Remove clutter" Margin="2" IsEnabled="False"/>
+                        <Button Content="Check listtype" Margin="2"
+                                Command="{Binding RunCheckListTypeCommand}"/>
+                        <Button Content="Sort list" Margin="2" IsEnabled="False"/>
+                        <Button Content="Remove not allowed commands" Margin="2"
+                                Command="{Binding RunRemoveNotAllowedActionsCommand}" IsEnabled="False"/>
+                        <Button Content="Show Logwindow" Margin="2" IsEnabled="False"/>
                     </WrapPanel>
                 </TabItem>
             </TabControl>

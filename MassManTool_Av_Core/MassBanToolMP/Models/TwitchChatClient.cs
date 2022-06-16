@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using MassBanToolMP.Models;
 using MassBanToolMP.ViewModels;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -15,7 +14,7 @@ using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 
-namespace MassBanToolMP
+namespace MassBanToolMP.Models
 {
     public class TwitchChatClient
     {
@@ -33,43 +32,16 @@ namespace MassBanToolMP
             client.Connect();
         }
 
-
-        //Move to VM
-        /*
-        public void switchChannel(List<string> newChannel)
-        {
-            var joinedChannels = client.JoinedChannels.Select(x => x.Channel.ToLower());
-
-            var toleave = joinedChannels.Except(newChannel).ToList();
-
-            var tojoin = newChannel.Except(joinedChannels).ToList();
-
-            foreach (var channel in toleave)
-            {
-                client.LeaveChannel(channel);
-                ChannelModerators[channel]?.Clear();
-            }
-
-            foreach (var channel in tojoin)
-            {
-                client.JoinChannel(channel, true);
-            }
-
-
-            //CurrentStatus = ToolStatus.Ready;
-            //NotifyPropertyChanged(nameof(CurrentStatus));
-        }
-        */
-
         private TwitchClient InitializeClient()
         {
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 100,
                 ThrottlingPeriod = TimeSpan.FromSeconds(30),
-                UseSsl = true
+                UseSsl = true,
+                ReconnectionPolicy = new ReconnectionPolicy(1000)
             };
-            WebSocketClient customClient = new WebSocketClient(clientOptions);
+            customClient = new WebSocketClient(clientOptions);
             client = new TwitchClient(customClient);
             client.Initialize(credentials, channel);
             return client;
@@ -104,6 +76,7 @@ namespace MassBanToolMP
 
             ManualDisconnect = true;
             client.Disconnect();
+            customClient.Dispose();
         }
 
         private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
@@ -115,6 +88,7 @@ namespace MassBanToolMP
         private void Client_OnIncorrectLogin(object? sender, OnIncorrectLoginArgs e)
         {
             client.Disconnect();
+            customClient.Dispose();
         }
 
         private void Client_OnLog(object? sender, OnLogArgs e)
@@ -229,6 +203,8 @@ namespace MassBanToolMP
         private Task messageTask = null;
 
         private ConnectionCredentials credentials;
+
+        private WebSocketClient customClient;
 
         public TwitchClient client { get; private set; }
 

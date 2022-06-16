@@ -16,7 +16,7 @@ namespace MassBanToolMP.Models
             {
                 return GetCredentialsOnWindows();
             }
-            else if (OperatingSystem.IsLinux())
+            if (OperatingSystem.IsLinux())
             {
                 return GetCredentialsOnLinux();
             }

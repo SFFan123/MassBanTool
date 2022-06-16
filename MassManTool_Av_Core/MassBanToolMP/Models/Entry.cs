@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Avalonia.Media;
 using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP.Models
@@ -34,5 +35,6 @@ namespace MassBanToolMP.Models
             set => SetProperty(ref result, value);
         }
 
+        public Color BackColor { get; set; }
     }
 }

@@ -9,6 +9,7 @@ namespace MassBanToolMP.ViewModels
     public class ViewModelBase :INotifyPropertyChanged, INotifyDataErrorInfo
     {
         private Dictionary<string, List<string>> _propertyErrors = new Dictionary<string, List<string>>();
+        private bool isBusy;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         
@@ -82,6 +83,12 @@ namespace MassBanToolMP.ViewModels
         protected void OnErrorsChanged(string propertyName)
         {
             ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+        }
+
+        public bool IsBusy
+        {
+            get => isBusy;
+            set => SetProperty(ref isBusy, value);
         }
     }
 }

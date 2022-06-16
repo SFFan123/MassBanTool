@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace MassBanToolMP.Models
 {
-    public class Helper
+    public class Defaults
     {
-        public static string[] DefaultAllowedActions = new string[]
+        public static readonly string[] AllowedActions = new string[]
         {
             "ban",
             "unban",
