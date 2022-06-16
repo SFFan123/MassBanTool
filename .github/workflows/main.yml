@@ -28,14 +28,14 @@ jobs:
       - name: Restore Packages
         run: nuget restore -PackagesDirectory packages MassBanTool_NET/MassBanTool.csproj 
 
-      - name: Build Solution
+      - name: Build MassBanTool_NET
         run: |
-          msbuild.exe MassBanTool_NET/MassBanTool.csproj /p:platform="Any CPU" /p:configuration="Release"
+          msbuild.exe MassBanTool.sln /target:MassBanTool /p:platform="Any CPU" /p:configuration="Release"
                     
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: GitHubBuild
+          name: GitHubBuild_NET
           path: |
               D:\a\MassBanTool\MassBanTool_NET\bin\Release\MassBanTool.exe*
