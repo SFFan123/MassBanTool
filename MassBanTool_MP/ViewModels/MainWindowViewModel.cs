@@ -319,6 +319,8 @@ namespace MassBanToolMP.ViewModels
             {
                 //($"INFO: List is empty.");
                 ListType = ListType.None;
+                if (setBusy)
+                    IsBusy = false;
                 return;
             }
 
@@ -341,6 +343,8 @@ namespace MassBanToolMP.ViewModels
 
                     if (ListType == ListType.Mixed)
                     {
+                        if (setBusy)
+                            IsBusy = false;
                         return;
                     }
                 }
@@ -349,6 +353,8 @@ namespace MassBanToolMP.ViewModels
                     //log($"INFO: Line {listEnumerator} -> '{entry.Text}' --- triggered Listtype Malformed");
                     ListType = ListType.Malformed;
                     entry.BackColor = Program.Red;
+                    if (setBusy)
+                        IsBusy = false;
                     return;
                 }
 
@@ -580,9 +586,9 @@ namespace MassBanToolMP.ViewModels
             if (!diag.result)
                 return;
 
-            string name = diag.name.Trim();
+            string name = diag.Username.Trim();
 
-            if (string.IsNullOrEmpty(diag.name))
+            if (string.IsNullOrEmpty(diag.Username))
             {
                 // TODO warning?
                 return;
