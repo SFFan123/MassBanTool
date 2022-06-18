@@ -10,6 +10,7 @@ namespace MassBanToolMP.Models
         private string name;
         private string reason;
         private Dictionary<string, string> result = new Dictionary<string, string>();
+        private string rowBackColor = "Blue";
 
         public string Command
         {
@@ -35,6 +36,10 @@ namespace MassBanToolMP.Models
             set => SetProperty(ref result, value);
         }
 
-        public Color BackColor { get; set; }
+        public string RowBackColor
+        {
+            get => rowBackColor;
+            set => SetProperty(ref rowBackColor, value);
+        }
     }
 }

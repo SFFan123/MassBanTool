@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ using Avalonia.Metadata;
 using DynamicData;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views.Dialogs;
+using MessageBox.Avalonia.ViewModels.Commands;
 using ReactiveUI;
 using TwitchLib.Client.Events;
 
@@ -29,6 +32,13 @@ namespace MassBanToolMP.ViewModels
         private const string MESSAGE_DELAY_TOO_LOW = "Delay may not be under 300ms";
         private const string MESSAGE_DELAY_INVALID_TYPE = "Message Delay must be a postive number.";
         private const string CHANNEL_INVALID = "Invalid Channel Name";
+
+        private const string HELP_URL_COOLDOWN = @"https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages";
+        private const string HELP_URL_REGEX_MS_DOCS = @"https://docs.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference";
+        private const string HELP_URL_WIKI = @"https://github.com/SFFan123/MassBanTool/wiki";
+        private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
+        private const string HELP_URL_REGEX101 = "https://regex101.com/";
+
 
         private string _allowedActions;
         private int _banProgress;
@@ -46,9 +56,11 @@ namespace MassBanToolMP.ViewModels
         private Task Worker;
         private ListType listType;
         private bool protectSpecialUsers = true;
+        private string filterRegex;
 
         public MainWindowViewModel()
         {
+            
             ExitCommand = ReactiveCommand.Create<Window>(Exit);
             DebugCommand = ReactiveCommand.Create(Debug);
             OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
@@ -67,11 +79,45 @@ namespace MassBanToolMP.ViewModels
             RunCheckListTypeCommand = ReactiveCommand.Create(CheckListType);
             RunSortListCommand = ReactiveCommand.Create(SortList);
             RunRemoveNotAllowedActionsCommand = ReactiveCommand.Create(RemoveNotAllowedActions);
+            OpenWikiCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_WIKI));
+            CooldownInfoCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_COOLDOWN));
+            OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX_MS_DOCS));
+            OpenRegex101Command = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX101));
+            OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_MAIN_GITHUB));
 
             Entries = new ObservableCollection<Entry>();
 
-            _allowedActions = string.Join("\n", Defaults.AllowedActions);
+            _allowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
             listType = default;
+        }
+
+
+        private void OpenURL(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private void CheckListType()
@@ -227,8 +273,12 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> RunRemoveNotAllowedActionsCommand { get; }
         public ReactiveCommand<Unit, Unit> OnClickPauseActionCommand { get; }
         public ReactiveCommand<Unit, Unit> OnClickCancelActionCommand { get; }
-
         public ReactiveCommand<object, Unit> OnDataGridRemoveEntry { get; }
+        public ReactiveCommand<Unit,Unit> CooldownInfoCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenRegexDocsCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
 
         public ObservableCollection<Entry> Entries { get; set; }
 
@@ -293,21 +343,33 @@ namespace MassBanToolMP.ViewModels
             set;
         } = true;
 
+        public string FilterRegex
+        {
+            get => filterRegex;
+            set => SetProperty(ref filterRegex, value);
+        }
 
         private void RemoveNotAllowedActions()
         {
-            // get listtype
+            if (ListType is not (ListType.ReadFile or ListType.Mixed))
+            {
+                if(string.IsNullOrEmpty(ReadFileAllowedActions))
+                {
+                    //ERROR
+                    return;
+                }
 
-            // get list commands
+                string[] actions = ReadFileAllowedActions.Split(Environment.NewLine);
 
-            // filter
+                List<Entry> toRemove = Entries.AsParallel().Where(x => !actions.Contains(x.Command)).ToList();
 
-            throw new NotImplementedException();
+                Entries.RemoveMany(toRemove);
+            }
         }
 
         private void SortList()
         {
-            throw new NotImplementedException();
+            Entries = new ObservableCollection<Entry>(Entries.OrderBy(i => i.Name));
         }
 
         private void CheckListType(bool setBusy)
@@ -338,7 +400,7 @@ namespace MassBanToolMP.ViewModels
                     {
                         //log($"INFO: Line {listEnumerator} -> '{entry.Text}' --- triggered Listtype Mixed");
                         ListType = ListType.Mixed;
-                        entry.BackColor = Program.Yellow;
+                        entry.RowBackColor = "Yellow";
                     }
 
                     if (ListType == ListType.Mixed)
@@ -352,7 +414,7 @@ namespace MassBanToolMP.ViewModels
                 {
                     //log($"INFO: Line {listEnumerator} -> '{entry.Text}' --- triggered Listtype Malformed");
                     ListType = ListType.Malformed;
-                    entry.BackColor = Program.Red;
+                    entry.RowBackColor = "Red";
                     if (setBusy)
                         IsBusy = false;
                     return;
@@ -374,6 +436,16 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecListFilter()
         {
+
+            RegexOptions regexOptions = RegexOptions.Compiled;
+            if (true)
+            {
+                regexOptions |= RegexOptions.IgnoreCase;
+            }
+
+            Regex regex = new Regex(filterRegex, RegexOptions.Compiled);
+
+
             throw new NotImplementedException();
         }
 
@@ -427,10 +499,38 @@ namespace MassBanToolMP.ViewModels
         async void Debug()
         {
             BanProgress += 5;
+            
             //string header = "Test";
             //DataGrid.Columns.Add(new DataGridTextColumn() {Header = header, Binding = new Binding(){Path = $"Result[_{header}]"} });
         }
 
+        public bool RegexOptionIgnoreCase { get; set; }
+        public bool RegexOptionMultiline { get; set; }
+
+        public bool RegexOptionEcmaScript { get; set; }
+        public bool RegexOptionCultureInvariant { get; set; }
+
+        
+
+
+        private Regex CreateFilterRegex()
+        {
+            RegexOptions regexOptions = RegexOptions.Compiled;
+
+            if(RegexOptionIgnoreCase)
+                regexOptions |= RegexOptions.IgnoreCase;
+
+            if(RegexOptionMultiline)
+                regexOptions |= RegexOptions.Multiline;
+
+            if(RegexOptionEcmaScript)
+                regexOptions |= RegexOptions.ECMAScript;
+
+            if(RegexOptionCultureInvariant)
+                regexOptions |= RegexOptions.CultureInvariant;
+            
+            return new Regex(filterRegex, regexOptions);
+        }
 
         private void AddChannelToGrid(string eChannel)
         {
@@ -824,6 +924,7 @@ namespace MassBanToolMP.ViewModels
                         twitchChatClient.client.SendMessage(channel, commandtoExecute);
                         await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay));
                     }
+                    entry.RowBackColor = "Green";
                 }
             }, TaskCreationOptions.LongRunning);
         }

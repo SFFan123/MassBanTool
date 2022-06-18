@@ -3,12 +3,12 @@
         xmlns:vm="using:MassBanToolMP.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        Width="1100" Height="650"
+        MinWidth="900" MinHeight="500"
         x:Class="MassBanToolMP.Views.MainWindow"
         Icon="/Assets/moderator.ico"
-        Title="MassBanToolMP"
+        Title="MassBanTool"
         Name="Window">
-
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -41,6 +41,21 @@
                                  Content="Abort Action (default)"/>
                 </MenuItem>
             </MenuItem>
+            <MenuItem Header="_Misc">
+                <MenuItem Header="Show Log window"/>
+                <Separator/>
+                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Help" HotKey="F1">
+                <MenuItem Header="_General" Command="{Binding OpenWikiCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Cooldown info" Command="{Binding CooldownInfoCommand}" />
+                <Separator/>
+                <MenuItem Header="_Regex">
+                    <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command}"/>
+                    <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand}"/>
+                </MenuItem>
+            </MenuItem>
         </Menu>
 
         <StackPanel DockPanel.Dock="Bottom" Name="StatusStrip" Orientation="Horizontal"
@@ -51,7 +66,7 @@
             <TextBlock Text="List type: "/>
             <TextBlock Text="{Binding ListType}"/>
         </StackPanel>
-
+        
         <Grid Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -63,7 +78,6 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            
             <!-- List -->
             <DataGrid Grid.Row="0"
                       Grid.RowSpan="4"
@@ -72,19 +86,18 @@
                       Name="DataGrid"
                       Items="{Binding Entries}"
                       IsReadOnly="False"
-                      GridLinesVisibility="Horizontal" Background="Black">
-
+                      GridLinesVisibility="Horizontal" 
+                      Background="Transparent">
                 <DataGrid.KeyBindings>
                     <KeyBinding Gesture="delete" 
                                 CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
                                 Command="{Binding OnDataGridRemoveEntry}"/>
                 </DataGrid.KeyBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="True" Binding="{Binding Command}"/>
+                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="False" Binding="{Binding Command}"/>
                     <DataGridTextColumn Header="Name" CanUserReorder="False" Binding="{Binding Name}"/>
                     <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}"/>
                 </DataGrid.Columns>
-
                 <DataGrid.ContextMenu>
                     <ContextMenu PlacementMode="Pointer">
                         <MenuItem
@@ -92,16 +105,13 @@
                             CommandParameter="{Binding ElementName=Window}"
                             Header="Add Entry">
                         </MenuItem>
-
                         <MenuItem
                             Command="{Binding OnClickPropertiesPasteClipboard}"
                             Header="Paste from Clipboard">
                         </MenuItem>
-
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
-
 
             <ProgressBar 
                 Grid.Column="0" 
@@ -157,32 +167,44 @@
                         Width="100" 
                         Margin="0,5,0,0" />
                 </StackPanel>
-                <TextBlock Text="Cooldown between messages in ms"/>
-                <TextBlock>
-                    Cooldown info
-                </TextBlock>
+                <Label Content="Cooldown between messages in ms"/>
             </StackPanel>
 
             <TabControl Grid.Column="1" 
                         Grid.Row="3" 
                         Height="300" 
                         Margin="0,5,0,0" >
+                <TabControl.Resources>
+                    <ControlTemplate x:Key="PauseButton">
+                        <Button Content="Pause" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center" Command="{Binding OnClickPauseActionCommand}"/>
+                    </ControlTemplate>
+
+                    <ControlTemplate x:Key="AbortButton">
+                        <Button Content="Abort" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center" Command="{Binding OnClickCancelActionCommand}"/>
+                    </ControlTemplate>
+
+                    <ControlTemplate x:Key="RunButton">
+                        <Button Content="Run" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"/>
+                    </ControlTemplate>
+
+                </TabControl.Resources>
                 <TabItem Header="Banning" Cursor="Hand">
                     <StackPanel>
                         <Label Content="Ban Reason: " />
                         <TextBox Height="40" Margin="0,0,0,20" />
-
-                        <Button Content="PAUSE" Margin="0,5,0,0" Command="{Binding OnClickPauseActionCommand}"/>
-                        <Button Content="Abort" Margin="0,5,0,0" Command="{Binding OnClickCancelActionCommand}"/>
-                        <Button Content="RUN" Margin="0,5,0,0" Command="{Binding RunBanCommand}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Template="{StaticResource PauseButton}" Margin="5"/>
+                            <Button Template="{StaticResource AbortButton}" Margin="5"/>
+                            <Button Template="{StaticResource RunButton}" Margin="5" Command="{Binding RunBanCommand}"/>
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Unban" Cursor="Hand">
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="PAUSE" Margin="5"/>
-                        <Button Content="Abort" Margin="5"/>
-                        <Button Content="RUN" Margin="5"/>
+                        <Button Template="{StaticResource PauseButton}" Margin="5"/>
+                        <Button Template="{StaticResource AbortButton}" Margin="5"/>
+                        <Button Template="{StaticResource RunButton}" Margin="5" Command="{Binding RunUnbanCommand}"/>
                     </StackPanel>
                 </TabItem>
 
@@ -213,32 +235,44 @@
                             </StackPanel>
 
                         <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal">
-                            <Button Content="PAUSE"/>
-                            <Button Content="Abort"/>
+                            <Button Template="{StaticResource PauseButton}"/>
+                            <Button Template="{StaticResource AbortButton}"/>
                         </StackPanel>
-                        <Button  Grid.Row="2" Grid.Column="1" Content="RUN"/>
+                        <Button Grid.Row="2" Grid.Column="1"  Template="{StaticResource RunButton}" Command="{Binding RunReadfileCommand}"/>
                     </Grid>
                 </TabItem>
 
                 <TabItem Header="List filter" Cursor="Hand">
                     <StackPanel>
                         <TextBlock Text="Regex: " />
-                        <TextBox/>
-                        <RadioButton Content="Remove not matching" IsChecked="True"/>
-                        <RadioButton Content="Remove matching"/>
-                        <Button Content="Run Regex"/>
+                        <TextBox Text="{Binding FilterRegex}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <RadioButton Content="Remove not matching" IsChecked="True"/>
+                                <RadioButton Content="Remove matching"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <CheckBox Content="IgnoreCase" IsChecked="{Binding RegexOptionIgnoreCase}" ToolTip.Tip="Specifies case-insensitive matching. /i Flag"/>
+                                <CheckBox Content="Multiline" IsChecked="{Binding RegexOptionMultiline}"/>
+                                <CheckBox Content="ECMAScript" IsChecked="{Binding RegexOptionEcmaScript}"/>
+                                <CheckBox Content="CultureInvariant" IsChecked="{Binding RegexOptionCultureInvariant}"/>
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Run Regex" Command="{Binding RunListFilterCommand}"/>
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Misc" Cursor="Hand">
                     <WrapPanel Orientation="Vertical">
-                        <Button Content="Remove clutter" Margin="2" IsEnabled="False"/>
                         <Button Content="Check listtype" Margin="2"
                                 Command="{Binding RunCheckListTypeCommand}"/>
                         <Button Content="Sort list" Margin="2" IsEnabled="False"/>
                         <Button Content="Remove not allowed commands" Margin="2"
                                 Command="{Binding RunRemoveNotAllowedActionsCommand}" IsEnabled="False"/>
-                        <Button Content="Show Logwindow" Margin="2" IsEnabled="False"/>
                     </WrapPanel>
                 </TabItem>
             </TabControl>
