@@ -203,6 +203,8 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
+        public bool Paused { get; set; }
+
         [DependsOn(nameof(IsConnected))]
         public string ConButtonText
         {
@@ -477,33 +479,36 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecReadfile()
         {
+            // TODO check if other action running.
             //TODO Filter Commands, User
             Worker = CreateWorkerTask(WorkingMode.Readfile);
         }
 
         private void ExecUnban()
         {
+            // TODO check if other action running.
             Worker = CreateWorkerTask(WorkingMode.Unban);
         }
 
         private void ExecBan()
         {
+            // TODO check if other action running.
             // TODO Filer User
             Worker = CreateWorkerTask(WorkingMode.Ban);
         }
 
         private void CancelAction()
         {
-
-            throw new NotImplementedException();
+            tokenSource.Cancel();
+            Worker.Wait();
+            Worker.Dispose();
         }
 
         private void PauseAction()
         {
-            throw new NotImplementedException();
+            Paused = !Paused;
         }
-
-
+        
         private async void LoadCredentials()
         {
             try
@@ -924,7 +929,10 @@ namespace MassBanToolMP.ViewModels
                 string TextReason = Reason;
                 for (int i = 0; i < Entries.Count; i++)
                 {
-                    //TODO pause
+                    while (Paused)
+                    {
+                        await Task.Delay(1000, token);
+                    }
 
                     if (token.IsCancellationRequested)
                     {

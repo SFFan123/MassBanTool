@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CredentialManagement;
 
 namespace MassBanToolMP.Models
 {
@@ -32,17 +27,15 @@ namespace MassBanToolMP.Models
 
         private static Tuple<string, string> GetCredentialsOnWindows()
         {
-            using (var cred = new Credential())
+            using var cred = new CredentialManagement.Credential();
+            cred.Target = "MassBanTool";
+            cred.Load();
+            if (cred.Exists())
             {
-                cred.Target = "MassBanTool";
-                cred.Load();
-                if (cred.Exists())
-                {
-                    return new Tuple<string, string>(cred.Username, cred.Password);
-                }
+                return new Tuple<string, string>(cred.Username, cred.Password);
             }
 
-            throw new Exception("Unkown Excetion while fetching credentials from Windows Credential Manager");
+            throw new Exception("Unknown Exception while fetching credentials from Windows Credential Manager");
         }
 
         private static Tuple<string, string> GetCredentialsOnLinux()
