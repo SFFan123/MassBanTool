@@ -30,6 +30,12 @@ namespace MassBanToolMP.Models
             set => SetProperty(ref reason, value);
         }
 
+        public string ChatCommand
+        {
+            get => $"{Command} {Name} {Reason}".Trim();
+        }
+
+
         public Dictionary<string, string> Result
         {
             get => result;

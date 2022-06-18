@@ -172,7 +172,7 @@
 
             <TabControl Grid.Column="1" 
                         Grid.Row="3" 
-                        Height="300" 
+                        Height="350" 
                         Margin="0,5,0,0" >
                 <TabControl.Resources>
                     <ControlTemplate x:Key="PauseButton">
@@ -252,8 +252,8 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <RadioButton Content="Remove not matching" IsChecked="{Binding ListFilterRemoveNotMatching}"/>
-                                <RadioButton Content="Remove matching" IsChecked="{Binding ListFilterRemoveMatching}"/>
+                                <RadioButton GroupName="ListRemoveMode" Content="Remove not matching" IsChecked="{Binding ListFilterRemoveNotMatching}"/>
+                                <RadioButton GroupName="ListRemoveMode" Content="Remove matching" IsChecked="{Binding ListFilterRemoveMatching}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <CheckBox Content="IgnoreCase" IsChecked="{Binding RegexOptionIgnoreCase}" ToolTip.Tip="Specifies case-insensitive matching. /i Flag"/>

@@ -42,7 +42,7 @@ namespace MassBanToolMP.ViewModels
 
         private string _allowedActions;
         private int _banProgress;
-        private string _channel_s = String.Empty;
+        private string _channel_s = string.Empty;
         private int _messageDelay = 301;
         private string _oAuth;
         private string _reason;
@@ -50,7 +50,7 @@ namespace MassBanToolMP.ViewModels
         private List<string> channels = new List<string>();
 
         public DataGrid DataGrid;
-        private string filterRegex;
+        private string filterRegex = string.Empty;
         private bool listFilterRemoveMatching = false;
         private ListType listType;
         private bool protectSpecialUsers = true;
@@ -448,18 +448,31 @@ namespace MassBanToolMP.ViewModels
             throw new NotImplementedException();
         }
 
-        private void ExecListFilter()
+        private async void ExecListFilter()
         {
-            RegexOptions regexOptions = RegexOptions.Compiled;
-            if (true)
+            Regex regex;
+
+            try
             {
-                regexOptions |= RegexOptions.IgnoreCase;
+                regex = CreateFilterRegex();
+            }
+            catch (ArgumentException e)
+            {
+                await MessageBox.Show("Regex malforemed" + Environment.NewLine + e.Message, "Exception while creating regex");
+                return;
             }
 
-            Regex regex = new Regex(filterRegex, RegexOptions.Compiled);
+            List<Entry> toRemove = Entries.AsParallel().Where(x=>
+            {
+                if (regex.IsMatch(x.ChatCommand))
+                {
+                    return !listFilterRemoveMatching;
+                }
+                return listFilterRemoveMatching;
 
+            }).ToList();
 
-            throw new NotImplementedException();
+            Entries.RemoveMany(toRemove);
         }
 
         private void ExecReadfile()
