@@ -14,14 +14,10 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using Avalonia.Input;
-using Avalonia.Logging;
-using Avalonia.Media;
 using Avalonia.Metadata;
 using DynamicData;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views.Dialogs;
-using MessageBox.Avalonia.ViewModels.Commands;
 using ReactiveUI;
 using TwitchLib.Client.Events;
 
@@ -33,8 +29,12 @@ namespace MassBanToolMP.ViewModels
         private const string MESSAGE_DELAY_INVALID_TYPE = "Message Delay must be a postive number.";
         private const string CHANNEL_INVALID = "Invalid Channel Name";
 
-        private const string HELP_URL_COOLDOWN = @"https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages";
-        private const string HELP_URL_REGEX_MS_DOCS = @"https://docs.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference";
+        private const string HELP_URL_COOLDOWN =
+            @"https://github.com/SFFan123/MassBanTool/wiki/Cooldown-between-Messages";
+
+        private const string HELP_URL_REGEX_MS_DOCS =
+            @"https://docs.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference";
+
         private const string HELP_URL_WIKI = @"https://github.com/SFFan123/MassBanTool/wiki";
         private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
         private const string HELP_URL_REGEX101 = "https://regex101.com/";
@@ -50,17 +50,20 @@ namespace MassBanToolMP.ViewModels
         private List<string> channels = new List<string>();
 
         public DataGrid DataGrid;
+        private string filterRegex;
+        private bool listFilterRemoveMatching = false;
+        private ListType listType;
+        private bool protectSpecialUsers = true;
         private TwitchChatClient? twitchChatClient;
         private Mutex userMutex;
 
+        private CancellationTokenSource tokenSource;
+        private CancellationToken token;
+
         private Task Worker;
-        private ListType listType;
-        private bool protectSpecialUsers = true;
-        private string filterRegex;
 
         public MainWindowViewModel()
         {
-            
             ExitCommand = ReactiveCommand.Create<Window>(Exit);
             DebugCommand = ReactiveCommand.Create(Debug);
             OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
@@ -89,40 +92,6 @@ namespace MassBanToolMP.ViewModels
 
             _allowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
             listType = default;
-        }
-
-
-        private void OpenURL(string url)
-        {
-            try
-            {
-                Process.Start(url);
-            }
-            catch
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start("xdg-open", url);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start("open", url);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        private void CheckListType()
-        {
-            CheckListType(true);
         }
 
         public bool CanConnect
@@ -274,7 +243,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> OnClickPauseActionCommand { get; }
         public ReactiveCommand<Unit, Unit> OnClickCancelActionCommand { get; }
         public ReactiveCommand<object, Unit> OnDataGridRemoveEntry { get; }
-        public ReactiveCommand<Unit,Unit> CooldownInfoCommand { get; }
+        public ReactiveCommand<Unit, Unit> CooldownInfoCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenRegexDocsCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
@@ -331,17 +300,9 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref protectSpecialUsers, value);
         }
 
-        public bool ProtectedUserMode_Skip
-        {
-            get;
-            set;
-        }
+        public bool ProtectedUserMode_Skip { get; set; }
 
-        public bool ProtectedUserMode_Cancel
-        {
-            get;
-            set;
-        } = true;
+        public bool ProtectedUserMode_Cancel { get; set; } = true;
 
         public string FilterRegex
         {
@@ -349,11 +310,63 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref filterRegex, value);
         }
 
+        public bool RegexOptionIgnoreCase { get; set; }
+        public bool RegexOptionMultiline { get; set; }
+
+        public bool RegexOptionEcmaScript { get; set; }
+        public bool RegexOptionCultureInvariant { get; set; }
+
+        public bool ListFilterRemoveMatching
+        {
+            get => listFilterRemoveMatching;
+            set => SetProperty(ref listFilterRemoveMatching, value);
+        }
+
+        public bool ListFilterRemoveNotMatching
+        {
+            get => !listFilterRemoveMatching;
+            set => SetProperty(ref listFilterRemoveMatching, !value);
+        }
+
+
+        private void OpenURL(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private void CheckListType()
+        {
+            CheckListType(true);
+        }
+
         private void RemoveNotAllowedActions()
         {
             if (ListType is not (ListType.ReadFile or ListType.Mixed))
             {
-                if(string.IsNullOrEmpty(ReadFileAllowedActions))
+                if (string.IsNullOrEmpty(ReadFileAllowedActions))
                 {
                     //ERROR
                     return;
@@ -390,7 +403,8 @@ namespace MassBanToolMP.ViewModels
             int listEnumerator = 0;
             foreach (Entry entry in Entries)
             {
-                if (!string.IsNullOrEmpty(entry.Command) && (entry.Command.StartsWith("/") || entry.Command.StartsWith(".")))
+                if (!string.IsNullOrEmpty(entry.Command) &&
+                    (entry.Command.StartsWith("/") || entry.Command.StartsWith(".")))
                 {
                     if (ListType == ListType.None || ListType == ListType.ReadFile)
                     {
@@ -436,7 +450,6 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecListFilter()
         {
-
             RegexOptions regexOptions = RegexOptions.Compiled;
             if (true)
             {
@@ -451,21 +464,24 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecReadfile()
         {
-            throw new NotImplementedException();
+            //TODO Filter Commands, User
+            Worker = CreateWorkerTask(WorkingMode.Readfile);
         }
 
         private void ExecUnban()
         {
-            throw new NotImplementedException();
+            Worker = CreateWorkerTask(WorkingMode.Unban);
         }
 
         private void ExecBan()
         {
+            // TODO Filer User
             Worker = CreateWorkerTask(WorkingMode.Ban);
         }
 
         private void CancelAction()
         {
+
             throw new NotImplementedException();
         }
 
@@ -499,36 +515,27 @@ namespace MassBanToolMP.ViewModels
         async void Debug()
         {
             BanProgress += 5;
-            
+
             //string header = "Test";
             //DataGrid.Columns.Add(new DataGridTextColumn() {Header = header, Binding = new Binding(){Path = $"Result[_{header}]"} });
         }
-
-        public bool RegexOptionIgnoreCase { get; set; }
-        public bool RegexOptionMultiline { get; set; }
-
-        public bool RegexOptionEcmaScript { get; set; }
-        public bool RegexOptionCultureInvariant { get; set; }
-
-        
-
 
         private Regex CreateFilterRegex()
         {
             RegexOptions regexOptions = RegexOptions.Compiled;
 
-            if(RegexOptionIgnoreCase)
+            if (RegexOptionIgnoreCase)
                 regexOptions |= RegexOptions.IgnoreCase;
 
-            if(RegexOptionMultiline)
+            if (RegexOptionMultiline)
                 regexOptions |= RegexOptions.Multiline;
 
-            if(RegexOptionEcmaScript)
+            if (RegexOptionEcmaScript)
                 regexOptions |= RegexOptions.ECMAScript;
 
-            if(RegexOptionCultureInvariant)
+            if (RegexOptionCultureInvariant)
                 regexOptions |= RegexOptions.CultureInvariant;
-            
+
             return new Regex(filterRegex, regexOptions);
         }
 
@@ -838,7 +845,7 @@ namespace MassBanToolMP.ViewModels
 
             if (res && ProtectSpecialUsers && ProtectedUserMode_Cancel)
             {
-                await MessageBox.Show("Protected user in list detected","Action Aborted");
+                await MessageBox.Show("Protected user in list detected", "Action Aborted");
                 return true;
             }
 
@@ -848,9 +855,12 @@ namespace MassBanToolMP.ViewModels
                 {
                     Entries.Remove(entry);
                 }
+
                 RaisePropertyChanged(nameof(Entries));
-                await MessageBox.Show("Protected user in list detected, entries removed","Protected user removed from list");
+                await MessageBox.Show("Protected user in list detected, entries removed",
+                    "Protected user removed from list");
             }
+
             return res;
         }
 
@@ -892,11 +902,22 @@ namespace MassBanToolMP.ViewModels
 
             CheckForProtectedUser();
 
+            tokenSource = new CancellationTokenSource();
+            token = tokenSource.Token;
+
+            
             return Task.Factory.StartNew(async () =>
             {
                 string TextReason = Reason;
                 for (int i = 0; i < Entries.Count; i++)
                 {
+                    //TODO pause
+
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     Entry entry = Entries[i];
                     string commandtoExecute = String.Empty;
 
@@ -905,7 +926,7 @@ namespace MassBanToolMP.ViewModels
                         case WorkingMode.Ban:
                         {
                             // TODO protect VIP/MODS
-                            commandtoExecute = $"/ban {entry.Name} {Reason}";
+                            commandtoExecute = $"/ban {entry.Name} {TextReason}";
                             break;
                         }
                         case WorkingMode.Unban:
@@ -922,11 +943,15 @@ namespace MassBanToolMP.ViewModels
                     foreach (var channel in twitchChatClient.client.JoinedChannels)
                     {
                         twitchChatClient.client.SendMessage(channel, commandtoExecute);
-                        await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay));
+                        await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), token);
                     }
+
                     entry.RowBackColor = "Green";
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, 
+            token, 
+            TaskCreationOptions.LongRunning, 
+            TaskScheduler.Default);
         }
     }
 
