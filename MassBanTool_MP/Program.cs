@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
-using Avalonia.Media;
 
 namespace MassBanToolMP
 {
@@ -25,8 +24,5 @@ namespace MassBanToolMP
                 .LogToTrace()
                 .UseReactiveUI();
         }
-
-        public static Color Yellow { get; } = Color.FromRgb(255, 255, 0);
-        public static Color Red { get; } = Color.FromRgb(255, 0, 0);
     }
 }

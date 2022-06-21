@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using DynamicData;
 using MassBanToolMP.Models;
@@ -90,10 +91,76 @@ namespace MassBanToolMP.ViewModels
 
             Entries = new ObservableCollection<Entry>();
 
-            _allowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
+            LoadData();
             listType = default;
         }
 
+
+
+        private void LoadData()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            try
+            {
+                string a = File.ReadAllText(fileName);
+                a = a.Trim();
+                var data = DataWrapper.fromJson(a);
+
+                if (data.message_delay != default)
+                {
+                    MessageDelay = data.message_delay.ToString();
+                }
+
+                if (data.lastVisitedChannel != null)
+                {
+                    lastVisitedChannelsMenu = new ContextMenu();
+
+                    MenuItem item;
+                    List<MenuItem> items= new List<MenuItem>();
+                    foreach (string s in data.lastVisitedChannel)
+                    {
+                        string header = s.Replace("_", "__");
+                        item = new MenuItem()
+                        {
+                            Header = header,
+                            DataContext = s
+                        };
+                        item.Click += delegate(object? sender, RoutedEventArgs args)
+                        {
+                            if (sender is MenuItem menuitem)
+                            {
+                                Channel_s = (string)menuitem.DataContext;
+                            }
+                        };
+                        items.Add(item);
+                    }
+                    lastVisitedChannelsMenu.Items = items;
+                    RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
+                }
+                else
+                {
+                    lastVisitedChannelsMenu = null;
+                }
+                
+                if (data.AllowedActions != null)
+                {
+                    ReadFileAllowedActions = string.Join(Environment.NewLine, data.AllowedActions);
+                }
+                else
+                {
+                    ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+
+        private void build
+        
         public bool CanConnect
         {
             get
@@ -328,6 +395,13 @@ namespace MassBanToolMP.ViewModels
         {
             get => !listFilterRemoveMatching;
             set => SetProperty(ref listFilterRemoveMatching, !value);
+        }
+
+        private ContextMenu? lastVisitedChannelsMenu;
+
+        public ContextMenu? LastVisitedChannelsMenu
+        {
+            get => lastVisitedChannelsMenu;
         }
 
 
