@@ -42,7 +42,7 @@ namespace MassBanToolMP.ViewModels
 
 
         private string _allowedActions;
-        private int _banProgress;
+        private double _banProgress;
         private string _channel_s = string.Empty;
         private int _messageDelay = 301;
         private string _oAuth;
@@ -77,7 +77,7 @@ namespace MassBanToolMP.ViewModels
             OnClickCancelActionCommand = ReactiveCommand.Create(CancelAction);
             RunBanCommand = ReactiveCommand.Create(ExecBan);
             RunUnbanCommand = ReactiveCommand.Create(ExecUnban);
-            RunReadfileCommand = ReactiveCommand.Create(ExecReadfile);
+            RunReadfileCommand = ReactiveCommand.Create(ExecReadFile);
             RunListFilterCommand = ReactiveCommand.Create(ExecListFilter);
             RunRemoveClutterCommand = ReactiveCommand.Create(ExecRemoveClutter);
             RunCheckListTypeCommand = ReactiveCommand.Create(CheckListType);
@@ -158,8 +158,6 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-
-        private void build
         
         public bool CanConnect
         {
@@ -247,14 +245,10 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-        public int BanProgress
+        public double BanProgress
         {
             get => _banProgress;
-            set
-            {
-                SetProperty(ref _banProgress, value);
-                RaisePropertyChanged(nameof(ETA));
-            }
+            set => SetProperty(ref _banProgress, value);
         }
 
         public bool IsConnected
@@ -356,11 +350,8 @@ namespace MassBanToolMP.ViewModels
         [DependsOn(nameof(Channel_s))]
         public TimeSpan ETA
         {
-            get
-            {
-                int milisecondseconds = Entries.Count * channels.Count * _messageDelay;
-                return TimeSpan.FromMilliseconds(milisecondseconds);
-            }
+            get => _eta;
+            set => SetProperty(ref _eta, value);
         }
 
         public bool ProtectSpecialUsers
@@ -398,6 +389,7 @@ namespace MassBanToolMP.ViewModels
         }
 
         private ContextMenu? lastVisitedChannelsMenu;
+        private TimeSpan _eta;
 
         public ContextMenu? LastVisitedChannelsMenu
         {
@@ -551,7 +543,7 @@ namespace MassBanToolMP.ViewModels
             Entries.RemoveMany(toRemove);
         }
 
-        private void ExecReadfile()
+        private void ExecReadFile()
         {
             // TODO check if other action running.
             //TODO Filter Commands, User
@@ -1029,6 +1021,11 @@ namespace MassBanToolMP.ViewModels
                             commandtoExecute = $"/unban {entry.Name}";
                             break;
                         }
+                        case WorkingMode.Readfile:
+                        {
+                            commandtoExecute = entry.ChatCommand;
+                            break;
+                        }
                         default:
                         {
                             break;
@@ -1037,9 +1034,16 @@ namespace MassBanToolMP.ViewModels
 
                     foreach (var channel in twitchChatClient.client.JoinedChannels)
                     {
+                        #if DEBUG
+                        Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
+                        #else
                         twitchChatClient.client.SendMessage(channel, commandtoExecute);
+                        #endif
                         await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), token);
                     }
+
+                    BanProgress = (i+1 / Entries.Count);
+                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i+1) * channels.Count * _messageDelay);
 
                     entry.RowBackColor = "Green";
                 }

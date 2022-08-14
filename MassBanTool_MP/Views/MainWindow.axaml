@@ -3,6 +3,7 @@
         xmlns:vm="using:MassBanToolMP.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
         x:Class="MassBanToolMP.Views.MainWindow"
@@ -10,73 +11,75 @@
         Title="MassBanTool"
         Name="Window">
     <Design.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Design.DataContext>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_Debug" Command="{Binding DebugCommand}" />
-                <MenuItem Header="_Open File" Command="{Binding OpenFileCommand}" CommandParameter="{Binding ElementName=Window}"/>
+                <MenuItem Header="_Open File" Command="{Binding OpenFileCommand}"
+                          CommandParameter="{Binding ElementName=Window}" />
                 <Separator />
-                <MenuItem Header="_Exit" Command="{Binding ExitCommand}" CommandParameter="{Binding ElementName=Window}"/>
+                <MenuItem Header="_Exit" Command="{Binding ExitCommand}"
+                          CommandParameter="{Binding ElementName=Window}" />
             </MenuItem>
             <MenuItem Header="_Settings">
-                <MenuItem Header="Credentials" IsEnabled="False"/>
+                <MenuItem Header="Credentials" IsEnabled="False" />
                 <MenuItem Header="_Load From Credential Manager" Command="{Binding LoadCredentialsCommand}" />
-                <MenuItem Header="_Save Credential"/>
-                <MenuItem Header="_Get New Credentials"/>
-                <Separator/>
-                <MenuItem Header="App Settings" IsEnabled="False"/>
-                <MenuItem Header="_Save"/>
-                <Separator/>
+                <MenuItem Header="_Save Credential" />
+                <MenuItem Header="_Get New Credentials" />
+                <Separator />
+                <MenuItem Header="App Settings" IsEnabled="False" />
+                <MenuItem Header="_Save" />
+                <Separator />
                 <MenuItem Header="Special User">
                     <CheckBox Content="Protect VIPs/Mods from Commands"
-                              IsChecked="{Binding ProtectSpecialUsers}"/>
+                              IsChecked="{Binding ProtectSpecialUsers}" />
                     <RadioButton GroupName="SpecialUserMode"
                                  IsChecked="{Binding ProtectedUserMode_Skip}"
-                                 Content="Skip Commands targeting User"/>
-                    <RadioButton GroupName="SpecialUserMode" 
+                                 Content="Skip Commands targeting User" />
+                    <RadioButton GroupName="SpecialUserMode"
                                  IsChecked="{Binding ProtectedUserMode_Cancel}"
-                                 Content="Abort Action (default)"/>
+                                 Content="Abort Action (default)" />
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="_Misc">
-                <MenuItem Header="Show Log window"/>
-                <Separator/>
-                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand}"/>
+                <MenuItem Header="Show Log window" />
+                <Separator />
+                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand}" />
             </MenuItem>
             <MenuItem Header="_Help" HotKey="F1">
-                <MenuItem Header="_General" Command="{Binding OpenWikiCommand}"/>
-                <Separator/>
+                <MenuItem Header="_General" Command="{Binding OpenWikiCommand}" />
+                <Separator />
                 <MenuItem Header="_Cooldown info" Command="{Binding CooldownInfoCommand}" />
-                <Separator/>
+                <Separator />
                 <MenuItem Header="_Regex">
-                    <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command}"/>
-                    <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand}"/>
+                    <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command}" />
+                    <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand}" />
                 </MenuItem>
             </MenuItem>
         </Menu>
 
         <StackPanel DockPanel.Dock="Bottom" Name="StatusStrip" Orientation="Horizontal"
                     Margin="2,8,2,4">
-            <TextBlock Text="ETA: "/>
-            <TextBlock Text="{Binding ETA}"/>
+            <TextBlock Text="ETA: " />
+            <TextBlock Text="{Binding ETA,StringFormat={}{0:hh}:{0:mm}:{0:ss},FallbackValue=00:00:00,Mode=OneWay}" />
             <Separator Foreground="White" Margin="5,0,5,0" />
-            <TextBlock Text="List type: "/>
-            <TextBlock Text="{Binding ListType}"/>
+            <TextBlock Text="List type: " />
+            <TextBlock Text="{Binding ListType}" />
         </StackPanel>
-        
+
         <Grid Margin="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
+                <ColumnDefinition />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!-- List -->
             <DataGrid Grid.Row="0"
@@ -86,114 +89,118 @@
                       Name="DataGrid"
                       Items="{Binding Entries}"
                       IsReadOnly="False"
-                      GridLinesVisibility="Horizontal" 
+                      GridLinesVisibility="Horizontal"
+                      CanUserSortColumns="False"
                       Background="Transparent">
                 <DataGrid.KeyBindings>
-                    <KeyBinding Gesture="delete" 
+                    <KeyBinding Gesture="delete"
                                 CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
-                                Command="{Binding OnDataGridRemoveEntry}"/>
+                                Command="{Binding OnDataGridRemoveEntry}" />
                 </DataGrid.KeyBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="False" Binding="{Binding Command}"/>
-                    <DataGridTextColumn Header="Name" CanUserReorder="False" Binding="{Binding Name}"/>
-                    <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}"/>
+                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="False"
+                                        Binding="{Binding Command}" />
+                    <DataGridTextColumn Header="Name" CanUserReorder="False" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}" />
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu PlacementMode="Pointer">
                         <MenuItem
                             Command="{Binding OnClickPropertiesAddEntry}"
                             CommandParameter="{Binding ElementName=Window}"
-                            Header="Add Entry">
-                        </MenuItem>
+                            Header="Add Entry" />
                         <MenuItem
                             Command="{Binding OnClickPropertiesPasteClipboard}"
-                            Header="Paste from Clipboard">
-                        </MenuItem>
+                            Header="Paste from Clipboard" />
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
 
-            <ProgressBar 
-                Grid.Column="0" 
-                Grid.Row="3" 
+            <ProgressBar
+                Grid.Column="0"
+                Grid.Row="3"
                 VerticalAlignment="Bottom"
                 Foreground="Green"
-                ShowProgressText="True" 
+                ShowProgressText="True"
                 Value="{Binding BanProgress}" />
 
             <!-- Login -->
             <StackPanel DockPanel.Dock="Right"
-                Grid.Row="0" 
-                Grid.Column="1">
+                        Grid.Row="0"
+                        Grid.Column="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="200" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Username: " HorizontalAlignment="Right" Margin="0,10,0,0"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Username}" Margin="0,5,0,0"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Username: " HorizontalAlignment="Right"
+                               Margin="0,10,0,0" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Username}" Margin="0,5,0,0" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Token: " HorizontalAlignment="Right" Margin="0,10,0,0"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="*" Text="{Binding OAuth}" Margin="0,5,0,0"/>
-                    <Button Grid.Row="1" Grid.Column="3" Margin="0,10,0,0"  Command="{Binding GetOAuthCommand, Mode=OneTime}" ToolTip.Tip="https://twitchapps.com/tmi/">Get OAuth</Button>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Token: " HorizontalAlignment="Right"
+                               Margin="0,10,0,0" />
+                    <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="*" Text="{Binding OAuth}" Margin="0,5,0,0" />
+                    <Button Grid.Row="1" Grid.Column="3" Margin="0,10,0,0"
+                            Command="{Binding GetOAuthCommand, Mode=OneTime}" ToolTip.Tip="https://twitchapps.com/tmi/">
+                        Get OAuth
+                    </Button>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channel(s): " HorizontalAlignment="Right" Margin="0,5,0,0"/>
-                    
-                    <StackPanel Grid.Row="2" 
-                                Grid.Column="1" 
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Channel(s): " HorizontalAlignment="Right"
+                               Margin="0,5,0,0" />
+
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="1"
                                 Orientation="Horizontal">
-                        <TextBox Width="200" 
-                                Margin="0,5,0,0" 
-                                 Text="{Binding Channel_s}"/>
-                        <Button Margin="2,6" Content="&#709;" Click="Button_OnClick" ContextMenu="{Binding LastVisitedChannelsMenu}">
-                        </Button>
+                        <TextBox Width="200"
+                                 Margin="0,5,0,0"
+                                 Text="{Binding Channel_s}" />
+                        <Button Margin="2,6" Content="&#709;" Click="Button_OnClick"
+                                ContextMenu="{Binding LastVisitedChannelsMenu}" />
                     </StackPanel>
-                    <Button 
+                    <Button
                         Grid.Column="1"
                         Grid.Row="3"
-                        Content="{Binding ConButtonText}" 
-                        Width="200" 
-                        Margin="0,5,0,0" 
-                        Command="{Binding ConnectCommand}" 
+                        Content="{Binding ConButtonText}"
+                        Width="200"
+                        Margin="0,5,0,0"
+                        Command="{Binding ConnectCommand}"
                         IsEnabled="{Binding CanConnect}"
-                        HorizontalContentAlignment="Center"/>
+                        HorizontalContentAlignment="Center" />
                 </Grid>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,10">
                 <StackPanel Orientation="Horizontal">
-                    <NumericUpDown Value="{Binding MessageDelay}" 
+                    <NumericUpDown Value="{Binding MessageDelay}"
                                    Minimum="301"
                                    Increment="10"
-                                   Width="150" 
-                             Margin="0,5,0,0" />
+                                   Width="150"
+                                   Margin="0,5,0,0" />
                 </StackPanel>
-                <Label Content="Cooldown between messages in ms"/>
+                <Label Content="Cooldown between messages in ms" />
             </StackPanel>
 
-            <TabControl Grid.Column="1" 
-                        Grid.Row="3" 
-                        Height="350" 
-                        Margin="0,5,0,0" >
+            <TabControl Grid.Column="1"
+                        Grid.Row="3"
+                        Height="350"
+                        Margin="0,5,0,0">
                 <TabControl.Resources>
                     <ControlTemplate x:Key="PauseButton">
-                        <Button Content="Pause" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center" Command="{Binding OnClickPauseActionCommand}"/>
+                        <Button Content="Pause" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
+                                Command="{Binding OnClickPauseActionCommand}" />
                     </ControlTemplate>
 
                     <ControlTemplate x:Key="AbortButton">
-                        <Button Content="Abort" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center" Command="{Binding OnClickCancelActionCommand}"/>
-                    </ControlTemplate>
-
-                    <ControlTemplate x:Key="RunButton">
-                        <Button Content="Run" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"/>
+                        <Button Content="Abort" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
+                                Command="{Binding OnClickCancelActionCommand}" />
                     </ControlTemplate>
 
                 </TabControl.Resources>
@@ -202,86 +209,95 @@
                         <Label Content="Ban Reason: " />
                         <TextBox Height="40" Margin="0,0,0,20" />
                         <StackPanel Orientation="Horizontal">
-                            <Button Template="{StaticResource PauseButton}" Margin="5"/>
-                            <Button Template="{StaticResource AbortButton}" Margin="5"/>
-                            <Button Template="{StaticResource RunButton}" Margin="5" Command="{Binding RunBanCommand}"/>
+                            <Button Template="{StaticResource PauseButton}" Margin="5" />
+                            <Button Template="{StaticResource AbortButton}" Margin="5" />
+                            <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
+                                    Command="{Binding RunBanCommand}" />
                         </StackPanel>
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Unban" Cursor="Hand">
                     <StackPanel Orientation="Horizontal">
-                        <Button Template="{StaticResource PauseButton}" Margin="5"/>
-                        <Button Template="{StaticResource AbortButton}" Margin="5"/>
-                        <Button Template="{StaticResource RunButton}" Margin="5" Command="{Binding RunUnbanCommand}"/>
+                        <Button Template="{StaticResource PauseButton}" Margin="5" />
+                        <Button Template="{StaticResource AbortButton}" Margin="5" />
+                        <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
+                                Command="{Binding RunUnbanCommand}" />
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Readfile" Cursor="Hand">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock 
-                            Grid.Row="0" 
+                        <TextBlock
+                            Grid.Row="0"
                             Text="Allowed Actions:" />
                         <TextBox Grid.Column="0" Grid.Row="1" TextWrapping="Wrap"
-                            AcceptsReturn="True"
-                            AcceptsTab="True" 
-                            Text="{Binding ReadFileAllowedActions, Mode=TwoWay}"/>
-                        <StackPanel Grid.Row="1" 
-                                    Grid.Column="1" >
-                                <!--Behaviour on Mismatch-->
-                                <RadioButton Content="Warn and Abort" IsChecked="True"/>
-                                <RadioButton Content="Ignore and skip"/>
-                            </StackPanel>
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 Text="{Binding ReadFileAllowedActions, Mode=TwoWay}" />
+                        <StackPanel Grid.Row="1"
+                                    Grid.Column="1">
+                            <!--Behaviour on Mismatch-->
+                            <RadioButton Content="Warn and Abort" IsChecked="True" />
+                            <RadioButton Content="Ignore and skip" />
+                        </StackPanel>
 
                         <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal">
-                            <Button Template="{StaticResource PauseButton}"/>
-                            <Button Template="{StaticResource AbortButton}"/>
+                            <Button Template="{StaticResource PauseButton}" />
+                            <Button Template="{StaticResource AbortButton}" />
                         </StackPanel>
-                        <Button Grid.Row="2" Grid.Column="1"  Template="{StaticResource RunButton}" Command="{Binding RunReadfileCommand}"/>
+                        <Button Grid.Row="2" Grid.Column="1" Content="Run" Margin="0,5,0,0" Width="60"
+                                HorizontalContentAlignment="Center" Command="{Binding RunReadfileCommand}" />
                     </Grid>
                 </TabItem>
 
                 <TabItem Header="List filter" Cursor="Hand">
                     <StackPanel>
                         <TextBlock Text="Regex: " />
-                        <TextBox Text="{Binding FilterRegex}"/>
+                        <TextBox Text="{Binding FilterRegex}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <RadioButton GroupName="ListRemoveMode" Content="Remove not matching" IsChecked="{Binding ListFilterRemoveNotMatching}"/>
-                                <RadioButton GroupName="ListRemoveMode" Content="Remove matching" IsChecked="{Binding ListFilterRemoveMatching}"/>
+                                <RadioButton GroupName="ListRemoveMode" Content="Remove not matching"
+                                             IsChecked="{Binding ListFilterRemoveNotMatching}" />
+                                <RadioButton GroupName="ListRemoveMode" Content="Remove matching"
+                                             IsChecked="{Binding ListFilterRemoveMatching}" />
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <CheckBox Content="IgnoreCase" IsChecked="{Binding RegexOptionIgnoreCase}" ToolTip.Tip="Specifies case-insensitive matching. /i Flag"/>
-                                <CheckBox Content="Multiline" IsChecked="{Binding RegexOptionMultiline}" ToolTip.Tip="Multiline mode. Changes the meaning of ^ and $ so they match at the beginning and end, respectively, of any line, and not just the beginning and end of the entire string. /m Flag."/>
-                                <CheckBox Content="CultureInvariant" IsChecked="{Binding RegexOptionCultureInvariant}" ToolTip.Tip="Specifies that cultural differences in language is ignored."/>
-                                <CheckBox Content="ECMAScript" IsChecked="{Binding RegexOptionEcmaScript}" ToolTip.Tip="Enables ECMAScript-compliant behavior for the expression. This value can be used only in conjunction with the IgnoreCase, Multiline, and Compiled values. The use of this value with any other values results in an exception."/>
+                                <CheckBox Content="IgnoreCase" IsChecked="{Binding RegexOptionIgnoreCase}"
+                                          ToolTip.Tip="Specifies case-insensitive matching. /i Flag" />
+                                <CheckBox Content="Multiline" IsChecked="{Binding RegexOptionMultiline}"
+                                          ToolTip.Tip="Multiline mode. Changes the meaning of ^ and $ so they match at the beginning and end, respectively, of any line, and not just the beginning and end of the entire string. /m Flag." />
+                                <CheckBox Content="CultureInvariant" IsChecked="{Binding RegexOptionCultureInvariant}"
+                                          ToolTip.Tip="Specifies that cultural differences in language is ignored." />
+                                <CheckBox Content="ECMAScript" IsChecked="{Binding RegexOptionEcmaScript}"
+                                          ToolTip.Tip="Enables ECMAScript-compliant behavior for the expression. This value can be used only in conjunction with the IgnoreCase, Multiline, and Compiled values. The use of this value with any other values results in an exception." />
                             </StackPanel>
                         </Grid>
-                        <Button Content="Run Regex" Command="{Binding RunListFilterCommand}"/>
+                        <Button Content="Run Regex" Command="{Binding RunListFilterCommand}" />
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Misc" Cursor="Hand">
                     <WrapPanel Orientation="Vertical">
                         <Button Content="Check listtype" Margin="2"
-                                Command="{Binding RunCheckListTypeCommand}"/>
-                        <Button Content="Sort list" Margin="2" IsEnabled="False"/>
+                                Command="{Binding RunCheckListTypeCommand}" />
+                        <Button Content="Sort list" Margin="2" IsEnabled="False" />
                         <Button Content="Remove not allowed commands" Margin="2"
-                                Command="{Binding RunRemoveNotAllowedActionsCommand}" IsEnabled="False"/>
+                                Command="{Binding RunRemoveNotAllowedActionsCommand}" IsEnabled="False" />
                     </WrapPanel>
                 </TabItem>
             </TabControl>

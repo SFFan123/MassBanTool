@@ -12,6 +12,15 @@ namespace MassBanToolMP
         [STAThread]
         public static void Main(string[] args)
         {
+            if (OperatingSystem.IsLinux())
+            {
+                // Check if there is a GUI.
+                if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP")))
+                {
+                    throw new PlatformNotSupportedException("No GUI Session detected cannot start GUI: XDG_CURRENT_DESKTOP doesn't exists/has no value.");
+                }
+            }
+            
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
