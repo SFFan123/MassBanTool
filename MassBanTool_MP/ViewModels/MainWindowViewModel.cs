@@ -15,10 +15,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
-using Avalonia.Metadata;
 using DynamicData;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views.Dialogs;
+using MessageBox.Avalonia.Enums;
 using ReactiveUI;
 using TwitchLib.Client.Events;
 
@@ -40,41 +40,53 @@ namespace MassBanToolMP.ViewModels
         private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
         private const string HELP_URL_REGEX101 = "https://regex101.com/";
 
+        private static IDisposable canExecPauseAbortObservable;
 
         private string _allowedActions;
         private double _banProgress;
         private string _channel_s = string.Empty;
+        private TimeSpan _eta;
         private int _messageDelay = 301;
         private string _oAuth;
         private string _reason;
         private string _username;
+        private Task _worker;
         private List<string> channels = new List<string>();
 
         public DataGrid DataGrid;
         private string filterRegex = string.Empty;
+
+        private ContextMenu? lastVisitedChannelsMenu;
         private bool listFilterRemoveMatching = false;
         private ListType listType;
         private bool protectSpecialUsers = true;
-        private TwitchChatClient? twitchChatClient;
-        private Mutex userMutex;
-
-        private CancellationTokenSource tokenSource;
         private CancellationToken token;
 
-        private Task Worker;
+        private CancellationTokenSource tokenSource;
+        private TwitchChatClient? twitchChatClient;
+        private Mutex userMutex;
+        private bool _paused;
+        private ObservableCollection<Entry> _entries;
+
 
         public MainWindowViewModel()
         {
+            Entries = new ObservableCollection<Entry>();
+
             ExitCommand = ReactiveCommand.Create<Window>(Exit);
             DebugCommand = ReactiveCommand.Create(Debug);
             OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
+
             ConnectCommand = ReactiveCommand.Create(Connect);
+
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
             OnClickPropertiesPasteClipboard = ReactiveCommand.Create(HandlePasteEntries);
             OnDataGridRemoveEntry = ReactiveCommand.Create<object>(RemoveEntry);
+
             OnClickPauseActionCommand = ReactiveCommand.Create(PauseAction);
             OnClickCancelActionCommand = ReactiveCommand.Create(CancelAction);
+
             RunBanCommand = ReactiveCommand.Create(ExecBan);
             RunUnbanCommand = ReactiveCommand.Create(ExecUnban);
             RunReadfileCommand = ReactiveCommand.Create(ExecReadFile);
@@ -89,76 +101,27 @@ namespace MassBanToolMP.ViewModels
             OpenRegex101Command = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX101));
             OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_MAIN_GITHUB));
 
-            Entries = new ObservableCollection<Entry>();
 
             LoadData();
             listType = default;
         }
 
-
-
-        private void LoadData()
+        private Task Worker
         {
-            string fileName = Path.Combine(Environment.GetFolderPath(
-                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
-            try
+            get => _worker;
+            set
             {
-                string a = File.ReadAllText(fileName);
-                a = a.Trim();
-                var data = DataWrapper.fromJson(a);
-
-                if (data.message_delay != default)
+                if (SetProperty(ref _worker, value))
                 {
-                    MessageDelay = data.message_delay.ToString();
+                    canExecPauseAbortObservable?.Dispose();
+                    canExecPauseAbortObservable = this.WhenAnyValue(x => x.Worker.IsCompleted)
+                        .Subscribe(_ => RaisePropertyChanged(nameof(CanExecPauseAbort)));
+                    RaisePropertyChanged(nameof(CanExecPauseAbort));
+                    RaisePropertyChanged(nameof(CanExecRun));
                 }
-
-                if (data.lastVisitedChannel != null)
-                {
-                    lastVisitedChannelsMenu = new ContextMenu();
-
-                    MenuItem item;
-                    List<MenuItem> items= new List<MenuItem>();
-                    foreach (string s in data.lastVisitedChannel)
-                    {
-                        string header = s.Replace("_", "__");
-                        item = new MenuItem()
-                        {
-                            Header = header,
-                            DataContext = s
-                        };
-                        item.Click += delegate(object? sender, RoutedEventArgs args)
-                        {
-                            if (sender is MenuItem menuitem)
-                            {
-                                Channel_s = (string)menuitem.DataContext;
-                            }
-                        };
-                        items.Add(item);
-                    }
-                    lastVisitedChannelsMenu.Items = items;
-                    RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
-                }
-                else
-                {
-                    lastVisitedChannelsMenu = null;
-                }
-                
-                if (data.AllowedActions != null)
-                {
-                    ReadFileAllowedActions = string.Join(Environment.NewLine, data.AllowedActions);
-                }
-                else
-                {
-                    ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
             }
         }
 
-        
         public bool CanConnect
         {
             get
@@ -176,6 +139,11 @@ namespace MassBanToolMP.ViewModels
                        && !haserr;
             }
         }
+
+        public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
+
+        public bool CanExecRun => IsConnected && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
+
 
         public string Username
         {
@@ -264,9 +232,19 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-        public bool Paused { get; set; }
+        public bool Paused
+        {
+            get => _paused;
+            set
+            {
+                if(SetProperty(ref _paused, value))
+                    RaisePropertyChanged(nameof(PauseButtonText));
+            } 
+        }
 
-        [DependsOn(nameof(IsConnected))]
+        public string PauseButtonText => Paused ? "Resume" : "Pause";
+
+
         public string ConButtonText
         {
             get
@@ -312,7 +290,17 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
 
-        public ObservableCollection<Entry> Entries { get; set; }
+        public ObservableCollection<Entry> Entries
+        {
+            get => _entries;
+            set
+            {
+                if (SetProperty(ref _entries, value))
+                {
+                    RaisePropertyChanged(nameof(CanExecRun));
+                }
+            }
+        }
 
         public string ReadFileAllowedActions
         {
@@ -345,9 +333,6 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-        [DependsOn(nameof(MessageDelay))]
-        [DependsOn(nameof(Entries))]
-        [DependsOn(nameof(Channel_s))]
         public TimeSpan ETA
         {
             get => _eta;
@@ -388,12 +373,78 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref listFilterRemoveMatching, !value);
         }
 
-        private ContextMenu? lastVisitedChannelsMenu;
-        private TimeSpan _eta;
-
         public ContextMenu? LastVisitedChannelsMenu
         {
             get => lastVisitedChannelsMenu;
+        }
+
+        private void LoadData()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            try
+            {
+                string a = File.ReadAllText(fileName);
+                a = a.Trim();
+                var data = DataWrapper.fromJson(a);
+
+                if (data.message_delay != default)
+                {
+                    MessageDelay = data.message_delay.ToString();
+                }
+
+                if (data.lastVisitedChannel != null)
+                {
+                    lastVisitedChannelsMenu = new ContextMenu();
+
+                    MenuItem item;
+                    List<MenuItem> items = new List<MenuItem>();
+                    foreach (string s in data.lastVisitedChannel)
+                    {
+                        string header = s.Replace("_", "__");
+                        item = new MenuItem()
+                        {
+                            Header = header,
+                            DataContext = s
+                        };
+                        item.Click += delegate(object? sender, RoutedEventArgs args)
+                        {
+                            if (sender is MenuItem menuitem)
+                            {
+                                Channel_s = (string)menuitem.DataContext;
+                            }
+                        };
+                        items.Add(item);
+                    }
+
+                    lastVisitedChannelsMenu.Items = items;
+                    RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
+                }
+                else
+                {
+                    lastVisitedChannelsMenu = null;
+                }
+
+                if (data.AllowedActions != null)
+                {
+                    ReadFileAllowedActions = string.Join(Environment.NewLine, data.AllowedActions);
+                }
+                else
+                {
+                    ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void RaiseIsConnectedChanged()
+        {
+            RaisePropertyChanged(nameof(IsConnected));
+            RaisePropertyChanged(nameof(ConButtonText));
+            RaisePropertyChanged(nameof(CanExecRun));
         }
 
 
@@ -513,6 +564,7 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecRemoveClutter()
         {
+            //TODO
             throw new NotImplementedException();
         }
 
@@ -526,55 +578,106 @@ namespace MassBanToolMP.ViewModels
             }
             catch (ArgumentException e)
             {
-                await MessageBox.Show("Regex malforemed" + Environment.NewLine + e.Message, "Exception while creating regex");
+                await MessageBox.Show("Regex malforemed" + Environment.NewLine + e.Message,
+                    "Exception while creating regex");
                 return;
             }
 
-            List<Entry> toRemove = Entries.AsParallel().Where(x=>
+            List<Entry> toRemove = Entries.AsParallel().Where(x =>
             {
                 if (regex.IsMatch(x.ChatCommand))
                 {
                     return !listFilterRemoveMatching;
                 }
-                return listFilterRemoveMatching;
 
+                return listFilterRemoveMatching;
             }).ToList();
 
             Entries.RemoveMany(toRemove);
         }
 
-        private void ExecReadFile()
+        private async void ExecReadFile()
         {
-            // TODO check if other action running.
+            if (!CanExecRun)
+            {
+                return;
+            }
+
+            if (ListType != ListType.ReadFile)
+            {
+                await MessageBox.Show("Listtype does not match the selected operation mode.", "Listtype Mismatch");
+                return;
+            }
+
             //TODO Filter Commands, User
             Worker = CreateWorkerTask(WorkingMode.Readfile);
         }
 
-        private void ExecUnban()
+        private async void ExecUnban()
         {
-            // TODO check if other action running.
+            if (!CanExecRun)
+            {
+                return;
+            }
+
+            if (ListType != ListType.ReadFile)
+            {
+                if (await MessageBox.Show(
+                        "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?",
+                        "Listtype Mismatch",
+                        ButtonEnum.YesNo) != ButtonResult.Yes)
+                {
+                    return;
+                }
+            }
+
             Worker = CreateWorkerTask(WorkingMode.Unban);
         }
 
-        private void ExecBan()
+        private async void ExecBan()
         {
-            // TODO check if other action running.
-            // TODO Filer User
+            if (!CanExecRun)
+            {
+                return;
+            }
+
+            if (ListType != ListType.ReadFile)
+            {
+                if (await MessageBox.Show(
+                        "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?",
+                        "Listtype Mismatch",
+                        ButtonEnum.YesNo) != ButtonResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            CheckForProtectedUser();
             Worker = CreateWorkerTask(WorkingMode.Ban);
         }
 
         private void CancelAction()
         {
             tokenSource.Cancel();
-            Worker.Wait();
+            try
+            {
+                Worker.Wait();
+            }
+            catch (AggregateException)
+            {
+            }
+
+            ETA = TimeSpan.Zero;
+
             Worker.Dispose();
+            canExecPauseAbortObservable.Dispose();
         }
 
         private void PauseAction()
         {
             Paused = !Paused;
         }
-        
+
         private async void LoadCredentials()
         {
             try
@@ -582,6 +685,7 @@ namespace MassBanToolMP.ViewModels
                 var cred = SecretHelper.GetCredentials();
                 Username = cred.Item1;
                 OAuth = cred.Item2;
+                RaisePropertyChanged(nameof(CanConnect));
             }
             catch (Exception e)
             {
@@ -598,10 +702,6 @@ namespace MassBanToolMP.ViewModels
 
         async void Debug()
         {
-            BanProgress += 5;
-
-            //string header = "Test";
-            //DataGrid.Columns.Add(new DataGridTextColumn() {Header = header, Binding = new Binding(){Path = $"Result[_{header}]"} });
         }
 
         private Regex CreateFilterRegex()
@@ -690,8 +790,7 @@ namespace MassBanToolMP.ViewModels
 
         private void ClientOnOnConnected(object? sender, OnConnectedArgs e)
         {
-            RaisePropertyChanged(nameof(IsConnected));
-            RaisePropertyChanged(nameof(ConButtonText));
+            RaiseIsConnectedChanged();
         }
 
         private void SwitchChannel()
@@ -907,9 +1006,7 @@ namespace MassBanToolMP.ViewModels
                 }
             }
 
-            Entries.Clear();
-            Entries.AddRange(entryList);
-            RaisePropertyChanged(nameof(Entries));
+            Entries = new ObservableCollection<Entry>(entryList);
         }
 
 
@@ -989,68 +1086,68 @@ namespace MassBanToolMP.ViewModels
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
 
-            
+
             return Task.Factory.StartNew(async () =>
-            {
-                string TextReason = Reason;
-                for (int i = 0; i < Entries.Count; i++)
                 {
-                    while (Paused)
+                    string TextReason = Reason;
+                    for (int i = 0; i < Entries.Count; i++)
                     {
-                        await Task.Delay(1000, token);
-                    }
-
-                    if (token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    Entry entry = Entries[i];
-                    string commandtoExecute = String.Empty;
-
-                    switch (mode)
-                    {
-                        case WorkingMode.Ban:
+                        while (Paused)
                         {
-                            // TODO protect VIP/MODS
-                            commandtoExecute = $"/ban {entry.Name} {TextReason}";
-                            break;
+                            await Task.Delay(1000, token);
                         }
-                        case WorkingMode.Unban:
-                        {
-                            commandtoExecute = $"/unban {entry.Name}";
-                            break;
-                        }
-                        case WorkingMode.Readfile:
-                        {
-                            commandtoExecute = entry.ChatCommand;
-                            break;
-                        }
-                        default:
+
+                        if (token.IsCancellationRequested)
                         {
                             break;
                         }
-                    }
 
-                    foreach (var channel in twitchChatClient.client.JoinedChannels)
-                    {
-                        #if DEBUG
-                        Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
-                        #else
+                        Entry entry = Entries[i];
+                        string commandtoExecute = String.Empty;
+
+                        switch (mode)
+                        {
+                            case WorkingMode.Ban:
+                            {
+                                // TODO protect VIP/MODS
+                                commandtoExecute = $"/ban {entry.Name} {TextReason}";
+                                break;
+                            }
+                            case WorkingMode.Unban:
+                            {
+                                commandtoExecute = $"/unban {entry.Name}";
+                                break;
+                            }
+                            case WorkingMode.Readfile:
+                            {
+                                commandtoExecute = entry.ChatCommand;
+                                break;
+                            }
+                            default:
+                            {
+                                break;
+                            }
+                        }
+
+                        foreach (var channel in twitchChatClient.client.JoinedChannels)
+                        {
+#if DEBUG
+                            Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
+#else
                         twitchChatClient.client.SendMessage(channel, commandtoExecute);
-                        #endif
-                        await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), token);
+#endif
+                            await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), token);
+                        }
+
+                        BanProgress = (i + 1 / Entries.Count);
+                        ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
+
+                        entry.RowBackColor = "Green";
                     }
-
-                    BanProgress = (i+1 / Entries.Count);
-                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i+1) * channels.Count * _messageDelay);
-
-                    entry.RowBackColor = "Green";
-                }
-            }, 
-            token, 
-            TaskCreationOptions.LongRunning, 
-            TaskScheduler.Default);
+                },
+                token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default).Result;
         }
     }
 

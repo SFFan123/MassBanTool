@@ -194,13 +194,15 @@
                         Margin="0,5,0,0">
                 <TabControl.Resources>
                     <ControlTemplate x:Key="PauseButton">
-                        <Button Content="Pause" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
-                                Command="{Binding OnClickPauseActionCommand}" />
+                        <Button Content="{Binding PauseButtonText}" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
+                                Command="{Binding OnClickPauseActionCommand}"
+                                IsEnabled="{Binding CanExecPauseAbort}"/>
                     </ControlTemplate>
 
                     <ControlTemplate x:Key="AbortButton">
                         <Button Content="Abort" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
-                                Command="{Binding OnClickCancelActionCommand}" />
+                                Command="{Binding OnClickCancelActionCommand}"
+                                IsEnabled="{Binding CanExecPauseAbort}"/>
                     </ControlTemplate>
 
                 </TabControl.Resources>
@@ -212,7 +214,8 @@
                             <Button Template="{StaticResource PauseButton}" Margin="5" />
                             <Button Template="{StaticResource AbortButton}" Margin="5" />
                             <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
-                                    Command="{Binding RunBanCommand}" />
+                                    Command="{Binding RunBanCommand}" 
+                                    IsEnabled="{Binding CanExecRun}"/>
                         </StackPanel>
                     </StackPanel>
                 </TabItem>
@@ -222,7 +225,8 @@
                         <Button Template="{StaticResource PauseButton}" Margin="5" />
                         <Button Template="{StaticResource AbortButton}" Margin="5" />
                         <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
-                                Command="{Binding RunUnbanCommand}" />
+                                Command="{Binding RunUnbanCommand}"
+                                IsEnabled="{Binding CanExecRun}"/>
                     </StackPanel>
                 </TabItem>
 
@@ -257,7 +261,9 @@
                             <Button Template="{StaticResource AbortButton}" />
                         </StackPanel>
                         <Button Grid.Row="2" Grid.Column="1" Content="Run" Margin="0,5,0,0" Width="60"
-                                HorizontalContentAlignment="Center" Command="{Binding RunReadfileCommand}" />
+                                HorizontalContentAlignment="Center" 
+                                Command="{Binding RunReadfileCommand}"
+                                IsEnabled="{Binding CanExecRun}"/>
                     </Grid>
                 </TabItem>
 

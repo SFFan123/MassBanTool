@@ -79,8 +79,10 @@ namespace MassBanToolMP.Models
             customClient.Dispose();
         }
 
-        private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
+        private async void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
         {
+            // Make sure the client is ready before firing the query to avoid weird exceptions.
+            await Task.Delay(100);
             client.GetChannelModerators(e.Channel);
             client.GetVIPs(e.Channel);
         }

@@ -17,11 +17,8 @@ namespace MassBanToolMP.Models
             }
 
 
-
+            Console.WriteLine("Not supported");
             return new Tuple<string, string>("", "");
-
-            //TODO
-            throw new NotImplementedException();
         }
 
 
