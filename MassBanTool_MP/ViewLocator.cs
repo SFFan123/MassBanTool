@@ -1,7 +1,7 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using MassBanToolMP.ViewModels;
-using System;
 
 namespace MassBanToolMP
 {

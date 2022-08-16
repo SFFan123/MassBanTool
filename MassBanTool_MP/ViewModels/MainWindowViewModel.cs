@@ -16,6 +16,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using DynamicData;
+using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
@@ -41,13 +42,16 @@ namespace MassBanToolMP.ViewModels
         private const string HELP_URL_REGEX101 = "https://regex101.com/";
 
         private static IDisposable canExecPauseAbortObservable;
+        private static IDisposable isConnectedObservable;
 
         private string _allowedActions;
         private double _banProgress;
         private string _channel_s = string.Empty;
+        private ObservableCollection<Entry> _entries;
         private TimeSpan _eta;
         private int _messageDelay = 301;
         private string _oAuth;
+        private bool _paused;
         private string _reason;
         private string _username;
         private Task _worker;
@@ -65,8 +69,6 @@ namespace MassBanToolMP.ViewModels
         private CancellationTokenSource tokenSource;
         private TwitchChatClient? twitchChatClient;
         private Mutex userMutex;
-        private bool _paused;
-        private ObservableCollection<Entry> _entries;
 
 
         public MainWindowViewModel()
@@ -114,7 +116,7 @@ namespace MassBanToolMP.ViewModels
                 if (SetProperty(ref _worker, value))
                 {
                     canExecPauseAbortObservable?.Dispose();
-                    canExecPauseAbortObservable = this.WhenAnyValue(x => x.Worker.IsCompleted)
+                    canExecPauseAbortObservable = Worker.WhenAnyValue(x => x.IsCompleted)
                         .Subscribe(_ => RaisePropertyChanged(nameof(CanExecPauseAbort)));
                     RaisePropertyChanged(nameof(CanExecPauseAbort));
                     RaisePropertyChanged(nameof(CanExecRun));
@@ -237,9 +239,9 @@ namespace MassBanToolMP.ViewModels
             get => _paused;
             set
             {
-                if(SetProperty(ref _paused, value))
+                if (SetProperty(ref _paused, value))
                     RaisePropertyChanged(nameof(PauseButtonText));
-            } 
+            }
         }
 
         public string PauseButtonText => Paused ? "Resume" : "Pause";
@@ -264,11 +266,9 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref listType, value);
         }
 
-
         private ReactiveCommand<Window, Unit> ExitCommand { get; }
         private ReactiveCommand<Unit, Unit> DebugCommand { get; }
         private ReactiveCommand<Window, Unit> OpenFileCommand { get; }
-
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
         public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
         public ReactiveCommand<Window, Unit> OnClickPropertiesAddEntry { get; }
@@ -564,7 +564,7 @@ namespace MassBanToolMP.ViewModels
 
         private void ExecRemoveClutter()
         {
-            //TODO
+            //TODO figure out what this actually should do? Remove CMDs/reasons?
             throw new NotImplementedException();
         }
 
@@ -609,7 +609,9 @@ namespace MassBanToolMP.ViewModels
                 return;
             }
 
-            //TODO Filter Commands, User
+            CheckForProtectedUser();
+            CheckReadlistForIllegalCommands();
+
             Worker = CreateWorkerTask(WorkingMode.Readfile);
         }
 
@@ -685,11 +687,10 @@ namespace MassBanToolMP.ViewModels
                 var cred = SecretHelper.GetCredentials();
                 Username = cred.Item1;
                 OAuth = cred.Item2;
-                RaisePropertyChanged(nameof(CanConnect));
             }
             catch (Exception e)
             {
-                //TODO
+                await MessageBox.Show("Failed to load credentials", "Credentials where?");
                 Console.WriteLine(e);
             }
         }
@@ -781,11 +782,18 @@ namespace MassBanToolMP.ViewModels
             twitchChatClient.client.OnMessageThrottled += Client_OnMessageThrottled;
             twitchChatClient.client.OnConnected += ClientOnOnConnected;
 
+            if (!twitchChatClient.client.IsConnected)
+            {
+                await MessageBox.Show("Failed to connect to twitch", "Warning");
+            }
 
             foreach (string channel in channels)
             {
                 AddChannelToGrid(channel);
             }
+
+            isConnectedObservable = twitchChatClient.WhenAnyValue(x => x.client.IsConnected)
+                .Subscribe(_ => RaisePropertyChanged(nameof(IsConnected)));
         }
 
         private void ClientOnOnConnected(object? sender, OnConnectedArgs e)
@@ -880,7 +888,7 @@ namespace MassBanToolMP.ViewModels
 
             if (string.IsNullOrEmpty(diag.Username))
             {
-                // TODO warning?
+                await MessageBox.Show("Name/Target may not be empty", "Warning");
                 return;
             }
 
@@ -964,9 +972,6 @@ namespace MassBanToolMP.ViewModels
                     rows.Add(raw);
                 }
             }
-
-
-            // TODO check listtype
 
             Regex userlistRegex = new Regex(@"^\w{2,}$", RegexOptions.Compiled);
             Regex readfileRegex = new Regex(@"^(\.|\/\w+) (\w{2,}) ?(.+)?$", RegexOptions.Compiled);
@@ -1109,7 +1114,6 @@ namespace MassBanToolMP.ViewModels
                         {
                             case WorkingMode.Ban:
                             {
-                                // TODO protect VIP/MODS
                                 commandtoExecute = $"/ban {entry.Name} {TextReason}";
                                 break;
                             }
@@ -1149,21 +1153,5 @@ namespace MassBanToolMP.ViewModels
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default).Result;
         }
-    }
-
-    internal enum WorkingMode
-    {
-        Ban,
-        Unban,
-        Readfile
-    }
-
-    public enum ListType
-    {
-        None = default,
-        UserList,
-        ReadFile,
-        Mixed,
-        Malformed,
     }
 }

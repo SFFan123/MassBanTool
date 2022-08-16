@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using MessageBox.Avalonia.DTO;
@@ -10,7 +7,7 @@ using avMBox = MessageBox.Avalonia;
 
 namespace MassBanToolMP
 {
-    internal class MessageBox
+    public class MessageBox
     {
         public static async Task<ButtonResult> Show(string message, string title, ButtonEnum Buttons = ButtonEnum.Ok)
         {
@@ -24,33 +21,37 @@ namespace MassBanToolMP
             }
         }
 
-        private static async Task<ButtonResult> InternalShow(string message, string title, ButtonEnum Buttons = ButtonEnum.Ok)
+        private static async Task<ButtonResult> InternalShow(string message, string title,
+            ButtonEnum Buttons = ButtonEnum.Ok)
         {
-            Window? owner = (App.Current as App)?.MainWindow;
+            Window? owner = (Avalonia.Application.Current as App)?.MainWindow;
 
             if (owner != null)
             {
-                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(new MessageBoxStandardParams() {
-                    ContentMessage = message,
-                    ContentTitle = title,
-                    ButtonDefinitions = Buttons,
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                    CanResize = true
-                });
+                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(
+                    new MessageBoxStandardParams()
+                    {
+                        ContentMessage = message,
+                        ContentTitle = title,
+                        ButtonDefinitions = Buttons,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                        CanResize = true
+                    });
                 return await messageBoxCustomWindow.ShowDialog(owner);
             }
             else
             {
-                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(new MessageBoxStandardParams() {
-                    ContentMessage = message,
-                    ContentTitle = title,
-                    ButtonDefinitions = Buttons,
-                    CanResize = true,
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen
-                });
+                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(
+                    new MessageBoxStandardParams()
+                    {
+                        ContentMessage = message,
+                        ContentTitle = title,
+                        ButtonDefinitions = Buttons,
+                        CanResize = true,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen
+                    });
                 return await messageBoxCustomWindow.Show();
             }
         }
-        
     }
 }

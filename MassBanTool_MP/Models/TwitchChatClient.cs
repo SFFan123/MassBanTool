@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using MassBanToolMP.ViewModels;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Exceptions;
 using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
@@ -100,120 +98,17 @@ namespace MassBanToolMP.Models
             Trace.WriteLine(to_log);
         }
 
-
-        private Task MakeMessageSenderTask()
-        {
-            return new Task(() =>
-            {
-                try
-                {
-                    TimeSpan eta;
-                    string message;
-                    int index = 0;
-                    while (running)
-                    {
-                        if (abort)
-                        {
-                            entires = new ObservableCollection<Entry>();
-                            log("Queue cleared", true);
-                            abort = false;
-                            index = 0;
-                        }
-
-                        while (paused)
-                        {
-                            Thread.Sleep(1000);
-                        }
-
-                        if (entires.Count > 0)
-                        {
-                            message = entires[index].ToString();
-
-                            //int banindex = ActionListLenght - MessagesQueue.Count;
-                            //if (banindex % 10 == 0)
-                            //{
-                            //    eta = TimeSpan.FromMilliseconds((MessagesQueue.Count * cooldown));
-                            //    _mainWindow.setBanProgress(this, banindex, ActionListLenght);
-                            //    _mainWindow.setETA(this, eta.ToString("g"));
-                            //}
-
-                            foreach (var channel in client.JoinedChannels)
-                            {
-                                client.SendMessage(channel, message);
-
-                                string to_log = $"MT: {DateTime.Now:HH:mm:ss fff} >#{channel.Channel} - {message}";
-                                Trace.WriteLine(to_log);
-                                log(to_log);
-
-                                Thread.Sleep(Cooldown);
-                            }
-
-
-                            index++;
-
-                            if (entires.Count == 0 || index == entires.Count)
-                            {
-                                //_mainWindow.setBanProgress(this, 100, 100);
-                                //_mainWindow.setETA(this, "-");
-                            }
-                        }
-                        else
-                        {
-                            Thread.Sleep(100);
-                        }
-                    }
-                }
-                catch (NullReferenceException)
-                {
-                    Cooldown += 10;
-                    //_mainWindow.increaseDelay(cooldown);
-                    Thread.Sleep(10);
-                }
-                catch (ArgumentOutOfRangeException e)
-                {
-                    if (!paused)
-                    {
-                        //_mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
-                    }
-                }
-                catch (BadStateException)
-                {
-                    abort = true;
-                }
-                catch (Exception e)
-                {
-                    //_mainWindow.ThrowError($"{e.GetType().Name} {e.Message} \n{e.StackTrace}", false);
-                }
-            }, TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent);
-        }
-
-        public int Cooldown { get; set; }
-
-
         private void log(string toLog, bool addTimeStamp = false)
         {
             //Trace.WriteLine(toLog);
         }
-
-        private bool running = true;
-
-
-        private ObservableCollection<string> channelsJoined;
-
-        private bool abort = false;
-
-        private Task messageTask = null;
-
+        
         private ConnectionCredentials credentials;
 
         private WebSocketClient customClient;
 
         public TwitchClient client { get; private set; }
-
         public bool ManualDisconnect { get; set; }
-
-        private bool paused;
-        private ObservableCollection<Entry> entires;
         private readonly List<string> channel;
         private readonly MainWindowViewModel owner;
     }
