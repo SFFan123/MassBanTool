@@ -2,8 +2,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:MassBanToolMP.ViewModels"
+        Width="800" Height="450"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MassBanToolMP.Views.LogWindow"
-        Title="LogWindow">
-  Welcome to Avalonia!
+        Title="LogWindow"
+        Name="Window">
+    <Design.DataContext>
+        <vm:LogViewModel />
+    </Design.DataContext>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="Save Log" Command="{Binding SaveLogCommand}" CommandParameter="{Binding ElementName=Window}"/>
+            </MenuItem>
+        </Menu>
+        <TextBox Margin="5" 
+                 TextWrapping="Wrap"
+                 IsReadOnly="True" 
+                 Text="{Binding logLines}" 
+                 CaretIndex="{Binding logLines.Length}"/>
+    </DockPanel>
 </Window>

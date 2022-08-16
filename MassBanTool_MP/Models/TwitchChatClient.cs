@@ -94,14 +94,10 @@ namespace MassBanToolMP.Models
         private void Client_OnLog(object? sender, OnLogArgs e)
         {
             string to_log = $"{e.DateTime}: {e.BotUsername} - {e.Data}";
-            log(to_log);
+            LogViewModel.Log(to_log, nameof(TwitchChatClient));
             Trace.WriteLine(to_log);
         }
 
-        private void log(string toLog, bool addTimeStamp = false)
-        {
-            //Trace.WriteLine(toLog);
-        }
         
         private ConnectionCredentials credentials;
 

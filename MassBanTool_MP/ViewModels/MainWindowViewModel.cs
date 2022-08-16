@@ -18,6 +18,7 @@ using Avalonia.Interactivity;
 using DynamicData;
 using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
+using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
 using ReactiveUI;
@@ -66,6 +67,9 @@ namespace MassBanToolMP.ViewModels
         private bool protectSpecialUsers = true;
         private CancellationToken token;
 
+        private LogWindow logWindow;
+        private LogViewModel logModel;
+
         private CancellationTokenSource tokenSource;
         private TwitchChatClient? twitchChatClient;
         private Mutex userMutex;
@@ -73,6 +77,9 @@ namespace MassBanToolMP.ViewModels
 
         public MainWindowViewModel()
         {
+            logModel = new LogViewModel();
+            LogViewModel.Log("Init GUI...");
+
             Entries = new ObservableCollection<Entry>();
 
             ExitCommand = ReactiveCommand.Create<Window>(Exit);
@@ -102,10 +109,11 @@ namespace MassBanToolMP.ViewModels
             OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX_MS_DOCS));
             OpenRegex101Command = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX101));
             OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_MAIN_GITHUB));
-
+            ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
 
             LoadData();
             listType = default;
+            LogViewModel.Log("Done Init GUI...");
         }
 
         private Task Worker
@@ -289,6 +297,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> OpenWikiCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
+        public ReactiveCommand<Window, Unit> ShowLogWindowCommand { get; }
 
         public ObservableCollection<Entry> Entries
         {
@@ -380,6 +389,7 @@ namespace MassBanToolMP.ViewModels
 
         private void LoadData()
         {
+            LogViewModel.Log("Try loading setting for this User.");
             string fileName = Path.Combine(Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
             try
@@ -434,10 +444,11 @@ namespace MassBanToolMP.ViewModels
                     ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                LogViewModel.Log("Something went wrong loading setting for this User. - " + e.Message);
             }
+            LogViewModel.Log("Done loading setting for this User.");
         }
 
         private void RaiseIsConnectedChanged()
@@ -695,6 +706,35 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
+        private void ShowLogWindow(Window owner)
+        {
+            if (logWindow != null)
+            {
+                try
+                {
+                    if (!logWindow.IsVisible)
+                    {
+                        logWindow.Show(owner);
+                        return;
+                    }
+                    logWindow.Show(owner);
+                    return;
+                }
+                catch (ObjectDisposedException)
+                { }
+            }
+
+            logWindow = new LogWindow()
+            {
+                DataContext = logModel
+            };
+            logWindow.Closed += (sender, args) =>
+            {
+                logWindow = null;
+                GC.Collect();
+            };
+            logWindow.Show(owner);
+        }
 
         private void Exit(Window obj)
         {
@@ -703,6 +743,7 @@ namespace MassBanToolMP.ViewModels
 
         async void Debug()
         {
+            LogViewModel.Log("Test");
         }
 
         private Regex CreateFilterRegex()

@@ -22,7 +22,7 @@ namespace MassBanToolMP
                 {
                     DataContext = new MainWindowViewModel(),
                 };
-                (desktop.MainWindow.DataContext as MainWindowViewModel).DataGrid =
+                ((desktop.MainWindow.DataContext as MainWindowViewModel)!).DataGrid =
                     desktop.MainWindow.Get<DataGrid>("DataGrid");
             }
 

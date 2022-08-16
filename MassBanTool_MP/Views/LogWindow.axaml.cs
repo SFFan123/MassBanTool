@@ -9,6 +9,7 @@ namespace MassBanToolMP.Views
         public LogWindow()
         {
             InitializeComponent();
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
 #if DEBUG
             this.AttachDevTools();
 #endif

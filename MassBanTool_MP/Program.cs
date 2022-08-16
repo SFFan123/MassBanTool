@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using Avalonia.Logging;
+using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP
 {
