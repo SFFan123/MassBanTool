@@ -14,11 +14,14 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_Debug" Command="{Binding DebugCommand}" />
-                <MenuItem Header="_Open File" Command="{Binding OpenFileCommand}"
+                <MenuItem Header="Debug" Command="{Binding DebugCommand}" />
+                <MenuItem Header="Open File" Command="{Binding OpenFileCommand}"
                           CommandParameter="{Binding ElementName=Window}" />
+                <MenuItem Header="Open File from URL"
+                          Command="{Binding OpenFileFromURLCommand}"
+                          CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="_Exit" Command="{Binding ExitCommand}"
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}"
                           CommandParameter="{Binding ElementName=Window}" />
             </MenuItem>
             <MenuItem Header="_Settings">
@@ -103,7 +106,7 @@
                     <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}" />
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
-                    <ContextMenu PlacementMode="Pointer">
+                    <ContextMenu PlacementMode="Pointer" >
                         <MenuItem
                             Command="{Binding OnClickPropertiesAddEntry}"
                             CommandParameter="{Binding ElementName=Window}"
