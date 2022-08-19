@@ -90,6 +90,7 @@ namespace MassBanToolMP.ViewModels
             ConnectCommand = ReactiveCommand.Create(Connect);
 
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
+            StoreCredentialsCommand = ReactiveCommand.Create(StoreCredentials, this.WhenAnyValue(x => x.Username, x => x.OAuth, (userName, password) => !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password)));
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
             OnClickPropertiesPasteClipboard = ReactiveCommand.Create(HandlePasteEntries);
             OnDataGridRemoveEntry = ReactiveCommand.Create<object>(RemoveEntry);
@@ -116,11 +117,16 @@ namespace MassBanToolMP.ViewModels
             LogViewModel.Log("Done Init GUI...");
         }
 
-        
-
-        private void CreateCommands()
+        private void StoreCredentials()
         {
-
+            //TODO sanity check.
+            if (string.
+                IsNullOrEmpty(Username) || string.IsNullOrEmpty(OAuth))
+            {
+                // TODO show error.
+                return;
+            }
+            SecretHelper.StoreCredentials(Username, OAuth);
         }
 
         private Task Worker
@@ -287,6 +293,7 @@ namespace MassBanToolMP.ViewModels
         private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
         public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
+        public ReactiveCommand<Unit, Unit> StoreCredentialsCommand { get; }
         public ReactiveCommand<Window, Unit> OnClickPropertiesAddEntry { get; }
         public ReactiveCommand<Unit, Unit> OnClickPropertiesPasteClipboard { get; }
         public ReactiveCommand<Unit, Unit> RunBanCommand { get; }
@@ -697,6 +704,10 @@ namespace MassBanToolMP.ViewModels
             try
             {
                 var cred = SecretHelper.GetCredentials();
+                if (cred == null)
+                {
+                    return;
+                }
                 Username = cred.Item1;
                 OAuth = cred.Item2;
             }
@@ -744,7 +755,7 @@ namespace MassBanToolMP.ViewModels
 
         async void Debug()
         {
-            LogViewModel.Log("Test");
+            
         }
 
         private Regex CreateFilterRegex()

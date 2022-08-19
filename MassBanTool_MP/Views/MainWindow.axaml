@@ -15,20 +15,20 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="Debug" Command="{Binding DebugCommand}" />
-                <MenuItem Header="Open File" Command="{Binding OpenFileCommand}"
+                <MenuItem Header="Open File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
                 <MenuItem Header="Open File from URL"
-                          Command="{Binding OpenFileFromURLCommand}"
+                          Command="{Binding OpenFileFromURLCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}"
+                <MenuItem Header="Exit" Command="{Binding ExitCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
             </MenuItem>
             <MenuItem Header="_Settings">
                 <MenuItem Header="Credentials" IsEnabled="False" />
-                <MenuItem Header="_Load From Credential Manager" Command="{Binding LoadCredentialsCommand}" />
-                <MenuItem Header="_Save Credential" />
-                <MenuItem Header="_Get New Credentials" />
+                <MenuItem Header="_Load From Credential Manager" Command="{Binding LoadCredentialsCommand, Mode=OneTime}" />
+                <MenuItem Header="_Save Credential" Command="{Binding StoreCredentialsCommand, Mode=OneTime}" />
+                <MenuItem Header="_Get New Credentials" Command="{Binding GetOAuthCommand, Mode=OneTime}" />
                 <Separator />
                 <MenuItem Header="App Settings" IsEnabled="False" />
                 <MenuItem Header="_Save" />
