@@ -31,7 +31,7 @@
                 <MenuItem Header="_Get New Credentials" Command="{Binding GetOAuthCommand, Mode=OneTime}" />
                 <Separator />
                 <MenuItem Header="App Settings" IsEnabled="False" />
-                <MenuItem Header="_Save" />
+                <MenuItem Header="_Save" Command="{Binding SaveDataCommand}"/>
                 <Separator />
                 <MenuItem Header="Special User">
                     <CheckBox Content="Protect VIPs/Mods from Commands"

@@ -62,6 +62,7 @@ namespace MassBanToolMP.ViewModels
         private string filterRegex = string.Empty;
 
         private ContextMenu? _lastVisitedChannelsMenu;
+        private List<string> _lastVisitedChannels = new List<string>();
         private bool _listFilterRemoveMatching = false;
         private ListType _listType;
         private bool _protectSpecialUsers = true;
@@ -89,6 +90,8 @@ namespace MassBanToolMP.ViewModels
 
             ConnectCommand = ReactiveCommand.Create(Connect);
 
+            //TODO Test saving on Linux.
+            SaveDataCommand = ReactiveCommand.Create(saveData);
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
             StoreCredentialsCommand = ReactiveCommand.Create(StoreCredentials, this.WhenAnyValue(x => x.Username, x => x.OAuth, (userName, password) => !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password)));
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
@@ -293,6 +296,7 @@ namespace MassBanToolMP.ViewModels
         private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
         public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
+        public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }
         public ReactiveCommand<Unit, Unit> StoreCredentialsCommand { get; }
         public ReactiveCommand<Window, Unit> OnClickPropertiesAddEntry { get; }
         public ReactiveCommand<Unit, Unit> OnClickPropertiesPasteClipboard { get; }
@@ -439,6 +443,7 @@ namespace MassBanToolMP.ViewModels
                             }
                         };
                         items.Add(item);
+                        _lastVisitedChannels.Add(s);
                     }
 
                     _lastVisitedChannelsMenu.Items = items;
@@ -463,6 +468,39 @@ namespace MassBanToolMP.ViewModels
                 LogViewModel.Log("Something went wrong loading setting for this User. - " + e.Message);
             }
             LogViewModel.Log("Done loading setting for this User.");
+        }
+
+        private void saveData()
+        {
+            string fileName = Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "MassBanTool");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            if (!File.Exists(fileName))
+            {
+                File.Create(fileName).Close();
+            }
+            
+            var data = new DataWrapper()
+            {
+                lastVisitedChannel = new HashSet<string>(_lastVisitedChannels),
+                AllowedActions = _allowedActions.Split(Environment.NewLine)
+                    .Select(x => x.Trim())
+                    .Where(x => x != string.Empty)
+                    .ToHashSet(),
+                message_delay = _messageDelay,
+            };
+
+            string result = data.toJSON();
+
+
+            File.WriteAllText(fileName, result);
         }
 
         private void RaiseIsConnectedChanged()
@@ -1023,7 +1061,7 @@ namespace MassBanToolMP.ViewModels
             var input = new TextInputDialog("Open File from URL", "URL", validation);
             if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
             {
-                // TODO
+                // TODO download an read the website.
             }
         }
 
