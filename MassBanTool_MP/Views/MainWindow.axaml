@@ -14,7 +14,6 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Debug" Command="{Binding DebugCommand}" />
                 <MenuItem Header="Open File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
                 <MenuItem Header="Open File from URL"
@@ -43,6 +42,10 @@
                                  IsChecked="{Binding ProtectedUserMode_Cancel}"
                                  Content="Abort Action (default)" />
                 </MenuItem>
+                <Separator/>
+                <CheckBox Content="Dry Run"
+                          ToolTip.Tip="No commands get sent to twitch, only in log."
+                          IsChecked="{Binding DryRun}" />
             </MenuItem>
             <MenuItem Header="_Misc">
                 <MenuItem Header="Show Log window" Command="{Binding ShowLogWindowCommand}" CommandParameter="{Binding ElementName=Window}"/>
@@ -247,15 +250,16 @@
                         <TextBlock
                             Grid.Row="0"
                             Text="Allowed Actions:" />
-                        <TextBox Grid.Column="0" Grid.Row="1" TextWrapping="Wrap"
+
+                        <TextBox Grid.Column="0" Grid.Row="1"
+                                 TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 AcceptsTab="True"
-                                 Text="{Binding ReadFileAllowedActions, Mode=TwoWay}" />
+                                 Text="{Binding ReadFileAllowedActions, Mode=TwoWay}"/>
                         <StackPanel Grid.Row="1"
                                     Grid.Column="1">
                             <!--Behaviour on Mismatch-->
-                            <RadioButton Content="Warn and Abort" IsChecked="True" />
-                            <RadioButton Content="Ignore and skip" />
+                            <RadioButton Content="Warn and Abort" IsChecked="{Binding ReadFileCommandMismatch_Cancel}" />
+                            <RadioButton Content="Remove entry" IsChecked="{Binding ReadFileCommandMismatch_Skip}"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal">

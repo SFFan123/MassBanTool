@@ -74,6 +74,9 @@ namespace MassBanToolMP.ViewModels
         private CancellationTokenSource _tokenSource;
         private TwitchChatClient? _twitchChatClient;
         private Mutex _userMutex;
+        private bool _dryRun;
+        private bool _readFileCommandMismatchCancel = true;
+        private bool _readFileCommandMismatchSkip;
 
 
         public MainWindowViewModel()
@@ -84,14 +87,13 @@ namespace MassBanToolMP.ViewModels
             Entries = new ObservableCollection<Entry>();
 
             ExitCommand = ReactiveCommand.Create<Window>(Exit);
-            DebugCommand = ReactiveCommand.Create(Debug);
             OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
             OpenFileFromURLCommand = ReactiveCommand.Create<Window>(OpenFileFromURL);
 
             ConnectCommand = ReactiveCommand.Create(Connect);
 
             //TODO Test saving on Linux.
-            SaveDataCommand = ReactiveCommand.Create(saveData);
+            SaveDataCommand = ReactiveCommand.Create(SaveData);
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
             StoreCredentialsCommand = ReactiveCommand.Create(StoreCredentials, this.WhenAnyValue(x => x.Username, x => x.OAuth, (userName, password) => !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password)));
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
@@ -108,11 +110,11 @@ namespace MassBanToolMP.ViewModels
             RunCheckListTypeCommand = ReactiveCommand.Create(CheckListType);
             RunSortListCommand = ReactiveCommand.Create(SortList);
             RunRemoveNotAllowedActionsCommand = ReactiveCommand.Create(RemoveNotAllowedActions);
-            OpenWikiCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_WIKI));
-            CooldownInfoCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_COOLDOWN));
-            OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX_MS_DOCS));
-            OpenRegex101Command = ReactiveCommand.Create(() => OpenURL(HELP_URL_REGEX101));
-            OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenURL(HELP_URL_MAIN_GITHUB));
+            OpenWikiCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_WIKI));
+            CooldownInfoCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_COOLDOWN));
+            OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_REGEX_MS_DOCS));
+            OpenRegex101Command = ReactiveCommand.Create(() => OpenUrl(HELP_URL_REGEX101));
+            OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_MAIN_GITHUB));
             ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
 
             LoadData();
@@ -210,10 +212,8 @@ namespace MassBanToolMP.ViewModels
                 else
                 {
                     ClearError(nameof(MessageDelay), MESSAGE_DELAY_TOO_LOW);
+                    SetProperty(ref _messageDelay, val);
                 }
-
-                SetProperty(ref _messageDelay, val);
-                // Send to Client.
             }
         }
 
@@ -291,7 +291,6 @@ namespace MassBanToolMP.ViewModels
         }
 
         private ReactiveCommand<Window, Unit> ExitCommand { get; }
-        private ReactiveCommand<Unit, Unit> DebugCommand { get; }
         private ReactiveCommand<Window, Unit> OpenFileCommand { get; }
         private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
@@ -384,7 +383,6 @@ namespace MassBanToolMP.ViewModels
 
         public bool RegexOptionIgnoreCase { get; set; }
         public bool RegexOptionMultiline { get; set; }
-
         public bool RegexOptionEcmaScript { get; set; }
         public bool RegexOptionCultureInvariant { get; set; }
 
@@ -405,72 +403,98 @@ namespace MassBanToolMP.ViewModels
             get => _lastVisitedChannelsMenu;
         }
 
+        public bool DryRun
+        {
+            get => _dryRun;
+            set => SetProperty(ref _dryRun, value);
+        }
+
+        public bool ReadFileCommandMismatch_Cancel
+        {
+            get => _readFileCommandMismatchCancel;
+            set => SetProperty(ref _readFileCommandMismatchCancel, value);
+        }
+
+        public bool ReadFileCommandMismatch_Skip
+        {
+            get => _readFileCommandMismatchSkip;
+            set => SetProperty(ref _readFileCommandMismatchSkip, value);
+        }
+
         private void LoadData()
         {
             LogViewModel.Log("Try loading setting for this User.");
             string fileName = Path.Combine(Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
-            try
+
+            string filecontent = string.Empty;
+            DataWrapper data = null;
+
+            if(File.Exists(fileName))
             {
-                string a = File.ReadAllText(fileName);
-                a = a.Trim();
-                var data = DataWrapper.fromJson(a);
-
-                if (data.message_delay != default)
+                try
                 {
-                    MessageDelay = data.message_delay.ToString();
+                    filecontent = File.ReadAllText(fileName);
+                    filecontent = filecontent.Trim();
+                    data = DataWrapper.fromJson(filecontent);
                 }
-
-                if (data.lastVisitedChannel != null)
+                catch (Exception e)
                 {
-                    _lastVisitedChannelsMenu = new ContextMenu();
+                    LogViewModel.Log("Something went wrong loading setting for this User. - " + e.Message);
+                }
+            }
+                
+            if (data!=null && data.message_delay != default)
+            {
+                MessageDelay = data.message_delay.ToString();
+            }
 
-                    MenuItem item;
-                    List<MenuItem> items = new List<MenuItem>();
-                    foreach (string s in data.lastVisitedChannel)
+            if (data?.lastVisitedChannel != null)
+            {
+                _lastVisitedChannelsMenu = new ContextMenu();
+
+                MenuItem item;
+                List<MenuItem> items = new List<MenuItem>();
+                foreach (string s in data.lastVisitedChannel)
+                {
+                    string header = s.Replace("_", "__");
+                    item = new MenuItem()
                     {
-                        string header = s.Replace("_", "__");
-                        item = new MenuItem()
+                        Header = header,
+                        DataContext = s
+                    };
+                    item.Click += delegate(object? sender, RoutedEventArgs args)
+                    {
+                        if (sender is MenuItem menuitem)
                         {
-                            Header = header,
-                            DataContext = s
-                        };
-                        item.Click += delegate(object? sender, RoutedEventArgs args)
-                        {
-                            if (sender is MenuItem menuitem)
-                            {
-                                Channel_s = (string)menuitem.DataContext;
-                            }
-                        };
-                        items.Add(item);
-                        _lastVisitedChannels.Add(s);
-                    }
-
-                    _lastVisitedChannelsMenu.Items = items;
-                    RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
-                }
-                else
-                {
-                    _lastVisitedChannelsMenu = null;
+                            Channel_s = (string)menuitem.DataContext;
+                        }
+                    };
+                    items.Add(item);
+                    _lastVisitedChannels.Add(s);
                 }
 
-                if (data.AllowedActions != null)
-                {
-                    ReadFileAllowedActions = string.Join(Environment.NewLine, data.AllowedActions);
-                }
-                else
-                {
-                    ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
-                }
+                _lastVisitedChannelsMenu.Items = items;
+                RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
             }
-            catch (Exception e)
+            else
             {
-                LogViewModel.Log("Something went wrong loading setting for this User. - " + e.Message);
+                _lastVisitedChannelsMenu = null;
             }
+
+            if (data?.AllowedActions != null)
+            {
+                ReadFileAllowedActions = string.Join(Environment.NewLine, data.AllowedActions);
+            }
+            else
+            {
+                ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
+            }
+            
             LogViewModel.Log("Done loading setting for this User.");
         }
 
-        private void saveData()
+        private void SaveData()
         {
             string fileName = Path.Combine(Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
@@ -510,8 +534,7 @@ namespace MassBanToolMP.ViewModels
             RaisePropertyChanged(nameof(CanExecRun));
         }
 
-
-        private void OpenURL(string url)
+        private void OpenUrl(string url)
         {
             try
             {
@@ -666,9 +689,14 @@ namespace MassBanToolMP.ViewModels
                 return;
             }
 
-            CheckForProtectedUser();
-            CheckReadlistForIllegalCommands();
-
+            if (!await FilterEntriesForSpecialUsers())
+            {
+                return;
+            }
+            if (!await CheckReadlistForIllegalCommands())
+            {
+                return;
+            }
             Worker = CreateWorkerTask(WorkingMode.Readfile);
         }
 
@@ -711,8 +739,10 @@ namespace MassBanToolMP.ViewModels
                 }
             }
 
-            CheckForProtectedUser();
-            Worker = CreateWorkerTask(WorkingMode.Ban);
+            if (await FilterEntriesForSpecialUsers())
+            {
+                Worker = CreateWorkerTask(WorkingMode.Ban);
+            }
         }
 
         private void CancelAction()
@@ -790,12 +820,7 @@ namespace MassBanToolMP.ViewModels
         {
             obj.Close();
         }
-
-        async void Debug()
-        {
-            
-        }
-
+        
         private Regex CreateFilterRegex()
         {
             RegexOptions regexOptions = RegexOptions.Compiled;
@@ -1137,66 +1162,61 @@ namespace MassBanToolMP.ViewModels
                     toRemove.Add(entry);
                 }
             }
-
             bool res = toRemove.Any();
-
             if (res && ProtectSpecialUsers && ProtectedUserMode_Cancel)
             {
                 await MessageBox.Show("Protected user in list detected", "Action Aborted");
-                return true;
+                return false;
             }
-
             if (res && ProtectSpecialUsers && ProtectedUserMode_Skip)
             {
                 foreach (Entry entry in toRemove)
                 {
                     Entries.Remove(entry);
                 }
-
                 RaisePropertyChanged(nameof(Entries));
-                await MessageBox.Show("Protected user in list detected, entries removed",
-                    "Protected user removed from list");
             }
-
-            return res;
+            return true;
         }
 
-        private async void CheckReadlistForIllegalCommands()
+        private async Task<bool> CheckReadlistForIllegalCommands()
         {
             string[] allowedActions = _allowedActions.Split(Environment.NewLine);
 
             if (allowedActions.Length == 0)
             {
                 await MessageBox.Show("No allowed Action", "Readfile Warning");
-                throw new InvalidOperationException();
+                return false;
             }
 
-            var query = Entries.AsParallel().Where(x =>
-                !allowedActions.Contains(x.Command, StringComparer.Create(CultureInfo.CurrentCulture, true)));
+            var query = Entries.AsParallel().Where(x => !allowedActions.Contains(x.Command[1..], StringComparer.Create(CultureInfo.CurrentCulture, true)));
 
             if (query.Any())
             {
-                await MessageBox.Show("Mismatch between allowed commands and commands used in the file.", "Warning");
-                throw new InvalidOperationException();
+                if (_readFileCommandMismatchSkip)
+                {
+                    LogViewModel.Log($"Removing {query.Count()} Entries since they do not match the readfile allowed actions.");
+                    Entries.RemoveMany(query.ToList());
+                    RaisePropertyChanged(nameof(Entries));
+                    return Entries.Count>0;
+                }
+                else if (_readFileCommandMismatchCancel)
+                {
+                    await MessageBox.Show("Mismatch between allowed commands and commands used in the file.", "Warning");
+                    return false;
+                }
             }
 
-            throw new NotImplementedException();
+            return true;
         }
-
-        private async void CheckForProtectedUser()
-        {
-            await FilterEntriesForSpecialUsers();
-        }
-
+        
         private Task CreateWorkerTask(WorkingMode mode)
         {
             if (_twitchChatClient == null)
             {
                 throw new ArgumentException();
             }
-
-            CheckForProtectedUser();
-
+            
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
 
@@ -1244,11 +1264,15 @@ namespace MassBanToolMP.ViewModels
 
                         foreach (var channel in _twitchChatClient.client.JoinedChannels)
                         {
-#if DEBUG
-                            Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
-#else
-                        twitchChatClient.client.SendMessage(channel, commandtoExecute);
-#endif
+
+                            if (DryRun)
+                            {
+                                Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
+                            }
+                            else
+                            {
+                                _twitchChatClient.client.SendMessage(channel, commandtoExecute);
+                            }
                             await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
                         }
 
