@@ -51,8 +51,14 @@ namespace MassBanToolMP.Models
             client.OnJoinedChannel += Client_OnJoinedChannel;
             client.OnUserStateChanged += Client_OnUserStateChanged;
             client.OnDisconnected += Client_OnDisconnected;
+            client.OnFailureToReceiveJoinConfirmation += Client_OnFailureToReceiveJoinConfirmation;
         }
-        
+
+        private void Client_OnFailureToReceiveJoinConfirmation(object? sender, OnFailureToReceiveJoinConfirmationArgs e)
+        {
+            LogViewModel.Log(e.Exception.Details);
+        }
+
         private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
         {
             if (ManualDisconnect)
@@ -68,20 +74,23 @@ namespace MassBanToolMP.Models
             {
                 return;
             }
-            
-            owner.MissingPermissions(e.UserState.Channel);
+            client.LeaveChannel(e.UserState.Channel);
 
-            ManualDisconnect = true;
-            client.Disconnect();
-            customClient.Dispose();
+            owner.MissingPermissions(e.UserState.Channel);
         }
 
         private async void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
         {
             // Make sure the client is ready before firing the query to avoid weird exceptions.
             await Task.Delay(100);
-            client.GetChannelModerators(e.Channel);
-            client.GetVIPs(e.Channel);
+            lock (this)
+            {
+                if (client.JoinedChannels.Count > 0)
+                {
+                    client.GetChannelModerators(e.Channel);
+                    client.GetVIPs(e.Channel);
+                }
+            }
         }
 
         private void Client_OnIncorrectLogin(object? sender, OnIncorrectLoginArgs e)

@@ -166,7 +166,7 @@
                                 Orientation="Horizontal">
                         <TextBox Width="200"
                                  Margin="0,5,0,0"
-                                 Text="{Binding Channel_s}" />
+                                 Text="{Binding ChannelS}" />
                         <Button Margin="2,6" Content="&#709;" Click="Button_OnClick"
                                 ContextMenu="{Binding LastVisitedChannelsMenu}" />
                     </StackPanel>
