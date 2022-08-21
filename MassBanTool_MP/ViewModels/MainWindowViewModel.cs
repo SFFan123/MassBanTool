@@ -42,6 +42,8 @@ public class MainWindowViewModel : ViewModelBase
     private const string HELP_URL_WIKI = @"https://github.com/SFFan123/MassBanTool/wiki";
     private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
     private const string HELP_URL_REGEX101 = "https://regex101.com/";
+    private const string QUESTION_LISTTYPEMISMATCHRUN = "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?";
+    private const string LSITTYPEMISMATCH = "Listtype Mismatch";
 
     private readonly LogViewModel _logModel;
 
@@ -624,7 +626,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (ListType != ListType.ReadFile)
         {
-            await MessageBox.Show("Listtype does not match the selected operation mode.", "Listtype Mismatch");
+            await MessageBox.Show("List is not a Readfile, cannot execute Readfile opon it.", LSITTYPEMISMATCH);
             return;
         }
 
@@ -637,10 +639,10 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (!CanExecRun) return;
 
-        if (ListType != ListType.ReadFile)
+        if (ListType != ListType.UserList)
             if (await MessageBox.Show(
-                    "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?",
-                    "Listtype Mismatch",
+                    QUESTION_LISTTYPEMISMATCHRUN,
+                    LSITTYPEMISMATCH,
                     ButtonEnum.YesNo) != ButtonResult.Yes)
                 return;
 
@@ -651,10 +653,10 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (!CanExecRun) return;
 
-        if (ListType != ListType.ReadFile)
+        if (ListType != ListType.UserList)
             if (await MessageBox.Show(
-                    "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?",
-                    "Listtype Mismatch",
+                    QUESTION_LISTTYPEMISMATCHRUN,
+                    LSITTYPEMISMATCH,
                     ButtonEnum.YesNo) != ButtonResult.Yes)
                 return;
 
