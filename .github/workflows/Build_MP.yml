@@ -27,4 +27,4 @@ jobs:
         with:
           name: MassBanTool_MP
           path: |
-              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\*
+              /home/runner/work/MassBanTool/MassBanTool/MassBanTool_MP/bin/Release/net6.0/*
