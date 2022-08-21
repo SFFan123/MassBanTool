@@ -8,18 +8,15 @@ on:
 
 jobs:  
   build:    
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
-    steps:      
+    steps:
       - uses: actions/checkout@v2
      
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 6.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore .\MassBanTool_MP\MassBanToolMP.csproj
     
       - name: Build
         run: dotnet build .\MassBanTool_MP\MassBanToolMP.csproj -c Release
@@ -28,6 +25,6 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: GitHubBuild_MP
+          name: MassBanTool_MP
           path: |
               D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\*
