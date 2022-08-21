@@ -4,8 +4,8 @@
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
         x:Class="MassBanToolMP.Views.MainWindow"
-        Icon="/Assets/moderator.ico"
         Title="MassBanTool"
+        Icon="/Assets/moderator.ico"
         Name="Window">
     <Design.DataContext>
         <vm:MainWindowViewModel />

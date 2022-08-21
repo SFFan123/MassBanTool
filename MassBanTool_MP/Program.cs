@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
-using Avalonia.Logging;
-using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP
 {
@@ -22,9 +20,8 @@ namespace MassBanToolMP
                     throw new PlatformNotSupportedException("No GUI Session detected cannot start GUI: XDG_CURRENT_DESKTOP doesn't exists/has no value.");
                 }
             }
-            
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
