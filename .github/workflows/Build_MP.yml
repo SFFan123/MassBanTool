@@ -11,10 +11,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v2
      
       - name: Setup .NET
-        uses: actions/setup-dotnet@latest
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 6.0.x
     
@@ -26,14 +26,14 @@ jobs:
                     
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
       - name: Upload Win artifacts
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v3
         with:
           name: MassBanTool_Win
           path: |
               D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\win-x64\publish\*
               
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v3
         with:
           name: MassBanTool_Linux
           path: |
