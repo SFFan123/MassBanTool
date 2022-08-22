@@ -6,6 +6,8 @@ namespace MassBanToolMP
 {
     internal class Program
     {
+        public static Version Version { get; } = new(1,0,0,0);
+
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
@@ -20,7 +22,6 @@ namespace MassBanToolMP
                     throw new PlatformNotSupportedException("No GUI Session detected cannot start GUI: XDG_CURRENT_DESKTOP doesn't exists/has no value.");
                 }
             }
-
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
 

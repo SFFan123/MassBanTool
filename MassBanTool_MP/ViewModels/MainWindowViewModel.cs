@@ -6,10 +6,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -87,10 +90,11 @@ public class MainWindowViewModel : ViewModelBase
         _logModel = new LogViewModel();
         LogViewModel.Log("Init GUI...");
 
+        WindowTitle = "MassBanTool " + Program.Version;
         Entries = new ObservableCollection<Entry>();
-        ExitCommand = ReactiveCommand.Create<Window>(Exit);
         OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
         OpenFileFromURLCommand = ReactiveCommand.Create<Window>(OpenFileFromURL);
+        FetchLastFollowersForChannelCommand = ReactiveCommand.Create<Window>(FetchLastFollowersFromChannel);
         ConnectCommand = ReactiveCommand.Create(Connect);
         SaveDataCommand = ReactiveCommand.Create(SaveData);
         LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
@@ -272,6 +276,7 @@ public class MainWindowViewModel : ViewModelBase
     private ReactiveCommand<Window, Unit> ExitCommand { get; }
     private ReactiveCommand<Window, Unit> OpenFileCommand { get; }
     private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
+    private ReactiveCommand<Window, Unit> FetchLastFollowersForChannelCommand { get; }
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }
@@ -385,6 +390,9 @@ public class MainWindowViewModel : ViewModelBase
         get => _readFileCommandMismatchSkip;
         set => SetProperty(ref _readFileCommandMismatchSkip, value);
     }
+
+    public string WindowTitle { get; set; }
+
 
     private void LoadData()
     {
@@ -1002,9 +1010,80 @@ public class MainWindowViewModel : ViewModelBase
         var input = new TextInputDialog("Open File from URL", "URL", validation);
         if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
         {
-            // TODO download an read the website.
+            IsBusy = true;
+            Uri uri;
+            try
+            {
+                uri = new Uri(input.BoxContent, UriKind.Absolute);
+            }
+            catch (UriFormatException)
+            {
+                await MessageBox.Show("Invalid URL", "Error");
+                return;
+            }
+
+            FetchLinesAndSet(uri);
+            IsBusy = false;
         }
     }
+
+    private async void FetchLastFollowersFromChannel(Window owner)
+    {
+        var validation = new Regex(@"\w{2,}", RegexOptions.Compiled);
+        var input = new TextInputDialog("Channel to query", "Channel", validation);
+
+        string URL = "https://cactus.tools/twitch/followers";
+        
+        if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
+        {
+            IsBusy = true;
+
+            string urlParameters = $"?channel={input.BoxContent}&max=1000";
+            Uri uri = new Uri( URL + urlParameters);
+
+            FetchLinesAndSet(uri);
+            
+            IsBusy = false;
+        }
+    }
+
+
+    private async void FetchLinesAndSet(Uri uri)
+    {
+        HttpResponseMessage response;
+
+        using (HttpClient client = new HttpClient())
+        {
+            var httpRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = uri,
+                Headers = {
+                    { HttpRequestHeader.Accept.ToString(), "text/plain" },
+                    { HttpRequestHeader.UserAgent.ToString(), "MassBanTool/"+Program.Version}
+                },
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+        }
+            
+        if (!response.IsSuccessStatusCode)
+        {
+            await MessageBox.Show(response.ReasonPhrase ?? "Server did not give a reason. For status code: " + response.StatusCode, "Error while fetching site");
+            return;
+        }
+
+        string content = await response.Content.ReadAsStringAsync();
+
+        string[] lines = content.Split(Environment.NewLine).
+            AsParallel().
+            Select(x => x.Trim()).
+            ToArray();
+
+        SetLines(lines);
+        CheckListType(false);
+    }
+
 
     private async void SetLines(IEnumerable<string> lines)
     {
@@ -1019,7 +1098,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var userlistRegex = new Regex(@"^\w{2,}$", RegexOptions.Compiled);
-        var readfileRegex = new Regex(@"^(\.|\/\w+) (\w{2,}) ?(.+)?$", RegexOptions.Compiled);
+        var readfileRegex = new Regex(@"^((?:\.|\/)\w+) (\w{2,}) ?(.+)?$", RegexOptions.Compiled);
 
         var entryList = new List<Entry>();
 

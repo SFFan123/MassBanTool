@@ -4,7 +4,7 @@
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
         x:Class="MassBanToolMP.Views.MainWindow"
-        Title="MassBanTool"
+        Title="{Binding WindowTitle, Mode=OneTime}"
         Icon="/Assets/moderator.ico"
         Name="Window">
     <Design.DataContext>
@@ -14,14 +14,16 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Open File" Command="{Binding OpenFileCommand, Mode=OneTime}"
+                <MenuItem Header="Open _File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
-                <MenuItem Header="Open File from URL"
+                <MenuItem Header="Open File from _URL"
                           Command="{Binding OpenFileFromURLCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="Exit" Command="{Binding ExitCommand, Mode=OneTime}"
-                          CommandParameter="{Binding ElementName=Window}" />
+                <MenuItem Header="Fetch last 1000 Followers of Channel x" 
+                          Command="{Binding FetchLastFollowersForChannelCommand, Mode=OneTime}"
+						  CommandParameter="{Binding ElementName=Window}"/>
+
             </MenuItem>
             <MenuItem Header="_Settings">
                 <MenuItem Header="Credentials" IsEnabled="False" />
@@ -30,7 +32,7 @@
                 <MenuItem Header="_Get New Credentials" Command="{Binding GetOAuthCommand, Mode=OneTime}" />
                 <Separator />
                 <MenuItem Header="App Settings" IsEnabled="False" />
-                <MenuItem Header="_Save" Command="{Binding SaveDataCommand}"/>
+                <MenuItem Header="_Save" Command="{Binding SaveDataCommand, Mode=OneTime}"/>
                 <Separator />
                 <MenuItem Header="Special User">
                     <CheckBox Content="Protect VIPs/Mods from Commands"
@@ -48,18 +50,19 @@
                           IsChecked="{Binding DryRun}" />
             </MenuItem>
             <MenuItem Header="_Misc">
-                <MenuItem Header="Show Log window" Command="{Binding ShowLogWindowCommand}" CommandParameter="{Binding ElementName=Window}"/>
+                <MenuItem Header="Show Log window" Command="{Binding ShowLogWindowCommand, Mode=OneTime}" 
+                          CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand}" />
+                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand, Mode=OneTime}" />
             </MenuItem>
             <MenuItem Header="_Help" HotKey="F1">
-                <MenuItem Header="_General" Command="{Binding OpenWikiCommand}" />
+                <MenuItem Header="_General" Command="{Binding OpenWikiCommand, Mode=OneTime}" />
                 <Separator />
-                <MenuItem Header="_Cooldown info" Command="{Binding CooldownInfoCommand}" />
+                <MenuItem Header="_Cooldown info" Command="{Binding CooldownInfoCommand, Mode=OneTime}" />
                 <Separator />
                 <MenuItem Header="_Regex">
-                    <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command}" />
-                    <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand}" />
+                    <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command, Mode=OneTime}" />
+                    <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand, Mode=OneTime}" />
                 </MenuItem>
             </MenuItem>
         </Menu>
@@ -176,7 +179,7 @@
                         Content="{Binding ConButtonText}"
                         Width="200"
                         Margin="0,5,0,0"
-                        Command="{Binding ConnectCommand}"
+                        Command="{Binding ConnectCommand, Mode=OneTime}"
                         IsEnabled="{Binding CanConnect}"
                         HorizontalContentAlignment="Center" />
                 </Grid>
@@ -200,13 +203,13 @@
                 <TabControl.Resources>
                     <ControlTemplate x:Key="PauseButton">
                         <Button Content="{Binding PauseButtonText}" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
-                                Command="{Binding OnClickPauseActionCommand}"
+                                Command="{Binding OnClickPauseActionCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecPauseAbort}"/>
                     </ControlTemplate>
 
                     <ControlTemplate x:Key="AbortButton">
                         <Button Content="Abort" Margin="0,5,0,0" Width="60" HorizontalContentAlignment="Center"
-                                Command="{Binding OnClickCancelActionCommand}"
+                                Command="{Binding OnClickCancelActionCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecPauseAbort}"/>
                     </ControlTemplate>
 
@@ -219,7 +222,7 @@
                             <Button Template="{StaticResource PauseButton}" Margin="5" />
                             <Button Template="{StaticResource AbortButton}" Margin="5" />
                             <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
-                                    Command="{Binding RunBanCommand}" 
+                                    Command="{Binding RunBanCommand, Mode=OneTime}" 
                                     IsEnabled="{Binding CanExecRun}"/>
                         </StackPanel>
                     </StackPanel>
@@ -230,7 +233,7 @@
                         <Button Template="{StaticResource PauseButton}" Margin="5" />
                         <Button Template="{StaticResource AbortButton}" Margin="5" />
                         <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
-                                Command="{Binding RunUnbanCommand}"
+                                Command="{Binding RunUnbanCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecRun}"/>
                     </StackPanel>
                 </TabItem>
@@ -268,7 +271,7 @@
                         </StackPanel>
                         <Button Grid.Row="2" Grid.Column="1" Content="Run" Margin="0,5,0,0" Width="60"
                                 HorizontalContentAlignment="Center" 
-                                Command="{Binding RunReadfileCommand}"
+                                Command="{Binding RunReadfileCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecRun}"/>
                     </Grid>
                 </TabItem>
@@ -299,17 +302,17 @@
                                           ToolTip.Tip="Enables ECMAScript-compliant behavior for the expression. This value can be used only in conjunction with the IgnoreCase, Multiline, and Compiled values. The use of this value with any other values results in an exception." />
                             </StackPanel>
                         </Grid>
-                        <Button Content="Run Regex" Command="{Binding RunListFilterCommand}" />
+                        <Button Content="Run Regex" Command="{Binding RunListFilterCommand, Mode=OneTime}" />
                     </StackPanel>
                 </TabItem>
 
                 <TabItem Header="Misc" Cursor="Hand">
                     <WrapPanel Orientation="Vertical">
                         <Button Content="Check listtype" Margin="2"
-                                Command="{Binding RunCheckListTypeCommand}" />
+                                Command="{Binding RunCheckListTypeCommand, Mode=OneTime}" />
                         <Button Content="Sort list" Margin="2" IsEnabled="False" />
                         <Button Content="Remove not allowed commands" Margin="2"
-                                Command="{Binding RunRemoveNotAllowedActionsCommand}" IsEnabled="False" />
+                                Command="{Binding RunRemoveNotAllowedActionsCommand, Mode=OneTime}" IsEnabled="False" />
                     </WrapPanel>
                 </TabItem>
             </TabControl>

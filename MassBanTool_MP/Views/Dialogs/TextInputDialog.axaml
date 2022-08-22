@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner">
   <StackPanel>
       <Label Content="{Binding  Path=LabelText, FallbackValue=LabelText}"/>
-      <TextBox Text="{Binding Path=BoxContent}"/>
+      <TextBox Text="{Binding Path=BoxContent}" Name="InputBox" KeyUp="InputBox_OnKeyUp"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
           <Button Content="OK" Background="Green" Click="OkButtonClick"/>
           <Button Content="Cancel" Background="Red" Click="CancelButtonClick"/>

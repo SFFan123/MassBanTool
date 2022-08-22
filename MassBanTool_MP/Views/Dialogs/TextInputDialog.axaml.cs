@@ -1,9 +1,9 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using MessageBox.Avalonia.Enums;
@@ -32,6 +32,16 @@ namespace MassBanToolMP.Views.Dialogs
             this.AttachDevTools();
 #endif
             DataContext = this;
+            
+            Opened += delegate
+            {
+                this.FindControl<TextBox>("InputBox")?.Focus();
+            };
+            KeyUp += delegate(object? _, KeyEventArgs args)
+            {
+                if (args.Key == Key.Escape)
+                    Close(ButtonResult.Abort);
+            };
         }
 
         private void InitializeComponent()
@@ -68,6 +78,12 @@ namespace MassBanToolMP.Views.Dialogs
         private void CancelButtonClick(object? sender, RoutedEventArgs e)
         {
             Close(ButtonResult.Cancel);
+        }
+
+        private void InputBox_OnKeyUp(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                Close(ButtonResult.Ok);
         }
     }
 }
