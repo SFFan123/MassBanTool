@@ -21,7 +21,7 @@ jobs:
       - name: Build Linux
         run: dotnet publish ./MassBanTool_MP/MassBanToolMP.csproj -c Release -r linux-x64
 
-     - name: Build Windows
+      - name: Build Windows
         run: dotnet publish ./MassBanTool_MP/MassBanToolMP.csproj -c Release -r win-x64
                     
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
