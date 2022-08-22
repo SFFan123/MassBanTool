@@ -25,9 +25,16 @@ jobs:
         run: dotnet publish ./MassBanTool_MP/MassBanToolMP.csproj -c Release -r win-x64
                     
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-artifact
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+      - name: Upload Win artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: MassBanTool_MP
+          name: MassBanTool_Win
           path: |
-              /home/runner/work/MassBanTool/MassBanTool/MassBanTool_MP/bin/Release/net6.0/publish/*
+              /home/runner/work/MassBanTool/MassBanTool/MassBanTool_MP/bin/Release/net6.0/win-x64/publish/*
+              
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: MassBanTool_Linux
+          path: |
+              /home/runner/work/MassBanTool/MassBanTool/MassBanTool_MP/bin/Release/net6.0/linux-x64/publish/*
