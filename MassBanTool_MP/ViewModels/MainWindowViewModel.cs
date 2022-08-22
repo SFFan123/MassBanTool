@@ -1275,6 +1275,8 @@ public class MainWindowViewModel : ViewModelBase
                 }
                 ETA = TimeSpan.Zero;
                 BanProgress = 100;
+                RaisePropertyChanged(nameof(CanExecRun));
+                RaisePropertyChanged(nameof(CanExecPauseAbort));
             },
             _token,
             TaskCreationOptions.LongRunning,
