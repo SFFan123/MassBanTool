@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MassBanToolMP.ViewModels;
 using TwitchLib.Client;
+using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
@@ -52,6 +54,23 @@ namespace MassBanToolMP.Models
             client.OnUserStateChanged += Client_OnUserStateChanged;
             client.OnDisconnected += Client_OnDisconnected;
             client.OnFailureToReceiveJoinConfirmation += Client_OnFailureToReceiveJoinConfirmation;
+            client.OnUserBanned += OnUserBanned;
+            client.OnUnaccountedFor += Client_OnUnaccountedFor;
+        }
+
+        private void Client_OnUnaccountedFor(object? sender, OnUnaccountedForArgs e)
+        {
+            string msg = e.RawIRC;
+            Match match = alreadyBanned.Match(msg);
+            if (match.Success)
+            {
+                owner.OnUserAlreadyBanned(e.Channel, match.Groups[1].Value);
+            }
+        }
+
+        private void OnUserBanned(object? sender, OnUserBannedArgs e)
+        {
+            owner.OnUserBanned(e.UserBan.Channel, e.UserBan.Username);
         }
 
         private void Client_OnFailureToReceiveJoinConfirmation(object? sender, OnFailureToReceiveJoinConfirmationArgs e)
@@ -106,6 +125,11 @@ namespace MassBanToolMP.Models
             Trace.WriteLine(to_log);
         }
 
+        public void SendMessage(JoinedChannel channel, string message)
+        {
+            client.SendMessage(channel, message);
+        }
+
         
         private ConnectionCredentials credentials;
 
@@ -115,5 +139,6 @@ namespace MassBanToolMP.Models
         public bool ManualDisconnect { get; set; }
         private readonly List<string> channel;
         private readonly MainWindowViewModel owner;
+        private Regex alreadyBanned = new (@"^@msg-id=already_banned :tmi\.twitch\.tv NOTICE #(?'channel'\w+) :(\w+)", RegexOptions.Compiled);
     }
 }

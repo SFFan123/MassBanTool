@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using DynamicData.Binding;
 using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP.Models

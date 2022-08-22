@@ -8,11 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -685,7 +685,6 @@ public class MainWindowViewModel : ViewModelBase
         ETA = TimeSpan.Zero;
 
         Worker.Dispose();
-        canExecPauseAbortObservable.Dispose();
     }
 
     private void PauseAction()
@@ -738,12 +737,7 @@ public class MainWindowViewModel : ViewModelBase
         };
         _logWindow.Show(owner);
     }
-
-    private void Exit(Window obj)
-    {
-        obj.Close();
-    }
-
+    
     private Regex CreateFilterRegex()
     {
         var regexOptions = RegexOptions.Compiled;
@@ -767,8 +761,10 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (DataGrid.Columns.Any(x => x.Header as string == eChannel)) return;
 
-        DataGrid.Columns.Add(new DataGridTextColumn()
-            { Header = eChannel, Binding = new Binding() { Path = $"Result[_{eChannel}]" } });
+        var col = new DataGridTextColumn()
+            { Header = eChannel, Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation}, IsReadOnly = true };
+        
+        DataGrid.Columns.Add(col);
     }
 
     private void RemoveChannelFromGrid(string eChannel)
@@ -806,7 +802,6 @@ public class MainWindowViewModel : ViewModelBase
         _twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
 
         _twitchChatClient.client.OnIncorrectLogin += IncorrectLogin;
-        _twitchChatClient.client.OnUserBanned += OnUserBanned;
         _twitchChatClient.client.OnVIPsReceived += Client_OnVIPsReceived;
         _twitchChatClient.client.OnModeratorsReceived += Client_OnModeratorsReceived;
         _twitchChatClient.client.OnMessageThrottled += Client_OnMessageThrottled;
@@ -916,12 +911,17 @@ public class MainWindowViewModel : ViewModelBase
             "Missing Permissions in channel.");
     }
 
-    private void OnUserBanned(object? sender, OnUserBannedArgs e)
+    public void OnUserBanned(string channel, string username)
     {
         var item = Entries.FirstOrDefault(x =>
-            x.Name.Equals(e.UserBan.Username, StringComparison.InvariantCultureIgnoreCase));
+            x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
 
-        if (item != null) item.Result[e.UserBan.Channel] = "BANNED";
+        if (item != null)
+        {
+            var c = item.Result;
+            c[channel] = "Banned";
+            item.Result = new Dictionary<string, string>(c);
+        }
     }
 
     private async void HandleAddEntry(Window window)
@@ -981,7 +981,11 @@ public class MainWindowViewModel : ViewModelBase
 
         IsBusy = true;
 
-        if (path == null || path.Length == 0) return;
+        if (path == null || path.Length == 0)
+        {
+            IsBusy = false;
+            return;
+        }
 
         string[] lines;
         // Check file can be open
@@ -1218,22 +1222,26 @@ public class MainWindowViewModel : ViewModelBase
 
                     var entry = Entries[i];
                     var commandtoExecute = string.Empty;
+                    string user = String.Empty;
 
                     switch (mode)
                     {
                         case WorkingMode.Ban:
                         {
-                            commandtoExecute = $"/ban {entry.Name} {TextReason}";
+                            commandtoExecute = $"/ban {entry.Name} {TextReason}".Trim();
+                            user = entry.Name;
                             break;
                         }
                         case WorkingMode.Unban:
                         {
                             commandtoExecute = $"/unban {entry.Name}";
+                            user = entry.Name;
                             break;
                         }
                         case WorkingMode.Readfile:
                         {
                             commandtoExecute = entry.ChatCommand;
+                            user = entry.Name;
                             break;
                         }
                         default:
@@ -1244,21 +1252,45 @@ public class MainWindowViewModel : ViewModelBase
 
                     foreach (var channel in _twitchChatClient.client.JoinedChannels)
                     {
+                        if (entry.Result.ContainsKey(channel.Channel.ToLower()) && !string.IsNullOrEmpty(entry.Result[channel.Channel.ToLower()]))
+                        {
+                            continue;
+                        }
                         if (DryRun)
-                            Trace.WriteLine($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
+                        {
+                            LogViewModel.Log($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
+                            OnUserBanned(channel.Channel, user);
+                        }
                         else
-                            _twitchChatClient.client.SendMessage(channel, commandtoExecute);
+                        {
+                            _twitchChatClient.SendMessage(channel, commandtoExecute);
+                        }
                         await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
                     }
 
-                    BanProgress = i + 1 / Entries.Count;
+                    BanProgress = ((i + 1) / (double)Entries.Count)*100;
                     ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
 
                     entry.RowBackColor = "Green";
                 }
+                ETA = TimeSpan.Zero;
+                BanProgress = 100;
             },
             _token,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default).Result;
+    }
+
+    public void OnUserAlreadyBanned(string channel, string username)
+    {
+        var item = Entries.FirstOrDefault(x =>
+            x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
+
+        if (item != null)
+        {
+            var c = item.Result;
+            c[channel] = "Already Banned";
+            item.Result = new Dictionary<string, string>(c);
+        }
     }
 }
