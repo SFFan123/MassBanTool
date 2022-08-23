@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:MassBanToolMP.ViewModels"
+        mc:Ignorable="d" Width="800" Height="450"
+        x:Class="MassBanToolMP.Views.Dialogs.EditIeNumerableDialog"
+        Name="Window"
+        Title="Edit List">
+    <Design.DataContext>
+        <vm:EditIENumerableDialogViewModel />
+    </Design.DataContext>
+    <Panel>
+        <DataGrid AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  IsReadOnly="False"
+                  Name="DataGrid"
+                  Items="{Binding Objects}">
+            <DataGrid.Columns>
+                <DataGridTextColumn 
+                    Header="{Binding Header}" 
+                    Binding="{Binding Value, Mode=TwoWay}"
+                    IsReadOnly="False"
+                    Width="Auto">
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+            <DataGrid.KeyBindings>
+                <KeyBinding Gesture="delete"
+                            CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
+                            Command="{Binding OnDataGridRemoveEntry}"/>
+            </DataGrid.KeyBindings>
+        </DataGrid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Command="{Binding  OKWindowCloseCommand, Mode=OneTime}" 
+                    CommandParameter="{Binding ElementName=Window}" 
+                    Content="Save"/>
+            <Button Command="{Binding CancelWindowCloseCommand}"
+                    CommandParameter="{Binding ElementName=Window}"
+                    Content="Cancel"/>
+        </StackPanel>
+    </Panel>
+</Window>

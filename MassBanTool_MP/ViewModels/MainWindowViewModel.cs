@@ -92,7 +92,11 @@ public class MainWindowViewModel : ViewModelBase
 
         WindowTitle = "MassBanTool " + Program.Version;
         Entries = new ObservableCollection<Entry>();
+        
+        //
         OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
+        EditLastVisitChannelCommand = ReactiveCommand.Create<Window>(EditLastVisitChannelsList);
+
         OpenFileFromURLCommand = ReactiveCommand.Create<Window>(OpenFileFromURL);
         FetchLastFollowersForChannelCommand = ReactiveCommand.Create<Window>(FetchLastFollowersFromChannel);
         ConnectCommand = ReactiveCommand.Create(Connect);
@@ -124,6 +128,21 @@ public class MainWindowViewModel : ViewModelBase
         _listType = default;
         LogViewModel.Log("Done Init GUI...");
     }
+
+    private async void EditLastVisitChannelsList(Window window)
+    {
+        var inputVM = new EditIENumerableDialogViewModel("Channels", _lastVisitedChannels);
+        var input = new EditIeNumerableDialog()
+        {
+            DataContext = inputVM
+        };
+        if (await input.ShowDialog<ButtonResult>(window) == ButtonResult.Ok)
+        {
+            _lastVisitedChannels = inputVM.Objects.Select(x => x.Value).ToList();
+            BuildLastVisitChannelContextMenu();
+        }
+    }
+
 
     private void StoreCredentials()
     {
@@ -299,6 +318,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
     public ReactiveCommand<Window, Unit> ShowLogWindowCommand { get; }
+    public ReactiveCommand<Window, Unit> EditLastVisitChannelCommand { get; }
 
     public ObservableCollection<Entry> Entries
     {
@@ -419,28 +439,10 @@ public class MainWindowViewModel : ViewModelBase
 
         if (data?.lastVisitedChannel != null)
         {
-            _lastVisitedChannelsMenu = new ContextMenu();
+            _lastVisitedChannels = data.lastVisitedChannel.ToList();
 
-            MenuItem item;
-            var items = new List<MenuItem>();
-            foreach (var s in data.lastVisitedChannel)
-            {
-                var header = s.Replace("_", "__");
-                item = new MenuItem()
-                {
-                    Header = header,
-                    DataContext = s
-                };
-                item.Click += delegate(object? sender, RoutedEventArgs args)
-                {
-                    if (sender is MenuItem menuitem) ChannelS = (string)menuitem.DataContext;
-                };
-                items.Add(item);
-                _lastVisitedChannels.Add(s);
-            }
 
-            _lastVisitedChannelsMenu.Items = items;
-            RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
+            BuildLastVisitChannelContextMenu();
         }
         else
         {
@@ -453,6 +455,31 @@ public class MainWindowViewModel : ViewModelBase
             ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
 
         LogViewModel.Log("Done loading setting for this User.");
+    }
+
+    private void BuildLastVisitChannelContextMenu()
+    {
+        _lastVisitedChannelsMenu = new ContextMenu();
+
+        MenuItem item;
+        var items = new List<MenuItem>();
+        foreach (var s in _lastVisitedChannels)
+        {
+            var header = s.Replace("_", "__");
+            item = new MenuItem()
+            {
+                Header = header,
+                DataContext = s
+            };
+            item.Click += delegate(object? sender, RoutedEventArgs args)
+            {
+                if (sender is MenuItem menuitem) ChannelS = (string)menuitem.DataContext;
+            };
+            items.Add(item);
+        }
+
+        _lastVisitedChannelsMenu.Items = items;
+        RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
     }
 
     private void SaveData()

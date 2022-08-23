@@ -33,6 +33,7 @@
                 <Separator />
                 <MenuItem Header="App Settings" IsEnabled="False" />
                 <MenuItem Header="_Save" Command="{Binding SaveDataCommand, Mode=OneTime}"/>
+                <MenuItem Header="Edit Last Visit channels" Command="{Binding EditLastVisitChannelCommand}" CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
                 <MenuItem Header="Special User">
                     <CheckBox Content="Protect VIPs/Mods from Commands"

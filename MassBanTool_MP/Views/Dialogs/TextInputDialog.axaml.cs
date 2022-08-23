@@ -17,7 +17,11 @@ namespace MassBanToolMP.Views.Dialogs
         // Only here for the build.
         public TextInputDialog()
         {
-            throw new InvalidOperationException();
+            InitializeComponent();
+#if DEBUG
+            this.AttachDevTools();
+#endif
+            DataContext = this;
         }
 
         public TextInputDialog(string windowTitle, string labelText, Regex? boxValidationRegex = null)
