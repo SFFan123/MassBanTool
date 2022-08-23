@@ -76,6 +76,7 @@ namespace MassBanToolMP.Models
         private void Client_OnFailureToReceiveJoinConfirmation(object? sender, OnFailureToReceiveJoinConfirmationArgs e)
         {
             LogViewModel.Log(e.Exception.Details);
+            owner.FailedToJoinChannel(e.Exception.Channel);
         }
 
         private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)

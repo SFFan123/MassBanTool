@@ -217,7 +217,7 @@
                 <TabItem Header="Banning" Cursor="Hand">
                     <StackPanel>
                         <Label Content="Ban Reason: " />
-                        <TextBox Height="40" Margin="0,0,0,20" />
+                        <TextBox Height="40" Margin="0,0,0,20" Text="{Binding Reason}" />
                         <StackPanel Orientation="Horizontal">
                             <Button Template="{StaticResource PauseButton}" Margin="5" />
                             <Button Template="{StaticResource AbortButton}" Margin="5" />

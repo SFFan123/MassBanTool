@@ -1210,7 +1210,6 @@ public class MainWindowViewModel : ViewModelBase
         _tokenSource = new CancellationTokenSource();
         _token = _tokenSource.Token;
 
-
         return Task.Factory.StartNew(async () =>
             {
                 var TextReason = Reason;
@@ -1294,5 +1293,11 @@ public class MainWindowViewModel : ViewModelBase
             c[channel] = "Already Banned";
             item.Result = new Dictionary<string, string>(c);
         }
+    }
+
+    public async void FailedToJoinChannel(string exceptionChannel)
+    {
+        await MessageBox.Show("Failed to join channel " + exceptionChannel, "Warning");
+        RemoveChannelFromGrid(exceptionChannel);
     }
 }
