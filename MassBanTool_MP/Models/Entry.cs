@@ -9,7 +9,7 @@ namespace MassBanToolMP.Models
         private string name;
         private string reason;
         private ConcurrentObservableDictionary<string, string> result = new ();
-        private string rowBackColor = "Blue";
+        private bool _isValid = true;
 
 
         public string Command
@@ -41,11 +41,13 @@ namespace MassBanToolMP.Models
             set => SetProperty(ref result, value);
         }
 
-
-        public string RowBackColor
+        /// <summary>
+        /// If twitch returns a bad ban target for this name.
+        /// </summary>
+        public bool IsValid
         {
-            get => rowBackColor;
-            set => SetProperty(ref rowBackColor, value);
+            get => _isValid;
+            set => SetProperty(ref _isValid, value);
         }
     }
 }

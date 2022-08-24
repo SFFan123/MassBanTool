@@ -73,7 +73,7 @@ namespace MassBanToolMP.Models
                     case NoticeIDAnonBanAttempt:
                     case NoticeIDInvalidUserName:
                     case NoticeIDStaffBanAttempt:
-                        owner.OnBadUserBan(match.Groups[2].Value, match.Groups[1].Value);
+                        owner.OnBadUserBan(e.Channel, match.Groups[2].Value, match.Groups[1].Value);
                         break;
                 }
             }

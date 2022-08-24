@@ -8,12 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -22,7 +20,6 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using DynamicData;
 using IX.Observable;
-using IX.StandardExtensions.Extensions;
 using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views;
@@ -48,12 +45,15 @@ public class MainWindowViewModel : ViewModelBase
     private const string HELP_URL_WIKI = @"https://github.com/SFFan123/MassBanTool/wiki";
     private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
     private const string HELP_URL_REGEX101 = "https://regex101.com/";
-    private const string QUESTION_LISTTYPEMISMATCHRUN = "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?";
+    private const string URL_TMI = "https://twitchapps.com/tmi/";
+
+    private const string QUESTION_LISTTYPEMISMATCHRUN =
+        "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?";
+
     private const string LSITTYPEMISMATCH = "Listtype Mismatch";
 
     private readonly LogViewModel _logModel;
 
-    private static IDisposable canExecPauseAbortObservable;
     private static IDisposable isConnectedObservable;
 
     private string _allowedActions;
@@ -64,18 +64,18 @@ public class MainWindowViewModel : ViewModelBase
     private string filterRegex = string.Empty;
 
     private double _banProgress;
-    
+
     private ObservableCollection<Entry> _entries;
     private TimeSpan _eta;
     private int _messageDelay = 301;
-    
+
     private bool _paused;
     private bool _dryRun;
     private bool _readFileCommandMismatchSkip;
     private bool _protectSpecialUsers = true;
     private bool _readFileCommandMismatchCancel = true;
     private bool _listFilterRemoveMatching = false;
-    
+
     private Task _worker;
     private List<string> channels = new();
     private ContextMenu? _lastVisitedChannelsMenu;
@@ -86,7 +86,7 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource _tokenSource;
     private TwitchChatClient? _twitchChatClient;
     private Mutex _userMutex;
-    
+
 
     public MainWindowViewModel()
     {
@@ -95,8 +95,7 @@ public class MainWindowViewModel : ViewModelBase
 
         WindowTitle = "MassBanTool " + Program.Version;
         Entries = new ObservableCollection<Entry>();
-        
-        //
+
         OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
         EditLastVisitChannelCommand = ReactiveCommand.Create<Window>(EditLastVisitChannelsList);
 
@@ -120,6 +119,7 @@ public class MainWindowViewModel : ViewModelBase
         RunCheckListTypeCommand = ReactiveCommand.Create(CheckListType);
         RunSortListCommand = ReactiveCommand.Create(SortList);
         RunRemoveNotAllowedActionsCommand = ReactiveCommand.Create(RemoveNotAllowedActions);
+        GetOAuthCommand = ReactiveCommand.Create(() => OpenUrl(URL_TMI));
         OpenWikiCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_WIKI));
         CooldownInfoCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_COOLDOWN));
         OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_REGEX_MS_DOCS));
@@ -161,9 +161,11 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (SetProperty(ref _worker, value))
             {
-                canExecPauseAbortObservable?.Dispose();
-                canExecPauseAbortObservable = Worker.WhenAnyValue(x => x.IsCompleted)
-                    .Subscribe(_ => RaisePropertyChanged(nameof(CanExecPauseAbort)));
+                value.ContinueWith((task) =>
+                {
+                    RaisePropertyChanged(nameof(CanExecRun));
+                    RaisePropertyChanged(nameof(CanExecPauseAbort));
+                });
                 RaisePropertyChanged(nameof(CanExecPauseAbort));
                 RaisePropertyChanged(nameof(CanExecRun));
             }
@@ -184,6 +186,7 @@ public class MainWindowViewModel : ViewModelBase
                    && !hasErrors;
         }
     }
+
     public DataGrid DataGrid { get; set; }
 
     public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
@@ -322,6 +325,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
     public ReactiveCommand<Window, Unit> ShowLogWindowCommand { get; }
     public ReactiveCommand<Window, Unit> EditLastVisitChannelCommand { get; }
+    public ReactiveCommand<Unit, Unit> GetOAuthCommand { get; }
 
     public ObservableCollection<Entry> Entries
     {
@@ -767,7 +771,7 @@ public class MainWindowViewModel : ViewModelBase
         };
         _logWindow.Show(owner);
     }
-    
+
     private Regex CreateFilterRegex()
     {
         var regexOptions = RegexOptions.Compiled;
@@ -790,10 +794,14 @@ public class MainWindowViewModel : ViewModelBase
     private void AddChannelToGrid(string eChannel)
     {
         if (DataGrid.Columns.Any(x => x.Header as string == eChannel)) return;
-        
+
         var col = new DataGridTextColumn()
-            { Header = eChannel, Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation}, IsReadOnly = false };
-        
+        {
+            Header = eChannel,
+            Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation },
+            IsReadOnly = false
+        };
+
         DataGrid.Columns.Add(col);
     }
 
@@ -901,10 +909,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         LogViewModel.Log("Joining Channels...");
-        foreach (var channel in tojoin)
-        {
-            _twitchChatClient.client.JoinChannel(channel, true);
-        }
+        foreach (var channel in tojoin) _twitchChatClient.client.JoinChannel(channel, true);
     }
 
     private void Client_OnMessageThrottled(object? sender, TwitchLib.Communication.Events.OnMessageThrottledEventArgs e)
@@ -950,12 +955,14 @@ public class MainWindowViewModel : ViewModelBase
     {
         AddToResult(username, channel, "Already Banned");
     }
-    public void OnBadUserBan(string username, string msg_id)
+
+    public void OnBadUserBan(string channel, string username, string msg_id)
     {
-        foreach (string channel in channels)
-        {
-            AddToResult(username, channel, "Bad Ban Target - " + msg_id);
-        }
+        AddToResult(username, channel, "Bad Ban Target - " + msg_id);
+
+        var entry = Entries.FirstOrDefault(x => x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
+        if (entry != null)
+            entry.IsValid = false;
     }
 
     private void AddToResult(string username, string channel, string res)
@@ -974,7 +981,7 @@ public class MainWindowViewModel : ViewModelBase
             item.Result[channel] = res;
         }
     }
-    
+
     private async void HandleAddEntry(Window window)
     {
         var diag = new NewEntryView();
@@ -996,7 +1003,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Command = diag.command,
                 Name = name,
-                Reason = diag.reason,
+                Reason = diag.reason
             });
     }
 
@@ -1088,16 +1095,16 @@ public class MainWindowViewModel : ViewModelBase
         var input = new TextInputDialog("Channel to query", "Channel", validation);
 
         string URL = "https://cactus.tools/twitch/followers";
-        
+
         if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
         {
             IsBusy = true;
 
             string urlParameters = $"?channel={input.BoxContent}&max=1000";
-            Uri uri = new Uri( URL + urlParameters);
+            Uri uri = new Uri(URL + urlParameters);
 
             FetchLinesAndSet(uri);
-            
+
             IsBusy = false;
         }
     }
@@ -1113,27 +1120,27 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Method = HttpMethod.Get,
                 RequestUri = uri,
-                Headers = {
+                Headers =
+                {
                     { HttpRequestHeader.Accept.ToString(), "text/plain" },
-                    { HttpRequestHeader.UserAgent.ToString(), "MassBanTool/"+Program.Version}
-                },
+                    { HttpRequestHeader.UserAgent.ToString(), "MassBanTool/" + Program.Version }
+                }
             };
 
             response = await client.SendAsync(httpRequestMessage);
         }
-            
+
         if (!response.IsSuccessStatusCode)
         {
-            await MessageBox.Show(response.ReasonPhrase ?? "Server did not give a reason. For status code: " + response.StatusCode, "Error while fetching site");
+            await MessageBox.Show(
+                response.ReasonPhrase ?? "Server did not give a reason. For status code: " + response.StatusCode,
+                "Error while fetching site");
             return;
         }
 
         string content = await response.Content.ReadAsStringAsync();
 
-        string[] lines = content.Split(Environment.NewLine).
-            AsParallel().
-            Select(x => x.Trim()).
-            ToArray();
+        string[] lines = content.Split(Environment.NewLine).AsParallel().Select(x => x.Trim()).ToArray();
 
         SetLines(lines);
         CheckListType(false);
@@ -1262,17 +1269,13 @@ public class MainWindowViewModel : ViewModelBase
         _token = _tokenSource.Token;
 
         foreach (Entry entry in _entries)
+        foreach (string channel in channels)
         {
-            foreach (string channel in channels)
-            {
-                if (!entry.Result.ContainsKey(channel) || entry.Result[channel] == null)
-                {
-                    entry.Result[channel] = string.Empty;
-                }
-                entry.Result = new ConcurrentObservableDictionary<string, string>(entry.Result);
-            }
+            if (!entry.Result.ContainsKey(channel) || entry.Result[channel] == null)
+                entry.Result[channel] = string.Empty;
+            entry.Result = new ConcurrentObservableDictionary<string, string>(entry.Result);
         }
-        
+
         return Task.Factory.StartNew(async () =>
             {
                 var TextReason = Reason;
@@ -1284,7 +1287,7 @@ public class MainWindowViewModel : ViewModelBase
 
                     var entry = Entries[i];
                     var commandtoExecute = string.Empty;
-                    string user = String.Empty;
+                    string user = string.Empty;
 
                     switch (mode)
                     {
@@ -1314,10 +1317,11 @@ public class MainWindowViewModel : ViewModelBase
 
                     foreach (var channel in _twitchChatClient.client.JoinedChannels)
                     {
-                        if (entry.Result.ContainsKey(channel.Channel.ToLower()) && !string.IsNullOrEmpty(entry.Result[channel.Channel.ToLower()]))
-                        {
-                            continue;
-                        }
+                        if (!entry.IsValid) break;
+
+                        if (entry.Result.ContainsKey(channel.Channel.ToLower()) &&
+                            !string.IsNullOrEmpty(entry.Result[channel.Channel.ToLower()])) continue;
+
                         if (DryRun)
                         {
                             LogViewModel.Log($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
@@ -1327,24 +1331,24 @@ public class MainWindowViewModel : ViewModelBase
                         {
                             _twitchChatClient.SendMessage(channel, commandtoExecute);
                         }
+
                         await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
                     }
 
-                    BanProgress = ((i + 1) / (double)Entries.Count)*100;
+                    BanProgress = (i + 1) / (double)Entries.Count * 100;
                     ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
 
                     entry.RowBackColor = "Green";
                 }
+
                 ETA = TimeSpan.Zero;
                 BanProgress = 100;
-                RaisePropertyChanged(nameof(CanExecRun));
-                RaisePropertyChanged(nameof(CanExecPauseAbort));
             },
             _token,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default).Result;
     }
-    
+
     public async void FailedToJoinChannel(string exceptionChannel)
     {
         await MessageBox.Show("Failed to join channel " + exceptionChannel, "Warning");
