@@ -72,6 +72,7 @@ namespace MassBanToolMP.Models
                     case NoticeIDAdminBanAttempt:
                     case NoticeIDAnonBanAttempt:
                     case NoticeIDInvalidUserName:
+                    case NoticeIDStaffBanAttempt:
                         owner.OnBadUserBan(match.Groups[2].Value, match.Groups[1].Value);
                         break;
                 }
@@ -155,6 +156,7 @@ namespace MassBanToolMP.Models
         private const string NoticeIDAdminBanAttempt = "bad_ban_admin";
         private const string NoticeIDAnonBanAttempt = "bad_ban_anon";
         private const string NoticeIDInvalidUserName = "invalid_user";
+        private const string NoticeIDStaffBanAttempt = "bad_ban_staff";
         
         
     }
