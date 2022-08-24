@@ -93,7 +93,7 @@ public class MainWindowViewModel : ViewModelBase
         _logModel = new LogViewModel();
         LogViewModel.Log("Init GUI...");
 
-        WindowTitle = "MassBanTool " + Program.Version;
+        WindowTitle = "MassBanTool " + Program.Version + "beta.2";
         Entries = new ObservableCollection<Entry>();
 
         OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
@@ -799,7 +799,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             Header = eChannel,
             Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation },
-            IsReadOnly = false
+            IsReadOnly = true
         };
 
         DataGrid.Columns.Add(col);
