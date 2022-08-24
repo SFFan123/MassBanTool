@@ -141,7 +141,7 @@ public class MainWindowViewModel : ViewModelBase
         };
         if (await input.ShowDialog<ButtonResult>(window) == ButtonResult.Ok)
         {
-            _lastVisitedChannels = inputVM.Objects.Select(x => x.Value).ToList();
+            _lastVisitedChannels = inputVM.Objects.Select(x => x.Value.ToLower()).ToList();
             BuildLastVisitChannelContextMenu();
         }
     }
@@ -247,7 +247,7 @@ public class MainWindowViewModel : ViewModelBase
                 ClearError(nameof(ChannelS));
 
             SetProperty(ref _channelS, value);
-            channels = cache.ToList();
+            channels = cache.Select(x => x.Trim()).ToList();
             RaisePropertyChanged(nameof(CanConnect));
         }
     }
