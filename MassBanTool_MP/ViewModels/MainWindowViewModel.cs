@@ -13,6 +13,7 @@ using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -20,6 +21,8 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using DynamicData;
+using IX.Observable;
+using IX.StandardExtensions.Extensions;
 using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views;
@@ -787,9 +790,9 @@ public class MainWindowViewModel : ViewModelBase
     private void AddChannelToGrid(string eChannel)
     {
         if (DataGrid.Columns.Any(x => x.Header as string == eChannel)) return;
-
+        
         var col = new DataGridTextColumn()
-            { Header = eChannel, Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation}, IsReadOnly = true };
+            { Header = eChannel, Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation}, IsReadOnly = false };
         
         DataGrid.Columns.Add(col);
     }
@@ -940,17 +943,38 @@ public class MainWindowViewModel : ViewModelBase
 
     public void OnUserBanned(string channel, string username)
     {
-        var item = Entries.FirstOrDefault(x =>
-            x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
+        AddToResult(username, channel, "Banned");
+    }
 
-        if (item != null)
+    public void OnUserAlreadyBanned(string channel, string username)
+    {
+        AddToResult(username, channel, "Already Banned");
+    }
+    public void OnBadUserBan(string username, string msg_id)
+    {
+        foreach (string channel in channels)
         {
-            var c = item.Result;
-            c[channel] = "Banned";
-            item.Result = new Dictionary<string, string>(c);
+            AddToResult(username, channel, "Bad Ban Target - " + msg_id);
         }
     }
 
+    private void AddToResult(string username, string channel, string res)
+    {
+        var item = Entries.FirstOrDefault(x =>
+            x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
+
+        if (!item.Result.ContainsKey(channel))
+        {
+            var c = item.Result;
+            c[channel] = res;
+            item.Result = new ConcurrentObservableDictionary<string, string>(c);
+        }
+        else
+        {
+            item.Result[channel] = res;
+        }
+    }
+    
     private async void HandleAddEntry(Window window)
     {
         var diag = new NewEntryView();
@@ -972,7 +996,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Command = diag.command,
                 Name = name,
-                Reason = diag.reason
+                Reason = diag.reason,
             });
     }
 
@@ -1237,6 +1261,18 @@ public class MainWindowViewModel : ViewModelBase
         _tokenSource = new CancellationTokenSource();
         _token = _tokenSource.Token;
 
+        foreach (Entry entry in _entries)
+        {
+            foreach (string channel in channels)
+            {
+                if (!entry.Result.ContainsKey(channel) || entry.Result[channel] == null)
+                {
+                    entry.Result[channel] = string.Empty;
+                }
+                entry.Result = new ConcurrentObservableDictionary<string, string>(entry.Result);
+            }
+        }
+        
         return Task.Factory.StartNew(async () =>
             {
                 var TextReason = Reason;
@@ -1308,20 +1344,7 @@ public class MainWindowViewModel : ViewModelBase
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default).Result;
     }
-
-    public void OnUserAlreadyBanned(string channel, string username)
-    {
-        var item = Entries.FirstOrDefault(x =>
-            x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
-
-        if (item != null)
-        {
-            var c = item.Result;
-            c[channel] = "Already Banned";
-            item.Result = new Dictionary<string, string>(c);
-        }
-    }
-
+    
     public async void FailedToJoinChannel(string exceptionChannel)
     {
         await MessageBox.Show("Failed to join channel " + exceptionChannel, "Warning");

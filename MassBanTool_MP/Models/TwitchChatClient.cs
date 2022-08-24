@@ -61,10 +61,20 @@ namespace MassBanToolMP.Models
         private void Client_OnUnaccountedFor(object? sender, OnUnaccountedForArgs e)
         {
             string msg = e.RawIRC;
-            Match match = alreadyBanned.Match(msg);
+            Match match = noticeRegex.Match(msg);
             if (match.Success)
             {
-                owner.OnUserAlreadyBanned(e.Channel, match.Groups[1].Value);
+                switch (match.Groups[1].Value)
+                {
+                    case NoticeIDAlreadyBanned:
+                        owner.OnUserAlreadyBanned(e.Channel, match.Groups[2].Value);
+                        break;
+                    case NoticeIDAdminBanAttempt:
+                    case NoticeIDAnonBanAttempt:
+                    case NoticeIDInvalidUserName:
+                        owner.OnBadUserBan(match.Groups[2].Value, match.Groups[1].Value);
+                        break;
+                }
             }
         }
 
@@ -140,6 +150,12 @@ namespace MassBanToolMP.Models
         public bool ManualDisconnect { get; set; }
         private readonly List<string> channel;
         private readonly MainWindowViewModel owner;
-        private Regex alreadyBanned = new (@"^@msg-id=already_banned :tmi\.twitch\.tv NOTICE #(?'channel'\w+) :(\w+)", RegexOptions.Compiled);
+        private Regex noticeRegex = new (@"^@msg-id=(\w+) :tmi\.twitch\.tv NOTICE #(?'channel'\w+) :(\w+)", RegexOptions.Compiled);
+        private const string NoticeIDAlreadyBanned = "already_banned";
+        private const string NoticeIDAdminBanAttempt = "bad_ban_admin";
+        private const string NoticeIDAnonBanAttempt = "bad_ban_anon";
+        private const string NoticeIDInvalidUserName = "invalid_user";
+        
+        
     }
 }

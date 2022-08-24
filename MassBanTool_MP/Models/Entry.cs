@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using DynamicData.Binding;
+﻿using IX.Observable;
 using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP.Models
@@ -10,8 +8,9 @@ namespace MassBanToolMP.Models
         private string command;
         private string name;
         private string reason;
-        private Dictionary<string, string> result = new Dictionary<string, string>();
+        private ConcurrentObservableDictionary<string, string> result = new ();
         private string rowBackColor = "Blue";
+
 
         public string Command
         {
@@ -36,12 +35,12 @@ namespace MassBanToolMP.Models
             get => $"{Command} {Name} {Reason}".Trim();
         }
 
-
-        public Dictionary<string, string> Result
+        public ConcurrentObservableDictionary<string, string> Result
         {
             get => result;
             set => SetProperty(ref result, value);
         }
+
 
         public string RowBackColor
         {
