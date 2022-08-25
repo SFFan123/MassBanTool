@@ -6,6 +6,10 @@ namespace MassBanToolMP.Models
 {
     public class DataWrapper
     {
+        public DataWrapper()
+        {
+            lastVisitedChannel = new HashSet<string>();
+        }
         public HashSet<string> lastVisitedChannel { get; set; }
 
         [DefaultValue(null)]
@@ -17,15 +21,14 @@ namespace MassBanToolMP.Models
 
         public bool includePrereleases { get; set; }
 
-        public string toJSON()
+        public string ToJSON()
         {
             return JsonConvert.SerializeObject(this);
         }
 
-        public static DataWrapper fromJson(string JSON)
+        public static DataWrapper? FromJson(string JSON)
         {
-            return JsonConvert.DeserializeObject<DataWrapper>(JSON,
-                new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.DeserializeObject<DataWrapper>(JSON, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
         }
     }
 }

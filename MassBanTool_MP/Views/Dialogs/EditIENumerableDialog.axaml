@@ -29,6 +29,12 @@
                             CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
                             Command="{Binding OnDataGridRemoveEntry}"/>
             </DataGrid.KeyBindings>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Delete" CommandParameter="{Binding ElementName=DataGrid, Path=SelectedItems}"
+                              Command="{Binding OnDataGridRemoveEntry}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button Command="{Binding  OKWindowCloseCommand, Mode=OneTime}" 

@@ -427,15 +427,14 @@ public class MainWindowViewModel : ViewModelBase
         var fileName = Path.Combine(Environment.GetFolderPath(
             Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
 
-        var filecontent = string.Empty;
         DataWrapper data = null;
 
         if (File.Exists(fileName))
             try
             {
-                filecontent = File.ReadAllText(fileName);
+                string filecontent = File.ReadAllText(fileName);
                 filecontent = filecontent.Trim();
-                data = DataWrapper.fromJson(filecontent);
+                data = DataWrapper.FromJson(filecontent);
             }
             catch (Exception e)
             {
@@ -510,8 +509,7 @@ public class MainWindowViewModel : ViewModelBase
             message_delay = _messageDelay
         };
 
-        var result = data.toJSON();
-
+        var result = data.ToJSON();
 
         File.WriteAllText(fileName, result);
     }

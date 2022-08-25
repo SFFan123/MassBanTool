@@ -30,9 +30,9 @@ namespace MassBanToolMP
             base.OnFrameworkInitializationCompleted();
         }
 
-        public Window MainWindow
+        public Window? MainWindow
         {
-            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
         }
     }
 }

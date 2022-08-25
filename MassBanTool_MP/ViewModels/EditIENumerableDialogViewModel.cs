@@ -15,9 +15,13 @@ namespace MassBanToolMP.ViewModels
     {
         private ObservableCollection<CacheEntry> _objects;
 
+        public EditIENumerableDialogViewModel()
+        {
+            _objects = new ObservableCollection<CacheEntry>();
+        }
         public EditIENumerableDialogViewModel(string header, IEnumerable<string> Objects)
         {
-            this.Objects = new ObservableCollection<CacheEntry>(Objects.Select(x => new CacheEntry { Value = x }));
+            _objects = new ObservableCollection<CacheEntry>(Objects.Select(x => new CacheEntry { Value = x }));
             Header = header;
             OnDataGridRemoveEntry = ReactiveCommand.Create<object>(RemoveEntry);
             CancelWindowCloseCommand = ReactiveCommand.Create<Window>(CloseCancel);
