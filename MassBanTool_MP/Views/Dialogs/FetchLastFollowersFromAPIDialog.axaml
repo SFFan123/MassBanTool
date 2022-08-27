@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:MassBanToolMP.ViewModels"
+        mc:Ignorable="d" Width="500" Height="150"
+        x:Class="MassBanToolMP.Views.Dialogs.FetchLastFollowersFromAPIDialog"
+        Title="Fetch Last X Followers for Channel Y"
+        Name="Window"
+        KeyUp="InputElement_OnKeyUp"
+        WindowStartupLocation="CenterOwner">
+    <Design.DataContext>
+        <vm:FetchLastFollowersFromAPIViewModel />
+    </Design.DataContext>
+    <Panel Margin="2">
+    <StackPanel>
+        <TextBlock Text="Channel: "/>
+        <TextBox Text="{Binding Channel}" Watermark="admiralbahroo"/>
+        <Slider Value="{Binding FetchAmount}" Minimum="100" Maximum="10000" TickFrequency="100" TickPlacement="BottomRight" IsSnapToTickEnabled="True"></Slider>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Fetch Amount: "/>
+            <TextBlock Text="{Binding FetchAmount}"/>
+        </StackPanel>
+    </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="5">
+            <Button Background="Green" 
+                    Content="OK" 
+                    Command="{Binding CloseOKCommand}" 
+                    CommandParameter="{Binding ElementName=Window}"/>
+            <Button Background="Red" 
+                    Content="Cancel"
+                    Command="{Binding CloseCancelCommand}" 
+                    CommandParameter="{Binding ElementName=Window}"/>
+        </StackPanel>
+    </Panel>
+</Window>

@@ -16,22 +16,30 @@ namespace MassBanToolMP.Models
 {
     public class TwitchChatClient
     {
-        public TwitchChatClient(MainWindowViewModel owner, string user, string oauth, List<string> channel)
+        private const string NoticeIDAlreadyBanned = "already_banned";
+        private const string NoticeIDAdminBanAttempt = "bad_ban_admin";
+        private const string NoticeIDAnonBanAttempt = "bad_ban_anon";
+        private const string NoticeIDInvalidUserName = "invalid_user";
+        private const string NoticeIDStaffBanAttempt = "bad_ban_staff";
+
+        private readonly List<string> channels;
+        private readonly MainWindowViewModel owner;
+
+
+        private ConnectionCredentials credentials;
+
+        private WebSocketClient customClient;
+
+        private Regex noticeRegex = new(@"^@msg-id=(\w+) :tmi\.twitch\.tv NOTICE #(?'channels'\w+) :(\w+)",
+            RegexOptions.Compiled);
+
+        public TwitchChatClient(MainWindowViewModel owner, string user, string oauth, List<string> channels)
         {
             this.owner = owner;
             credentials = new ConnectionCredentials(user, oauth);
-            
-            this.channel = channel;
 
-            client = InitializeClient();
+            this.channels = channels;
 
-            RegisterClientEventHandler(client);
-
-            client.Connect();
-        }
-
-        private TwitchClient InitializeClient()
-        {
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 100,
@@ -41,7 +49,23 @@ namespace MassBanToolMP.Models
             };
             customClient = new WebSocketClient(clientOptions);
             client = new TwitchClient(customClient);
-            client.Initialize(credentials, channel);
+
+            client = InitializeClient();
+
+            RegisterClientEventHandler(client);
+
+            client.Connect();
+        }
+
+        public bool IsConnected => client != null && client.IsConnected;
+        
+        private TwitchClient client { get; set; }
+        public bool ManualDisconnect { get; set; }
+        public IReadOnlyList<JoinedChannel> JoinedChannels => client.JoinedChannels;
+
+        private TwitchClient InitializeClient()
+        {
+            client.Initialize(credentials, channels);
             return client;
         }
 
@@ -55,7 +79,45 @@ namespace MassBanToolMP.Models
             client.OnFailureToReceiveJoinConfirmation += Client_OnFailureToReceiveJoinConfirmation;
             client.OnUserBanned += OnUserBanned;
             client.OnUnaccountedFor += Client_OnUnaccountedFor;
+            client.OnIncorrectLogin += IncorrectLogin;
+            client.OnVIPsReceived += Client_OnVIPsReceived;
+            client.OnModeratorsReceived += Client_OnModeratorsReceived;
+            client.OnMessageThrottled += Client_OnMessageThrottled;
+            client.OnConnected += ClientOnConnected;
+            client.OnLeftChannel += Client_OnLeftChannel;
         }
+
+        private void Client_OnLeftChannel(object? sender, OnLeftChannelArgs e)
+        {
+            owner.Client_OnLeftChannel(e.Channel);
+        }
+
+        private void ClientOnConnected(object? sender, OnConnectedArgs e)
+        {
+            owner.OnConnected();
+        }
+
+        private void Client_OnMessageThrottled(object? sender, OnMessageThrottledEventArgs e)
+        {
+            LogViewModel.Log("Message throttle reached increasing Delay.");
+            owner.MessageThrottled();
+        }
+
+        private void Client_OnModeratorsReceived(object? sender, OnModeratorsReceivedArgs e)
+        {
+            owner.SetChannelMods(e.Channel, e.Moderators);
+        }
+
+        private void Client_OnVIPsReceived(object? sender, OnVIPsReceivedArgs e)
+        {
+            owner.SetChannelVIPs(e.Channel, e.VIPs);
+        }
+
+        private void IncorrectLogin(object? sender, OnIncorrectLoginArgs e)
+        {
+            owner.IncorrectLogin();
+        }
+
 
         private void Client_OnUnaccountedFor(object? sender, OnUnaccountedForArgs e)
         {
@@ -100,10 +162,14 @@ namespace MassBanToolMP.Models
 
         private void Client_OnUserStateChanged(object? sender, OnUserStateChangedArgs e)
         {
-            if (e.UserState.IsModerator || e.UserState.Channel.ToLower() == client.TwitchUsername.ToLower())
+            bool isBroadcaster = e.UserState.Channel.ToLower() == client.TwitchUsername.ToLower();
+            bool isMod = !isBroadcaster && e.UserState.IsModerator;
+            if (isMod || isBroadcaster)
             {
+                owner.AddChannelToGrid(e.UserState.Channel, isMod);
                 return;
             }
+
             client.LeaveChannel(e.UserState.Channel);
 
             owner.MissingPermissions(e.UserState.Channel);
@@ -141,22 +207,15 @@ namespace MassBanToolMP.Models
             client.SendMessage(channel, message);
         }
 
-        
-        private ConnectionCredentials credentials;
 
-        private WebSocketClient customClient;
+        public void LeaveChannel(string channel)
+        {
+            client.LeaveChannel(channel);
+        }
 
-        public TwitchClient client { get; private set; }
-        public bool ManualDisconnect { get; set; }
-        private readonly List<string> channel;
-        private readonly MainWindowViewModel owner;
-        private Regex noticeRegex = new (@"^@msg-id=(\w+) :tmi\.twitch\.tv NOTICE #(?'channel'\w+) :(\w+)", RegexOptions.Compiled);
-        private const string NoticeIDAlreadyBanned = "already_banned";
-        private const string NoticeIDAdminBanAttempt = "bad_ban_admin";
-        private const string NoticeIDAnonBanAttempt = "bad_ban_anon";
-        private const string NoticeIDInvalidUserName = "invalid_user";
-        private const string NoticeIDStaffBanAttempt = "bad_ban_staff";
-        
-        
+        public void JoinChannel(string channel)
+        {
+            client.JoinChannel(channel, true);
+        }
     }
 }

@@ -17,6 +17,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
 using IX.Observable;
@@ -26,7 +27,6 @@ using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
 using ReactiveUI;
-using TwitchLib.Client.Events;
 
 namespace MassBanToolMP.ViewModels;
 
@@ -46,6 +46,7 @@ public class MainWindowViewModel : ViewModelBase
     private const string HELP_URL_MAIN_GITHUB = "https://github.com/SFFan123/MassBanTool";
     private const string HELP_URL_REGEX101 = "https://regex101.com/";
     private const string URL_TMI = "https://twitchapps.com/tmi/";
+    private const string API_CACTUSTOOL_LASTFOLLOWERS = "https://cactus.tools/twitch/followers";
 
     private const string QUESTION_LISTTYPEMISMATCHRUN =
         "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?";
@@ -86,6 +87,7 @@ public class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource _tokenSource;
     private TwitchChatClient? _twitchChatClient;
     private Mutex _userMutex;
+    public static readonly IAssetLoader assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
 
     public MainWindowViewModel()
@@ -93,7 +95,8 @@ public class MainWindowViewModel : ViewModelBase
         _logModel = new LogViewModel();
         LogViewModel.Log("Init GUI...");
 
-        WindowTitle = "MassBanTool " + Program.Version + "beta.2";
+        WindowTitle = "MassBanTool " + Program.Version + "beta.3";
+
         Entries = new ObservableCollection<Entry>();
 
         OpenFileCommand = ReactiveCommand.Create<Window>(OpenFile);
@@ -262,8 +265,8 @@ public class MainWindowViewModel : ViewModelBase
     {
         get
         {
-            if (_twitchChatClient?.client != null)
-                return _twitchChatClient.client.IsConnected && _twitchChatClient.client.JoinedChannels.Any();
+            if(_twitchChatClient != null)
+                return _twitchChatClient.IsConnected && _twitchChatClient.JoinedChannels.Any();
 
             return false;
         }
@@ -789,19 +792,6 @@ public class MainWindowViewModel : ViewModelBase
         return new Regex(filterRegex, regexOptions);
     }
 
-    private void AddChannelToGrid(string eChannel)
-    {
-        if (DataGrid.Columns.Any(x => x.Header as string == eChannel)) return;
-
-        var col = new DataGridTextColumn()
-        {
-            Header = eChannel,
-            Binding = new Binding() { Path = $"Result[{eChannel}]", Priority = BindingPriority.Animation },
-            IsReadOnly = true
-        };
-
-        DataGrid.Columns.Add(col);
-    }
 
     private void RemoveChannelFromGrid(string eChannel)
     {
@@ -836,48 +826,57 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         _twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
+        
+        if (!_twitchChatClient.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
 
-        _twitchChatClient.client.OnIncorrectLogin += IncorrectLogin;
-        _twitchChatClient.client.OnVIPsReceived += Client_OnVIPsReceived;
-        _twitchChatClient.client.OnModeratorsReceived += Client_OnModeratorsReceived;
-        _twitchChatClient.client.OnMessageThrottled += Client_OnMessageThrottled;
-        _twitchChatClient.client.OnConnected += ClientOnConnected;
-        _twitchChatClient.client.OnJoinedChannel += ClientOnOnJoinedChannel;
-        _twitchChatClient.client.OnLeftChannel += Client_OnLeftChannel;
+        RaiseIsConnectedChanged();
 
-        if (!_twitchChatClient.client.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
-
-        isConnectedObservable = _twitchChatClient.WhenAnyValue(x => x.client.IsConnected)
+        isConnectedObservable = _twitchChatClient.WhenAnyValue(x => x.IsConnected)
             .Subscribe(_ => RaisePropertyChanged(nameof(IsConnected)));
     }
 
-    private void Client_OnLeftChannel(object? sender, OnLeftChannelArgs e)
+    public void Client_OnLeftChannel(string channel)
     {
         if (Dispatcher.UIThread.CheckAccess())
         {
-            RemoveChannelFromGrid(e.Channel);
+            RemoveChannelFromGrid(channel);
         }
         else
         {
-            var tsk = Dispatcher.UIThread.InvokeAsync(() => RemoveChannelFromGrid(e.Channel));
+            var tsk = Dispatcher.UIThread.InvokeAsync(() => RemoveChannelFromGrid(channel));
             tsk.Wait();
         }
     }
 
-    private void ClientOnOnJoinedChannel(object? sender, OnJoinedChannelArgs e)
+    public void AddChannelToGrid(string channelName, bool isMod)
     {
         if (Dispatcher.UIThread.CheckAccess())
         {
-            AddChannelToGrid(e.Channel);
+            _AddChannelToGrid(channelName, isMod);
         }
         else
         {
-            var tsk = Dispatcher.UIThread.InvokeAsync(() => AddChannelToGrid(e.Channel));
+            var tsk = Dispatcher.UIThread.InvokeAsync(() => _AddChannelToGrid(channelName, isMod));
             tsk.Wait();
         }
     }
 
-    private void ClientOnConnected(object? sender, OnConnectedArgs e)
+    private void _AddChannelToGrid(string channelName, bool isMod)
+    {
+        if (DataGrid.Columns.Any(x => x.Header as string == channelName)) return;
+
+        var col = new DataGridTextColumn()
+        {
+            Header = channelName,
+            Binding = new Binding() { Path = $"Result[{channelName}]" },
+            IsReadOnly = true
+        };
+
+        DataGrid.Columns.Add(col);
+    }
+
+
+    public void OnConnected()
     {
         RaiseIsConnectedChanged();
     }
@@ -891,7 +890,7 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var joinedChannels = _twitchChatClient.client.JoinedChannels.Select(x => x.Channel.ToLower());
+        var joinedChannels = _twitchChatClient.JoinedChannels.Select(x => x.Channel.ToLower());
 
         var toleave = joinedChannels.Except(channels).ToList();
         LogViewModel.Log($"Need to leave '{string.Join(", ", toleave)}'");
@@ -902,31 +901,30 @@ public class MainWindowViewModel : ViewModelBase
         LogViewModel.Log("Leaving Channels...");
         foreach (var channel in toleave)
         {
-            _twitchChatClient.client.LeaveChannel(channel);
+            _twitchChatClient.LeaveChannel(channel);
             ChannelModerators[channel]?.Clear();
         }
 
         LogViewModel.Log("Joining Channels...");
-        foreach (var channel in tojoin) _twitchChatClient.client.JoinChannel(channel, true);
+        foreach (var channel in tojoin) _twitchChatClient.JoinChannel(channel);
     }
 
-    private void Client_OnMessageThrottled(object? sender, TwitchLib.Communication.Events.OnMessageThrottledEventArgs e)
+    public void MessageThrottled()
     {
-        LogViewModel.Log("Message throttle reached increasing Delay.");
         MessageDelay += 10;
     }
 
-    private void Client_OnModeratorsReceived(object? sender, OnModeratorsReceivedArgs e)
+    public void SetChannelMods(string channel, List<string> modList)
     {
-        ChannelModerators[e.Channel.ToLowerInvariant()] = e.Moderators;
+        ChannelModerators[channel] = modList;
     }
 
-    private void Client_OnVIPsReceived(object? sender, OnVIPsReceivedArgs e)
+    public void SetChannelVIPs(string channel, List<string> vipList)
     {
-        ChannelVIPs[e.Channel.ToLowerInvariant()] = e.VIPs;
+        ChannelVIPs[channel.ToLowerInvariant()] = vipList;
     }
 
-    private async void IncorrectLogin(object? sender, OnIncorrectLoginArgs e)
+    public async void IncorrectLogin()
     {
         await MessageBox.Show("Login incorrect.", "Login error");
     }
@@ -1089,17 +1087,20 @@ public class MainWindowViewModel : ViewModelBase
 
     private async void FetchLastFollowersFromChannel(Window owner)
     {
-        var validation = new Regex(@"\w{2,}", RegexOptions.Compiled);
-        var input = new TextInputDialog("Channel to query", "Channel", validation);
+        var inputVM = new FetchLastFollowersFromAPIViewModel();
+        var input = new FetchLastFollowersFromAPIDialog()
+        {
+            DataContext = inputVM
+        };
 
-        string URL = "https://cactus.tools/twitch/followers";
+        await input.ShowDialog(owner);
 
-        if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
+        if ( inputVM.Result == ButtonResult.Ok)
         {
             IsBusy = true;
 
-            string urlParameters = $"?channel={input.BoxContent}&max=1000";
-            Uri uri = new Uri(URL + urlParameters);
+            string urlParameters = $"?channel={inputVM.Channel}&max={inputVM.FetchAmount}";
+            Uri uri = new Uri(API_CACTUSTOOL_LASTFOLLOWERS + urlParameters);
 
             FetchLinesAndSet(uri);
 
@@ -1313,7 +1314,7 @@ public class MainWindowViewModel : ViewModelBase
                         }
                     }
 
-                    foreach (var channel in _twitchChatClient.client.JoinedChannels)
+                    foreach (var channel in _twitchChatClient.JoinedChannels)
                     {
                         if (!entry.IsValid) break;
 

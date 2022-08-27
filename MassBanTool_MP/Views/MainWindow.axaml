@@ -20,7 +20,7 @@
                           Command="{Binding OpenFileFromURLCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="Fetch last 1000 Followers of Channel x" 
+                <MenuItem Header="Fetch last X Followers of Channel Y" 
                           Command="{Binding FetchLastFollowersForChannelCommand, Mode=OneTime}"
 						  CommandParameter="{Binding ElementName=Window}"/>
 
