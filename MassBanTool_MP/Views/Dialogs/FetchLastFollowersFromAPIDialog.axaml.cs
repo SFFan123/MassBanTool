@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
-using MassBanToolMP.ViewModels;
+using MessageBox.Avalonia.Enums;
 
 namespace MassBanToolMP.Views.Dialogs
 {
@@ -25,7 +25,7 @@ namespace MassBanToolMP.Views.Dialogs
         {
             if (e.Key == Key.Escape)
             {
-                (DataContext as FetchLastFollowersFromAPIViewModel)?.CloseWindowCancel(this);
+                Close(ButtonResult.Abort);
             }
         }
     }

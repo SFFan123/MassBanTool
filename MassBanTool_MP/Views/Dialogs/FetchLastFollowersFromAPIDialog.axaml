@@ -14,7 +14,10 @@
     </Design.DataContext>
     <Panel Margin="2">
     <StackPanel>
-        <TextBlock Text="Channel: "/>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Channel: "/>
+            <TextBlock Text="{Binding Channel, Mode=OneWay}"/>
+        </StackPanel>
         <TextBox Text="{Binding Channel}" Watermark="admiralbahroo"/>
         <Slider Value="{Binding FetchAmount}" Minimum="100" Maximum="10000" TickFrequency="100" TickPlacement="BottomRight" IsSnapToTickEnabled="True"></Slider>
         <StackPanel Orientation="Horizontal">

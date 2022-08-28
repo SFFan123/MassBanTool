@@ -19,11 +19,13 @@
                 <MenuItem Header="Open File from _URL"
                           Command="{Binding OpenFileFromURLCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
-                <Separator />
                 <MenuItem Header="Fetch last X Followers of Channel Y" 
                           Command="{Binding FetchLastFollowersForChannelCommand, Mode=OneTime}"
-						  CommandParameter="{Binding ElementName=Window}"/>
-
+                          CommandParameter="{Binding ElementName=Window}"/>
+                <Separator />
+                <MenuItem Header="Save List as"
+                          Command="{Binding SaveListAsCommand}"
+                          CommandParameter="{Binding ElementName=Window}"/>
             </MenuItem>
             <MenuItem Header="_Credentials">
                 <MenuItem Header="_Load From Credential Manager" 

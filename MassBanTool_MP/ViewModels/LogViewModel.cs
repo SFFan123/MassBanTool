@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reactive;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
@@ -57,7 +58,7 @@ namespace MassBanToolMP.ViewModels
             }
         }
         
-        public static void Log(string message, string source = null)
+        public static void Log(string message, [CallerMemberName]string source = null)
         {
             if (string.IsNullOrEmpty(message))
                 return;

@@ -104,6 +104,7 @@ public class MainWindowViewModel : ViewModelBase
 
         OpenFileFromURLCommand = ReactiveCommand.Create<Window>(OpenFileFromURL);
         FetchLastFollowersForChannelCommand = ReactiveCommand.Create<Window>(FetchLastFollowersFromChannel);
+        SaveListAsCommand = ReactiveCommand.Create<Window>(SaveListAs);
         ConnectCommand = ReactiveCommand.Create(Connect);
         SaveDataCommand = ReactiveCommand.Create(SaveData);
         LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
@@ -133,6 +134,43 @@ public class MainWindowViewModel : ViewModelBase
         LoadData();
         _listType = default;
         LogViewModel.Log("Done Init GUI...");
+    }
+
+    private async void SaveListAs(Window window)
+    {
+        //TODO
+        //Window ask target type
+            // userlist
+            // readfile
+                // readfile option (ban/unban/etc)
+
+        // create string
+
+        var filepath = await new SaveFileDialog()
+        {
+            DefaultExtension = "txt",
+            Title = "Save list as ...",
+            InitialFileName = "MassBanToolListExport",
+            Filters = new List<FileDialogFilter>()
+            {
+                new ()
+                {
+                    Extensions = new List<string>(){"txt"}, 
+                    Name = "Text files"
+                },
+                new ()
+                {
+                    Extensions = new List<string>(){"*"}, 
+                    Name = "All files"
+                },
+            }
+        }.ShowAsync(window);
+
+        if (filepath == null)
+        {
+            return;
+        }
+
     }
 
     private async void EditLastVisitChannelsList(Window window)
@@ -305,6 +343,7 @@ public class MainWindowViewModel : ViewModelBase
     private ReactiveCommand<Window, Unit> OpenFileCommand { get; }
     private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
     private ReactiveCommand<Window, Unit> FetchLastFollowersForChannelCommand { get; }
+    private ReactiveCommand<Window, Unit> SaveListAsCommand { get; }
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }
@@ -1092,10 +1131,8 @@ public class MainWindowViewModel : ViewModelBase
         {
             DataContext = inputVM
         };
-
-        await input.ShowDialog(owner);
-
-        if ( inputVM.Result == ButtonResult.Ok)
+        
+        if (await input.ShowDialog<ButtonResult>(owner) == ButtonResult.Ok)
         {
             IsBusy = true;
 
@@ -1139,7 +1176,11 @@ public class MainWindowViewModel : ViewModelBase
 
         string content = await response.Content.ReadAsStringAsync();
 
-        string[] lines = content.Split(Environment.NewLine).AsParallel().Select(x => x.Trim()).ToArray();
+        string[] lines = content.Split('\r', '\n')
+            .AsParallel()
+            .Select(x => x.Trim())
+            .Where(x=> !string.IsNullOrEmpty(x))
+            .ToArray();
 
         SetLines(lines);
         CheckListType(false);

@@ -10,13 +10,11 @@ namespace MassBanToolMP.ViewModels
     {
         public FetchLastFollowersFromAPIViewModel()
         {
-            CloseOKCommand = ReactiveCommand.Create<Window>(CloseWindowOK, 
-                this.WhenAnyValue(x => x.HasErrors, errs => !errs));
-            CloseCancelCommand = ReactiveCommand.Create<Window>(CloseWindowCancel);
-            AddError("init", "Channel is Required");
-            Result = ButtonResult.None;
             _fetchAmount = 200;
             _channel = string.Empty;
+            CloseOKCommand = ReactiveCommand.Create<Window>(CloseWindowOK, 
+                this.WhenAnyValue(x => x.Channel, channel => channel!=null && channel.Length>2));
+            CloseCancelCommand = ReactiveCommand.Create<Window>(CloseWindowCancel);
         }
         private uint _fetchAmount;
         private string _channel;
@@ -38,13 +36,10 @@ namespace MassBanToolMP.ViewModels
                     return;
                 }
                 ClearError(nameof(Channel));
-                ClearError("init");
                 SetProperty(ref _channel, value);
             }
         }
-
-        public ButtonResult Result { get; private set; }
-
+        
 
         public void CloseWindowOK(Window window)
         {
@@ -52,14 +47,12 @@ namespace MassBanToolMP.ViewModels
             {
                 return;
             }
-            Result = ButtonResult.Ok;
-            window.Close();
+            window.Close(ButtonResult.Ok);
         }
 
         public void CloseWindowCancel(Window window)
         {
-            Result = ButtonResult.Cancel;
-            window.Close();
+            window.Close(ButtonResult.Cancel);
         }
 
         public ReactiveCommand<Window, Unit> CloseOKCommand { get; }
