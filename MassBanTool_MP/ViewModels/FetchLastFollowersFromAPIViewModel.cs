@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Reactive;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using MessageBox.Avalonia.Enums;
@@ -18,6 +19,7 @@ namespace MassBanToolMP.ViewModels
         }
         private uint _fetchAmount;
         private string _channel;
+        private readonly Regex linkToChannel = new(@"(?<=twitch\.tv/)\w+", RegexOptions.Compiled, TimeSpan.FromMilliseconds(10));
 
         public uint FetchAmount
         {
@@ -30,6 +32,11 @@ namespace MassBanToolMP.ViewModels
             get => _channel;
             set
             {
+                var match = linkToChannel.Match(value);
+                if (match.Success)
+                {
+                    value = match.Value;
+                }
                 if (value.Length < 2)
                 {
                     AddError(nameof(Channel), "Invalid channel name");
