@@ -25,7 +25,8 @@
                 <Separator />
                 <MenuItem Header="Save List as"
                           Command="{Binding SaveListAsCommand}"
-                          CommandParameter="{Binding ElementName=Window}"/>
+                          CommandParameter="{Binding ElementName=Window}"
+                          ToolTip.Tip="Saves the List as is to a file."/>
             </MenuItem>
             <MenuItem Header="_Credentials">
                 <MenuItem Header="_Load From Credential Manager" 
@@ -229,7 +230,8 @@
                             <Button Content="Export as Readfile"
                                     Margin="0,5,5,0"
                                     Command="{Binding SaveBanListAsCommand}"
-                                    CommandParameter="{Binding ElementName=Window}"/>
+                                    CommandParameter="{Binding ElementName=Window}"
+                                    ToolTip.Tip="Saves the List as ban list with the ban reason from above (overwrites whats in list) to a file."/>
                             <Button Content="Run"
                                     Width="60" 
                                     HorizontalContentAlignment="Center" 
@@ -247,7 +249,8 @@
                         <Button Content="Export as Readfile"
                                 Margin="0,5,5,0"
                                 Command="{Binding SaveUnBanListAsCommand}"
-                                CommandParameter="{Binding ElementName=Window}"/>
+                                CommandParameter="{Binding ElementName=Window}"
+                                ToolTip.Tip="Saves the List as unban list to a file."/>
                         <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
                                 Command="{Binding RunUnbanCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecRun}"/>
