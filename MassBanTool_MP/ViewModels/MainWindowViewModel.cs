@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,7 +105,12 @@ public class MainWindowViewModel : ViewModelBase
 
         OpenFileFromURLCommand = ReactiveCommand.Create<Window>(OpenFileFromURL);
         FetchLastFollowersForChannelCommand = ReactiveCommand.Create<Window>(FetchLastFollowersFromChannel);
-        SaveListAsCommand = ReactiveCommand.Create<Window>(SaveListAs);
+
+        var canSaveObservable = this.WhenAnyValue(x => x.Entries, entries => entries.Any());
+        SaveListAsCommand = ReactiveCommand.Create<Window>(window => SaveListAs(window, WorkingMode.Readfile), canSaveObservable);
+        SaveBanListAsCommand = ReactiveCommand.Create<Window>(window => SaveListAs(window, WorkingMode.Ban), canSaveObservable);
+        SaveUnBanListAsCommand = ReactiveCommand.Create<Window>(window => SaveListAs(window, WorkingMode.Unban), canSaveObservable);
+
         ConnectCommand = ReactiveCommand.Create(Connect);
         SaveDataCommand = ReactiveCommand.Create(SaveData);
         LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
@@ -136,20 +142,26 @@ public class MainWindowViewModel : ViewModelBase
         LogViewModel.Log("Done Init GUI...");
     }
 
-    private async void SaveListAs(Window window)
+    private async void SaveListAs(Window window, WorkingMode mode)
     {
-        //TODO
-        //Window ask target type
-            // userlist
-            // readfile
-                // readfile option (ban/unban/etc)
-
-        // create string
-
+        IsBusy = true;
+        string title = string.Empty;
+        if (mode == WorkingMode.Readfile)
+        {
+            title = "Save list as ...";
+        }
+        else if (mode == WorkingMode.Ban)
+        {
+            title = "Save Ban list as ...";
+        }
+        else if (mode == WorkingMode.Unban)
+        {
+            title = "Save Unban list as ...";
+        }
         var filepath = await new SaveFileDialog()
         {
             DefaultExtension = "txt",
-            Title = "Save list as ...",
+            Title = title,
             InitialFileName = "MassBanToolListExport",
             Filters = new List<FileDialogFilter>()
             {
@@ -171,6 +183,26 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        string result = string.Empty;
+        if (mode == WorkingMode.Readfile)
+        {
+            result = string.Join(Environment.NewLine,
+                Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => x.ChatCommand));
+        }
+        else if (mode == WorkingMode.Ban)
+        {
+            result = string.Join(Environment.NewLine, 
+                Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".ban {x.Name} {Reason}".Trim()));
+        }
+        else if (mode == WorkingMode.Unban)
+        {
+            result = string.Join(Environment.NewLine, 
+                Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".unban {x.Name}".Trim()));
+        }
+
+        await File.WriteAllTextAsync(filepath, result);
+        IsBusy = false;
+        GC.Collect();
     }
 
     private async void EditLastVisitChannelsList(Window window)
@@ -344,6 +376,8 @@ public class MainWindowViewModel : ViewModelBase
     private ReactiveCommand<Window, Unit> OpenFileFromURLCommand { get; }
     private ReactiveCommand<Window, Unit> FetchLastFollowersForChannelCommand { get; }
     private ReactiveCommand<Window, Unit> SaveListAsCommand { get; }
+    private ReactiveCommand<Window, Unit> SaveBanListAsCommand { get; }
+    private ReactiveCommand<Window, Unit> SaveUnBanListAsCommand { get; }
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }

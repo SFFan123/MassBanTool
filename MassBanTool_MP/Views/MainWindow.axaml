@@ -226,7 +226,14 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Template="{StaticResource PauseButton}" Margin="0,0,5,0" />
                             <Button Template="{StaticResource AbortButton}" Margin="0,0,5,0" />
-                            <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
+                            <Button Content="Export as Readfile"
+                                    Margin="0,5,5,0"
+                                    Command="{Binding SaveBanListAsCommand}"
+                                    CommandParameter="{Binding ElementName=Window}"/>
+                            <Button Content="Run"
+                                    Width="60" 
+                                    HorizontalContentAlignment="Center" 
+                                    Margin="0,5,0,0"
                                     Command="{Binding RunBanCommand, Mode=OneTime}" 
                                     IsEnabled="{Binding CanExecRun}"/>
                         </StackPanel>
@@ -237,7 +244,11 @@
                     <StackPanel Orientation="Horizontal" Margin="0" VerticalAlignment="Top">
                         <Button Template="{StaticResource PauseButton}" Margin="0,0,5,0" />
                         <Button Template="{StaticResource AbortButton}" Margin="0,0,5,0" />
-                        <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,3,0,0"
+                        <Button Content="Export as Readfile"
+                                Margin="0,5,5,0"
+                                Command="{Binding SaveUnBanListAsCommand}"
+                                CommandParameter="{Binding ElementName=Window}"/>
+                        <Button Content="Run" Width="60" HorizontalContentAlignment="Center" Margin="0,5,0,0"
                                 Command="{Binding RunUnbanCommand, Mode=OneTime}"
                                 IsEnabled="{Binding CanExecRun}"/>
                     </StackPanel>
