@@ -1183,8 +1183,7 @@ namespace MassBanToolMP.ViewModels
                 IsBusy = false;
             }
         }
-
-
+        
         private async void FetchLinesAndSet(Uri uri)
         {
             HttpResponseMessage response;
@@ -1387,10 +1386,6 @@ namespace MassBanToolMP.ViewModels
                             {
                                 commandtoExecute = entry.ChatCommand;
                                 user = entry.Name;
-                                break;
-                            }
-                            default:
-                            {
                                 break;
                             }
                         }
