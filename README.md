@@ -8,8 +8,9 @@ this is a side project.
 Code is probably ugly, but it's 'working' so.
 
 ## Important Notice
-Currently rewriting the tool on .net (core) 6 so it can run on Windows and Linux. This is still in Progress and the App on .net 6 is not working yet.
+Rewritten the tool on .net (core) 6 so it can run on Windows and Linux.
 The old version ist still in this Repo (/MassBanTool_NET)
+.NET Framework Version is no longer updated.
 
 ## Info
 Using a delay of under 1500 ms between messages will negatively impact your ability to write in other channels which you do not have moderation privileges.
