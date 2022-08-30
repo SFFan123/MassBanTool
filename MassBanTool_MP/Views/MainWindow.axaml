@@ -22,6 +22,8 @@
                 <MenuItem Header="Fetch last X Followers of Channel Y" 
                           Command="{Binding FetchLastFollowersForChannelCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
+                <Separator/>
+                <MenuItem Header="Clear Results" Command="{Binding ClearResultsCommand}"/>
                 <Separator />
                 <MenuItem Header="Save List as"
                           Command="{Binding SaveListAsCommand}"
@@ -57,13 +59,15 @@
                 <Separator/>
                 <CheckBox Content="Dry Run"
                           ToolTip.Tip="No commands get sent to twitch, only in log."
-                          IsChecked="{Binding DryRun}" />
+                          IsChecked="{Binding DryRun}" 
+                          IsEnabled="{Binding CanExecRun}" />
             </MenuItem>
             <MenuItem Header="_Misc">
                 <MenuItem Header="Show Log window" Command="{Binding ShowLogWindowCommand, Mode=OneTime}" 
                           CommandParameter="{Binding ElementName=Window}"/>
                 <Separator />
-                <MenuItem Header="Open Github Page" Command="{Binding OpenGitHubPageCommand, Mode=OneTime}" />
+                <MenuItem Header="Open Github Page" 
+                          Command="{Binding OpenGitHubPageCommand, Mode=OneTime}"/>
             </MenuItem>
             <MenuItem Header="_Help" HotKey="F1">
                 <MenuItem Header="_General" Command="{Binding OpenWikiCommand, Mode=OneTime}" />

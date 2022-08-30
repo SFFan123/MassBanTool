@@ -21,6 +21,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
 using IX.Observable;
+using IX.StandardExtensions.Extensions;
 using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views;
@@ -53,6 +54,10 @@ namespace MassBanToolMP.ViewModels
             "Listtype does not match the selected operation mode. Do you want to ignore the additional params and run this anyways?";
 
         private const string LSITTYPEMISMATCH = "Listtype Mismatch";
+        private const string ResultDryBanned = "Dry Banned";
+        private const string ResultBanned = "ResultBanned";
+        private const string ResultAlreadyBanned = "Already Banned";
+        private const string ResultFormatBadBanTarget = "Bad Ban Target - ";
 
         private readonly LogViewModel _logModel;
 
@@ -114,6 +119,7 @@ namespace MassBanToolMP.ViewModels
             SaveUnBanListAsCommand =
                 ReactiveCommand.Create<Window>(window => SaveListAs(window, WorkingMode.Unban), canSaveObservable);
 
+            ClearResultsCommand = ReactiveCommand.Create(ClearResults);
             ConnectCommand = ReactiveCommand.Create(Connect);
             SaveDataCommand = ReactiveCommand.Create(SaveData);
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
@@ -143,6 +149,20 @@ namespace MassBanToolMP.ViewModels
             LoadData();
             _listType = default;
             LogViewModel.Log("Done Init GUI...");
+        }
+
+        private void ClearResults()
+        {
+            IsBusy = true;
+            Entries.AsParallel()
+                .ForEach(x =>
+                {
+                    x.Result.Keys.ForEach(y =>
+                    {
+                        x.Result[y] = string.Empty;
+                    });
+                });
+            IsBusy = false;
         }
 
         private async void SaveListAs(Window window, WorkingMode mode)
@@ -208,7 +228,6 @@ namespace MassBanToolMP.ViewModels
             IsBusy = false;
             GC.Collect();
         }
-
         private async void EditLastVisitChannelsList(Window window)
         {
             var inputVM = new EditIENumerableDialogViewModel("Channels", _lastVisitedChannels);
@@ -222,8 +241,6 @@ namespace MassBanToolMP.ViewModels
                 BuildLastVisitChannelContextMenu();
             }
         }
-
-
         private void StoreCredentials()
         {
             if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(OAuth))
@@ -269,8 +286,6 @@ namespace MassBanToolMP.ViewModels
         public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
 
         public bool CanExecRun => IsConnected && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
-
-
         public string Username
         {
             get => _username;
@@ -383,6 +398,7 @@ namespace MassBanToolMP.ViewModels
         private ReactiveCommand<Window, Unit> SaveBanListAsCommand { get; }
         private ReactiveCommand<Window, Unit> SaveUnBanListAsCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
+        public ReactiveCommand<Unit, Unit> ClearResultsCommand { get; }
         public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }
         public ReactiveCommand<Unit, Unit> StoreCredentialsCommand { get; }
@@ -1019,19 +1035,19 @@ namespace MassBanToolMP.ViewModels
                 "Missing Permissions in channel.");
         }
 
-        public void OnUserBanned(string channel, string username)
+        public void OnUserBanned(string channel, string username, bool dryRun = false)
         {
-            AddToResult(username, channel, "Banned");
+            AddToResult(username, channel, dryRun?ResultDryBanned:ResultBanned);
         }
 
         public void OnUserAlreadyBanned(string channel, string username)
         {
-            AddToResult(username, channel, "Already Banned");
+            AddToResult(username, channel, ResultAlreadyBanned);
         }
-
+        
         public void OnBadUserBan(string channel, string username, string msg_id)
         {
-            AddToResult(username, channel, "Bad Ban Target - " + msg_id);
+            AddToResult(username, channel, ResultFormatBadBanTarget + msg_id);
 
             var entry = Entries.FirstOrDefault(
                 x => x.Name.Equals(username, StringComparison.InvariantCultureIgnoreCase));
@@ -1400,7 +1416,7 @@ namespace MassBanToolMP.ViewModels
                             if (DryRun)
                             {
                                 LogViewModel.Log($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
-                                OnUserBanned(channel.Channel, user);
+                                OnUserBanned(channel.Channel, user, true);
                             }
                             else
                             {
