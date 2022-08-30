@@ -6,7 +6,7 @@ namespace MassBanToolMP
 {
     internal class Program
     {
-        public static Version Version { get; } = new(1,0,0,0);
+        public static Version Version { get; } = new(1,0,4,2);
 
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized

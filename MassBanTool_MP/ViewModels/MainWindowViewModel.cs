@@ -15,6 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
@@ -94,6 +96,9 @@ namespace MassBanToolMP.ViewModels
         private TwitchChatClient? _twitchChatClient;
         private Mutex _userMutex;
         public static readonly IAssetLoader assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
+        private bool _settingLoadCredentialsOnStartup;
+        private bool _checkForNewVerionOnStartup;
+        private bool _includePrereleases;
 
 
         public MainWindowViewModel()
@@ -119,6 +124,7 @@ namespace MassBanToolMP.ViewModels
             SaveUnBanListAsCommand =
                 ReactiveCommand.Create<Window>(window => SaveListAs(window, WorkingMode.Unban), canSaveObservable);
 
+            CheckForNewVersionsCommand = ReactiveCommand.Create<Window>(CheckForNewVersions);
             ClearResultsCommand = ReactiveCommand.Create(ClearResults);
             ConnectCommand = ReactiveCommand.Create(Connect);
             SaveDataCommand = ReactiveCommand.Create(SaveData);
@@ -157,6 +163,8 @@ namespace MassBanToolMP.ViewModels
             Entries.AsParallel()
                 .ForEach(x =>
                 {
+                    if(!x.IsValid)
+                        return;
                     x.Result.Keys.ForEach(y =>
                     {
                         x.Result[y] = string.Empty;
@@ -350,6 +358,24 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref _banProgress, value);
         }
 
+        public bool SettingLoadCredentialsOnStartup
+        {
+            get => _settingLoadCredentialsOnStartup;
+            set => SetProperty(ref _settingLoadCredentialsOnStartup, value);
+        }
+
+        public bool CheckForNewVerionOnStartup
+        {
+            get => _checkForNewVerionOnStartup;
+            set => SetProperty(ref _checkForNewVerionOnStartup, value);
+        }
+
+        public bool IncludePrereleases
+        {
+            get => _includePrereleases;
+            set => SetProperty(ref _includePrereleases, value);
+        }
+
         public bool IsConnected
         {
             get
@@ -397,6 +423,7 @@ namespace MassBanToolMP.ViewModels
         private ReactiveCommand<Window, Unit> SaveListAsCommand { get; }
         private ReactiveCommand<Window, Unit> SaveBanListAsCommand { get; }
         private ReactiveCommand<Window, Unit> SaveUnBanListAsCommand { get; }
+        private ReactiveCommand<Window, Unit> CheckForNewVersionsCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
         public ReactiveCommand<Unit, Unit> ClearResultsCommand { get; }
         public ReactiveCommand<Unit, Unit> LoadCredentialsCommand { get; }
@@ -542,8 +569,6 @@ namespace MassBanToolMP.ViewModels
             if (data?.lastVisitedChannel != null)
             {
                 _lastVisitedChannels = data.lastVisitedChannel.ToList();
-
-
                 BuildLastVisitChannelContextMenu();
             }
             else
@@ -556,7 +581,26 @@ namespace MassBanToolMP.ViewModels
             else
                 ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
 
+            if (data != null) 
+                _settingLoadCredentialsOnStartup = data.LoadCredentialOnStartup;
+
             LogViewModel.Log("Done loading setting for this User.");
+
+            if (_settingLoadCredentialsOnStartup)
+            {
+                LoadCredentials();
+            }
+
+            if (data != null)
+            {
+                _checkForNewVerionOnStartup = data.checkForUpdates;
+                _includePrereleases = data.includePrereleases;
+            }
+            
+            if (_checkForNewVerionOnStartup)
+            {
+                CheckForNewVersions((App.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+            }
         }
 
         private void BuildLastVisitChannelContextMenu()
@@ -602,7 +646,10 @@ namespace MassBanToolMP.ViewModels
                     .Select(x => x.Trim())
                     .Where(x => x != string.Empty)
                     .ToHashSet(),
-                message_delay = _messageDelay
+                message_delay = _messageDelay,
+                LoadCredentialOnStartup = SettingLoadCredentialsOnStartup,
+                checkForUpdates = CheckForNewVerionOnStartup,
+                includePrereleases = IncludePrereleases
             };
 
             var result = data.ToJSON();
@@ -1202,23 +1249,7 @@ namespace MassBanToolMP.ViewModels
         
         private async void FetchLinesAndSet(Uri uri)
         {
-            HttpResponseMessage response;
-
-            using (HttpClient client = new HttpClient())
-            {
-                var httpRequestMessage = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Get,
-                    RequestUri = uri,
-                    Headers =
-                    {
-                        { HttpRequestHeader.Accept.ToString(), "text/plain" },
-                        { HttpRequestHeader.UserAgent.ToString(), "MassBanTool/" + Program.Version }
-                    }
-                };
-
-                response = await client.SendAsync(httpRequestMessage);
-            }
+            HttpResponseMessage response = await HttpHelper.FetchPlainPage(uri);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -1240,6 +1271,58 @@ namespace MassBanToolMP.ViewModels
             CheckListType(false);
         }
 
+        private async void CheckForNewVersions(Window window)
+        {
+            IsBusy = true;
+            
+            var rel = await HttpHelper.FetchGitHubReleases();
+
+            string version = string.Empty;
+            string name = string.Empty;
+            string url = string.Empty;
+
+            if (_includePrereleases)
+            {
+                version = rel.Item2["tag_name"].ToString();
+                name = rel.Item2["name"].ToString();
+                url = rel.Item2["html_url"].ToString();
+            }
+            else
+            {
+                version = rel.Item1["tag_name"].ToString();
+                name = rel.Item1["name"].ToString();
+                url = rel.Item1["html_url"].ToString();
+            }
+
+            var match = Regex.Match(version, @"\d+\.\d+\.\d+\.\d+");
+
+            Version remoteVersion;
+            ButtonResult DiagResult = ButtonResult.Cancel;
+            if (Version.TryParse(match.Value, out remoteVersion))
+            {
+                if (remoteVersion > Program.Version)
+                {
+                    DiagResult = await MessageBox.Show("New version.\n" + version + Environment.NewLine + name +"\nDo you want to open the page?", "New Version",
+                        ButtonEnum.YesNo);
+                }
+                else
+                {
+                    await MessageBox.Show("This is the newest Version", "No new version");
+                }
+            }
+            else
+            {
+                DiagResult = await MessageBox.Show("Cannot parse new version.\n" + version + Environment.NewLine + name + "\nDo you want to open the page?", "Cannot parse Version",
+                    ButtonEnum.YesNo);
+                
+            }
+            if (DiagResult == ButtonResult.Yes)
+            {
+                OpenUrl(url);
+            }
+
+            IsBusy = false;
+        }
 
         private async void SetLines(IEnumerable<string> lines)
         {

@@ -21,6 +21,8 @@ namespace MassBanToolMP.Models
 
         public bool includePrereleases { get; set; }
 
+        public bool LoadCredentialOnStartup { get; set; }
+
         public string ToJSON()
         {
             return JsonConvert.SerializeObject(this);

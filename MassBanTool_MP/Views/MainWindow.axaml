@@ -42,10 +42,12 @@
                           ToolTip.Tip="https://twitchapps.com/tmi/" />
             </MenuItem>
             <MenuItem Header="_Settings">
-                <MenuItem Header="App Settings" IsEnabled="False" />
-                <MenuItem Header="_Save" Command="{Binding SaveDataCommand, Mode=OneTime}"/>
+                <MenuItem Header="_Save App Settings" Command="{Binding SaveDataCommand, Mode=OneTime}"/>
                 <MenuItem Header="Edit Last Visit channels" Command="{Binding EditLastVisitChannelCommand}" CommandParameter="{Binding ElementName=Window}"/>
-                <Separator />
+                <Separator/>
+                <CheckBox Content="Load Credentials on Startup"
+                          IsChecked="{Binding SettingLoadCredentialsOnStartup}"/>
+                <Separator/>
                 <MenuItem Header="Special User">
                     <CheckBox Content="Protect VIPs/Mods from Commands"
                               IsChecked="{Binding ProtectSpecialUsers}" />
@@ -68,6 +70,14 @@
                 <Separator />
                 <MenuItem Header="Open Github Page" 
                           Command="{Binding OpenGitHubPageCommand, Mode=OneTime}"/>
+                <Separator/>
+                <MenuItem Header="Check for new Version"
+                          Command="{Binding CheckForNewVersionsCommand}"
+                          CommandParameter="{Binding ElementName=Window}"/>
+                <CheckBox Content="Check for new Version on Startup"
+                          IsChecked="{Binding CheckForNewVerionOnStartup}"/>
+                <CheckBox Content="Include Pre-Releases"
+                          IsChecked="{Binding IncludePrereleases}"/>
             </MenuItem>
             <MenuItem Header="_Help" HotKey="F1">
                 <MenuItem Header="_General" Command="{Binding OpenWikiCommand, Mode=OneTime}" />
