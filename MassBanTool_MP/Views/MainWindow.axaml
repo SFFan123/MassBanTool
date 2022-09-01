@@ -88,6 +88,7 @@
                     <MenuItem Header="Regex101.com" Command="{Binding OpenRegex101Command, Mode=OneTime}" />
                     <MenuItem Header="MS Docs on Regex" Command="{Binding OpenRegexDocsCommand, Mode=OneTime}" />
                 </MenuItem>
+                <MenuItem Header="Info" Command="{Binding ShowInfoWindowCommand}"/>
             </MenuItem>
         </Menu>
 

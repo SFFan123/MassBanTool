@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Runtime.InteropServices;
@@ -16,7 +15,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
@@ -33,7 +31,6 @@ using ReactiveUI;
 
 namespace MassBanToolMP.ViewModels
 {
-
     public class MainWindowViewModel : ViewModelBase
     {
         private const string MESSAGE_DELAY_TOO_LOW = "Delay may not be under 300ms";
@@ -61,44 +58,44 @@ namespace MassBanToolMP.ViewModels
         private const string ResultAlreadyBanned = "Already Banned";
         private const string ResultFormatBadBanTarget = "Bad Ban Target - ";
 
+        private static IDisposable isConnectedObservable;
+        public static readonly IAssetLoader assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
+
         private readonly LogViewModel _logModel;
 
-        private static IDisposable isConnectedObservable;
-
         private string _allowedActions;
-        private string _oAuth;
-        private string _reason;
-        private string _username;
-        private string _channelS = string.Empty;
-        private string filterRegex = string.Empty;
 
         private double _banProgress;
+        private string _channelS = string.Empty;
+        private bool _checkForNewVerionOnStartup;
+        private bool _dryRun;
 
         private ObservableCollection<Entry> _entries;
         private TimeSpan _eta;
+        private bool _includePrereleases;
+        private List<string> _lastVisitedChannels = new();
+        private ContextMenu? _lastVisitedChannelsMenu;
+        private bool _listFilterRemoveMatching = false;
+        private ListType _listType;
+        private LogWindow _logWindow;
         private int _messageDelay = 301;
+        private string _oAuth;
 
         private bool _paused;
-        private bool _dryRun;
-        private bool _readFileCommandMismatchSkip;
         private bool _protectSpecialUsers = true;
         private bool _readFileCommandMismatchCancel = true;
-        private bool _listFilterRemoveMatching = false;
-
-        private Task _worker;
-        private List<string> channels = new();
-        private ContextMenu? _lastVisitedChannelsMenu;
-        private List<string> _lastVisitedChannels = new();
-        private ListType _listType;
+        private bool _readFileCommandMismatchSkip;
+        private string _reason;
+        private bool _settingLoadCredentialsOnStartup;
         private CancellationToken _token;
-        private LogWindow _logWindow;
         private CancellationTokenSource _tokenSource;
         private TwitchChatClient? _twitchChatClient;
         private Mutex _userMutex;
-        public static readonly IAssetLoader assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-        private bool _settingLoadCredentialsOnStartup;
-        private bool _checkForNewVerionOnStartup;
-        private bool _includePrereleases;
+        private string _username;
+
+        private Task _worker;
+        private List<string> channels = new();
+        private string filterRegex = string.Empty;
 
 
         public MainWindowViewModel()
@@ -106,7 +103,7 @@ namespace MassBanToolMP.ViewModels
             _logModel = new LogViewModel();
             LogViewModel.Log("Init GUI...");
 
-            WindowTitle = "MassBanTool " + Program.Version + "beta.3";
+            WindowTitle = "MassBanTool " + Program.Version;
 
             Entries = new ObservableCollection<Entry>();
 
@@ -151,109 +148,11 @@ namespace MassBanToolMP.ViewModels
             OpenRegex101Command = ReactiveCommand.Create(() => OpenUrl(HELP_URL_REGEX101));
             OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_MAIN_GITHUB));
             ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
+            ShowInfoWindowCommand = ReactiveCommand.Create<Window>(ShowInfoWindow);
 
             LoadData();
             _listType = default;
             LogViewModel.Log("Done Init GUI...");
-        }
-
-        private void ClearResults()
-        {
-            IsBusy = true;
-            Entries.AsParallel()
-                .ForEach(x =>
-                {
-                    if(!x.IsValid)
-                        return;
-                    x.Result.Keys.ForEach(y =>
-                    {
-                        x.Result[y] = string.Empty;
-                    });
-                });
-            IsBusy = false;
-        }
-
-        private async void SaveListAs(Window window, WorkingMode mode)
-        {
-            IsBusy = true;
-            string title = string.Empty;
-            if (mode == WorkingMode.Readfile)
-            {
-                title = "Save list as ...";
-            }
-            else if (mode == WorkingMode.Ban)
-            {
-                title = "Save Ban list as ...";
-            }
-            else if (mode == WorkingMode.Unban)
-            {
-                title = "Save Unban list as ...";
-            }
-
-            var filepath = await new SaveFileDialog()
-            {
-                DefaultExtension = "txt",
-                Title = title,
-                InitialFileName = "MassBanToolListExport",
-                Filters = new List<FileDialogFilter>()
-                {
-                    new()
-                    {
-                        Extensions = new List<string>() { "txt" },
-                        Name = "Text files"
-                    },
-                    new()
-                    {
-                        Extensions = new List<string>() { "*" },
-                        Name = "All files"
-                    },
-                }
-            }.ShowAsync(window);
-
-            if (filepath == null)
-            {
-                return;
-            }
-
-            string result = string.Empty;
-            if (mode == WorkingMode.Readfile)
-            {
-                result = string.Join(Environment.NewLine,
-                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => x.ChatCommand));
-            }
-            else if (mode == WorkingMode.Ban)
-            {
-                result = string.Join(Environment.NewLine,
-                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".ban {x.Name} {Reason}".Trim()));
-            }
-            else if (mode == WorkingMode.Unban)
-            {
-                result = string.Join(Environment.NewLine,
-                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".unban {x.Name}".Trim()));
-            }
-
-            await File.WriteAllTextAsync(filepath, result);
-            IsBusy = false;
-            GC.Collect();
-        }
-        private async void EditLastVisitChannelsList(Window window)
-        {
-            var inputVM = new EditIENumerableDialogViewModel("Channels", _lastVisitedChannels);
-            var input = new EditIeNumerableDialog()
-            {
-                DataContext = inputVM
-            };
-            if (await input.ShowDialog<ButtonResult>(window) == ButtonResult.Ok)
-            {
-                _lastVisitedChannels = inputVM.Objects.Select(x => x.Value.ToLower()).ToList();
-                BuildLastVisitChannelContextMenu();
-            }
-        }
-        private void StoreCredentials()
-        {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(OAuth))
-                return;
-            SecretHelper.StoreCredentials(Username, OAuth);
         }
 
         private Task Worker
@@ -294,6 +193,7 @@ namespace MassBanToolMP.ViewModels
         public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
 
         public bool CanExecRun => IsConnected && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
+
         public string Username
         {
             get => _username;
@@ -447,6 +347,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> OpenGitHubPageCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenRegex101Command { get; }
         public ReactiveCommand<Window, Unit> ShowLogWindowCommand { get; }
+        public ReactiveCommand<Window, Unit> ShowInfoWindowCommand { get; }
         public ReactiveCommand<Window, Unit> EditLastVisitChannelCommand { get; }
         public ReactiveCommand<Unit, Unit> GetOAuthCommand { get; }
 
@@ -543,6 +444,104 @@ namespace MassBanToolMP.ViewModels
 
         public string WindowTitle { get; set; }
 
+        private void ClearResults()
+        {
+            IsBusy = true;
+            Entries.AsParallel()
+                .ForEach(x =>
+                {
+                    if (!x.IsValid)
+                        return;
+                    x.Result.Keys.ForEach(y => { x.Result[y] = string.Empty; });
+                });
+            IsBusy = false;
+        }
+
+        private async void SaveListAs(Window window, WorkingMode mode)
+        {
+            IsBusy = true;
+            string title = string.Empty;
+            if (mode == WorkingMode.Readfile)
+            {
+                title = "Save list as ...";
+            }
+            else if (mode == WorkingMode.Ban)
+            {
+                title = "Save Ban list as ...";
+            }
+            else if (mode == WorkingMode.Unban)
+            {
+                title = "Save Unban list as ...";
+            }
+
+            var filepath = await new SaveFileDialog()
+            {
+                DefaultExtension = "txt",
+                Title = title,
+                InitialFileName = "MassBanToolListExport",
+                Filters = new List<FileDialogFilter>()
+                {
+                    new()
+                    {
+                        Extensions = new List<string>() { "txt" },
+                        Name = "Text files"
+                    },
+                    new()
+                    {
+                        Extensions = new List<string>() { "*" },
+                        Name = "All files"
+                    },
+                }
+            }.ShowAsync(window);
+
+            if (filepath == null)
+            {
+                return;
+            }
+
+            string result = string.Empty;
+            if (mode == WorkingMode.Readfile)
+            {
+                result = string.Join(Environment.NewLine,
+                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => x.ChatCommand));
+            }
+            else if (mode == WorkingMode.Ban)
+            {
+                result = string.Join(Environment.NewLine,
+                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".ban {x.Name} {Reason}".Trim()));
+            }
+            else if (mode == WorkingMode.Unban)
+            {
+                result = string.Join(Environment.NewLine,
+                    Entries.AsParallel().WithDegreeOfParallelism(8).Select(x => $".unban {x.Name}".Trim()));
+            }
+
+            await File.WriteAllTextAsync(filepath, result);
+            IsBusy = false;
+            GC.Collect();
+        }
+
+        private async void EditLastVisitChannelsList(Window window)
+        {
+            var inputVM = new EditIENumerableDialogViewModel("Channels", _lastVisitedChannels);
+            var input = new EditIeNumerableDialog()
+            {
+                DataContext = inputVM
+            };
+            if (await input.ShowDialog<ButtonResult>(window) == ButtonResult.Ok)
+            {
+                _lastVisitedChannels = inputVM.Objects.Select(x => x.Value.ToLower()).ToList();
+                BuildLastVisitChannelContextMenu();
+            }
+        }
+
+        private void StoreCredentials()
+        {
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(OAuth))
+                return;
+            SecretHelper.StoreCredentials(Username, OAuth);
+        }
+
 
         private void LoadData()
         {
@@ -581,7 +580,7 @@ namespace MassBanToolMP.ViewModels
             else
                 ReadFileAllowedActions = string.Join(Environment.NewLine, Defaults.AllowedActions);
 
-            if (data != null) 
+            if (data != null)
                 _settingLoadCredentialsOnStartup = data.LoadCredentialOnStartup;
 
             LogViewModel.Log("Done loading setting for this User.");
@@ -596,10 +595,11 @@ namespace MassBanToolMP.ViewModels
                 _checkForNewVerionOnStartup = data.checkForUpdates;
                 _includePrereleases = data.includePrereleases;
             }
-            
+
             if (_checkForNewVerionOnStartup)
             {
-                CheckForNewVersions((App.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow);
+                CheckForNewVersions((App.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow);
             }
         }
 
@@ -913,6 +913,15 @@ namespace MassBanToolMP.ViewModels
             _logWindow.Show(owner);
         }
 
+        private async void ShowInfoWindow(Window owner)
+        {
+            await MessageBox.Show("Author: Dr_SFFan123\n" +
+                                  "QA: Sileniful\n" +
+                                  "License: MIT\n" +
+                                  "Version: " + Program.Version + "\n" +
+                                  "Git Repo: https://github.com/SFFan123/MassBanTool", "MassBanTool Info");
+        }
+
         private Regex CreateFilterRegex()
         {
             var regexOptions = RegexOptions.Compiled;
@@ -1084,14 +1093,14 @@ namespace MassBanToolMP.ViewModels
 
         public void OnUserBanned(string channel, string username, bool dryRun = false)
         {
-            AddToResult(username, channel, dryRun?ResultDryBanned:ResultBanned);
+            AddToResult(username, channel, dryRun ? ResultDryBanned : ResultBanned);
         }
 
         public void OnUserAlreadyBanned(string channel, string username)
         {
             AddToResult(username, channel, ResultAlreadyBanned);
         }
-        
+
         public void OnBadUserBan(string channel, string username, string msg_id)
         {
             AddToResult(username, channel, ResultFormatBadBanTarget + msg_id);
@@ -1246,7 +1255,7 @@ namespace MassBanToolMP.ViewModels
                 IsBusy = false;
             }
         }
-        
+
         private async void FetchLinesAndSet(Uri uri)
         {
             HttpResponseMessage response = await HttpHelper.FetchPlainPage(uri);
@@ -1274,7 +1283,7 @@ namespace MassBanToolMP.ViewModels
         private async void CheckForNewVersions(Window window)
         {
             IsBusy = true;
-            
+
             var rel = await HttpHelper.FetchGitHubReleases();
 
             string version = string.Empty;
@@ -1302,7 +1311,9 @@ namespace MassBanToolMP.ViewModels
             {
                 if (remoteVersion > Program.Version)
                 {
-                    DiagResult = await MessageBox.Show("New version.\n" + version + Environment.NewLine + name +"\nDo you want to open the page?", "New Version",
+                    DiagResult = await MessageBox.Show(
+                        "New version.\n" + version + Environment.NewLine + name + "\nDo you want to open the page?",
+                        "New Version",
                         ButtonEnum.YesNo);
                 }
                 else
@@ -1312,10 +1323,12 @@ namespace MassBanToolMP.ViewModels
             }
             else
             {
-                DiagResult = await MessageBox.Show("Cannot parse new version.\n" + version + Environment.NewLine + name + "\nDo you want to open the page?", "Cannot parse Version",
+                DiagResult = await MessageBox.Show(
+                    "Cannot parse new version.\n" + version + Environment.NewLine + name +
+                    "\nDo you want to open the page?", "Cannot parse Version",
                     ButtonEnum.YesNo);
-                
             }
+
             if (DiagResult == ButtonResult.Yes)
             {
                 OpenUrl(url);
