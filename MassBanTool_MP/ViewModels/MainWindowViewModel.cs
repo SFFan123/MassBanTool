@@ -965,9 +965,12 @@ namespace MassBanToolMP.ViewModels
         {
             if (!CanConnect) return;
 
-            if (IsConnected) SwitchChannel();
-
-
+            if (IsConnected)
+            {
+                SwitchChannel();
+                return;
+            }
+            
             if (!CheckMutex())
             {
                 await MessageBox.Show("Only one instance with the same username allowed to run.", "Mutex error");
