@@ -11,6 +11,7 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <None Remove=".gitignore" />
+    <None Remove="Assets\triangle-exclamation-solid.ico" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\moderator.ico" />

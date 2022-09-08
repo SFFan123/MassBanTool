@@ -191,6 +191,12 @@
                         <TextBox Width="200"
                                  Margin="0,5,0,0"
                                  Text="{Binding ChannelS}"/>
+                        <Image Source="/Assets/triangle-exclamation-solid.ico"
+                               IsVisible="{Binding DisplayChannelWarning}"
+                               Height="28"
+                               Width="28"
+                               Margin="5,0"
+                               ToolTip.Tip="Channel count over the amount that can be joined at once, joining might take a while."/>
                         <Button Margin="2,6" Content="&#709;" Click="Button_OnClick"
                                 ContextMenu="{Binding LastVisitedChannelsMenu}" />
                     </StackPanel>

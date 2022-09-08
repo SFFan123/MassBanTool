@@ -53,7 +53,7 @@ namespace MassBanToolMP.Models
             client = InitializeClient();
 
             RegisterClientEventHandler(client);
-
+            
             client.Connect();
         }
 
@@ -65,7 +65,7 @@ namespace MassBanToolMP.Models
 
         private TwitchClient InitializeClient()
         {
-            client.Initialize(credentials, channels);
+            client.Initialize(credentials);
             return client;
         }
 
@@ -94,6 +94,7 @@ namespace MassBanToolMP.Models
 
         private void ClientOnConnected(object? sender, OnConnectedArgs e)
         {
+            JoinChannels(channels);
             owner.OnConnected();
         }
 
@@ -117,7 +118,6 @@ namespace MassBanToolMP.Models
         {
             owner.IncorrectLogin();
         }
-
 
         private void Client_OnUnaccountedFor(object? sender, OnUnaccountedForArgs e)
         {
@@ -145,10 +145,33 @@ namespace MassBanToolMP.Models
             owner.OnUserBanned(e.UserBan.Channel, e.UserBan.Username);
         }
 
+        private Dictionary<string, int> joinFails = new();
+
         private void Client_OnFailureToReceiveJoinConfirmation(object? sender, OnFailureToReceiveJoinConfirmationArgs e)
         {
+            if (!string.IsNullOrEmpty(e.Exception.Details))
+            {
+                LogViewModel.Log(e.Exception.Details);
+                owner.FailedToJoinChannel(e.Exception.Channel, e.Exception.Details);
+            }
+            if (joinFails.TryGetValue(e.Exception.Channel, out int value))
+            {
+                joinFails[e.Exception.Channel]++;
+            }
+            else
+            {
+                joinFails.Add(e.Exception.Channel, 1);
+            }
+
+            if (value > 3)
+            {
+                owner.FailedToJoinChannel(e.Exception.Channel, e.Exception.Details);
+                return;
+            }
+            //count errors and retry.
             LogViewModel.Log(e.Exception.Details);
-            owner.FailedToJoinChannel(e.Exception.Channel);
+
+            client.JoinChannel(e.Exception.Channel);
         }
 
         private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
@@ -178,9 +201,14 @@ namespace MassBanToolMP.Models
         private async void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
         {
             // Make sure the client is ready before firing the query to avoid weird exceptions.
-            await Task.Delay(100);
+            while(!client.IsConnected)
+                await Task.Delay(20);
+
             lock (this)
             {
+                if (joinFails.ContainsKey(e.Channel))
+                    joinFails.Remove(e.Channel);
+
                 if (client.JoinedChannels.Count > 0)
                 {
                     client.GetChannelModerators(e.Channel);
@@ -213,9 +241,26 @@ namespace MassBanToolMP.Models
             client.LeaveChannel(channel);
         }
 
-        public void JoinChannel(string channel)
+
+        public async void JoinChannels(IEnumerable<string> channels)
         {
-            client.JoinChannel(channel, true);
+            while (!IsConnected)
+            {
+                await Task.Delay(10);
+            }
+            ushort joins = 0;
+            foreach (string channel in channels)
+            {
+                if (joins!= 0 && joins % 20 == 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    joins = 0;
+                }
+
+                client.JoinChannel(channel);
+
+                joins++;
+            }
         }
     }
 }

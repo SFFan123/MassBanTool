@@ -249,8 +249,11 @@ namespace MassBanToolMP.ViewModels
                 SetProperty(ref _channelS, value);
                 channels = cache.Select(x => x.Trim()).ToList();
                 RaisePropertyChanged(nameof(CanConnect));
+                RaisePropertyChanged(nameof(DisplayChannelWarning));
             }
         }
+
+        public bool DisplayChannelWarning => channels.Count > 20;
 
         public double BanProgress
         {
@@ -443,7 +446,7 @@ namespace MassBanToolMP.ViewModels
         }
 
         public string WindowTitle { get; set; }
-
+        
         private void ClearResults()
         {
             IsBusy = true;
@@ -977,6 +980,8 @@ namespace MassBanToolMP.ViewModels
                 return;
             }
 
+            IsBusy = true;
+
             _twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
 
             if (!_twitchChatClient.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
@@ -1011,6 +1016,7 @@ namespace MassBanToolMP.ViewModels
                 var tsk = Dispatcher.UIThread.InvokeAsync(() => _AddChannelToGrid(channelName, isMod));
                 tsk.Wait();
             }
+
         }
 
         private void _AddChannelToGrid(string channelName, bool isMod)
@@ -1025,6 +1031,11 @@ namespace MassBanToolMP.ViewModels
             };
 
             DataGrid.Columns.Add(col);
+
+            if (!channels.Except(DataGrid.Columns.Skip(3).Select(x => x.Header as string)).Any())
+            {
+                IsBusy = false;
+            }
         }
 
 
@@ -1058,7 +1069,8 @@ namespace MassBanToolMP.ViewModels
             }
 
             LogViewModel.Log("Joining Channels...");
-            foreach (var channel in tojoin) _twitchChatClient.JoinChannel(channel);
+
+            _twitchChatClient.JoinChannels(tojoin);
         }
 
         public void MessageThrottled()
@@ -1539,9 +1551,9 @@ namespace MassBanToolMP.ViewModels
                 TaskScheduler.Default).Result;
         }
 
-        public async void FailedToJoinChannel(string exceptionChannel)
+        public async void FailedToJoinChannel(string exceptionChannel, string details)
         {
-            await MessageBox.Show("Failed to join channel " + exceptionChannel, "Warning");
+            await MessageBox.Show("Failed to join channel " + exceptionChannel+"\n"+details, "Warning");
             RemoveChannelFromGrid(exceptionChannel);
         }
     }
