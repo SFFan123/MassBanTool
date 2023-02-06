@@ -6,12 +6,15 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -20,6 +23,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
+using DynamicData.Kernel;
 using IX.Observable;
 using IX.StandardExtensions.Extensions;
 using MassBanToolMP.Helper;
@@ -28,6 +32,11 @@ using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
 using ReactiveUI;
+using TwitchLib.Api;
+using TwitchLib.Api.Core.Enums;
+using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
+using TwitchLib.Api.Helix.Models.Moderation.BanUser;
+using TwitchLib.Api.Helix.Models.Users.GetUsers;
 
 namespace MassBanToolMP.ViewModels
 {
@@ -61,8 +70,6 @@ namespace MassBanToolMP.ViewModels
         private static IDisposable isConnectedObservable;
         public static readonly IAssetLoader assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
 
-        private readonly LogViewModel _logModel;
-
         private string _allowedActions;
 
         private double _banProgress;
@@ -78,7 +85,7 @@ namespace MassBanToolMP.ViewModels
         private bool _listFilterRemoveMatching = false;
         private ListType _listType;
         private LogWindow _logWindow;
-        private int _messageDelay = 301;
+        private int _messageDelay = 300;
         private string _oAuth;
 
         private bool _paused;
@@ -89,18 +96,18 @@ namespace MassBanToolMP.ViewModels
         private bool _settingLoadCredentialsOnStartup;
         private CancellationToken _token;
         private CancellationTokenSource _tokenSource;
-        private TwitchChatClient? _twitchChatClient;
         private Mutex _userMutex;
         private string _username;
+        private string _userId;
 
         private Task _worker;
         private List<string> channels = new();
+        private Dictionary<string, string> channelIDs = new Dictionary<string, string>();
         private string filterRegex = string.Empty;
 
 
         public MainWindowViewModel()
         {
-            _logModel = new LogViewModel();
             LogViewModel.Log("Init GUI...");
 
             WindowTitle = "MassBanTool " + Program.Version;
@@ -141,7 +148,7 @@ namespace MassBanToolMP.ViewModels
             RunCheckListTypeCommand = ReactiveCommand.Create(CheckListType);
             RunSortListCommand = ReactiveCommand.Create(SortList);
             RunRemoveNotAllowedActionsCommand = ReactiveCommand.Create(RemoveNotAllowedActions);
-            GetOAuthCommand = ReactiveCommand.Create(() => OpenUrl(URL_TMI));
+            GetOAuthCommand = ReactiveCommand.Create<Window>(window => GetAccessToken(window));
             OpenWikiCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_WIKI));
             CooldownInfoCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_COOLDOWN));
             OpenRegexDocsCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_REGEX_MS_DOCS));
@@ -149,11 +156,13 @@ namespace MassBanToolMP.ViewModels
             OpenGitHubPageCommand = ReactiveCommand.Create(() => OpenUrl(HELP_URL_MAIN_GITHUB));
             ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
             ShowInfoWindowCommand = ReactiveCommand.Create<Window>(ShowInfoWindow);
+            DebugCommand = ReactiveCommand.Create(Debug);
 
-            LoadData();
+            ApplySettings();
             _listType = default;
             LogViewModel.Log("Done Init GUI...");
         }
+
 
         private Task Worker
         {
@@ -192,7 +201,7 @@ namespace MassBanToolMP.ViewModels
 
         public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
 
-        public bool CanExecRun => IsConnected && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
+        public bool CanExecRun => OAuth!=null && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
 
         public string Username
         {
@@ -283,10 +292,8 @@ namespace MassBanToolMP.ViewModels
         {
             get
             {
-                if (_twitchChatClient != null)
-                    return _twitchChatClient.IsConnected && _twitchChatClient.JoinedChannels.Any();
-
-                return false;
+                // TODO
+               return false;
             }
         }
 
@@ -352,7 +359,8 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Window, Unit> ShowLogWindowCommand { get; }
         public ReactiveCommand<Window, Unit> ShowInfoWindowCommand { get; }
         public ReactiveCommand<Window, Unit> EditLastVisitChannelCommand { get; }
-        public ReactiveCommand<Unit, Unit> GetOAuthCommand { get; }
+        public ReactiveCommand<Window, Unit> GetOAuthCommand { get; }
+        public ReactiveCommand<Unit, Unit> DebugCommand { get; }
 
         public ObservableCollection<Entry> Entries
         {
@@ -446,7 +454,7 @@ namespace MassBanToolMP.ViewModels
         }
 
         public string WindowTitle { get; set; }
-        
+
         private void ClearResults()
         {
             IsBusy = true;
@@ -546,31 +554,15 @@ namespace MassBanToolMP.ViewModels
         }
 
 
-        private void LoadData()
+        private void ApplySettings()
         {
-            LogViewModel.Log("Try loading setting for this User.");
-            var fileName = Path.Combine(Environment.GetFolderPath(
-                Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolData.json");
+            var data = Program.settings;
 
-            DataWrapper data = null;
+            if (data != null && data.RequestsPerMinute != default) MessageDelay = data.RequestsPerMinute.ToString();
 
-            if (File.Exists(fileName))
-                try
-                {
-                    string filecontent = File.ReadAllText(fileName);
-                    filecontent = filecontent.Trim();
-                    data = DataWrapper.FromJson(filecontent);
-                }
-                catch (Exception e)
-                {
-                    LogViewModel.Log("Something went wrong loading setting for this User. - " + e.Message);
-                }
-
-            if (data != null && data.message_delay != default) MessageDelay = data.message_delay.ToString();
-
-            if (data?.lastVisitedChannel != null)
+            if (data?.LastVisitedChannels != null)
             {
-                _lastVisitedChannels = data.lastVisitedChannel.ToList();
+                _lastVisitedChannels = data.LastVisitedChannels.ToList();
                 BuildLastVisitChannelContextMenu();
             }
             else
@@ -595,8 +587,8 @@ namespace MassBanToolMP.ViewModels
 
             if (data != null)
             {
-                _checkForNewVerionOnStartup = data.checkForUpdates;
-                _includePrereleases = data.includePrereleases;
+                _checkForNewVerionOnStartup = data.CheckForUpdates;
+                _includePrereleases = data.IncludePrereleases;
             }
 
             if (_checkForNewVerionOnStartup)
@@ -642,17 +634,18 @@ namespace MassBanToolMP.ViewModels
 
             if (!File.Exists(fileName)) File.Create(fileName).Close();
 
-            var data = new DataWrapper()
+            var data = new SettingsWrapper()
             {
-                lastVisitedChannel = new HashSet<string>(_lastVisitedChannels),
+                LastVisitedChannels = new HashSet<string>(_lastVisitedChannels),
                 AllowedActions = _allowedActions.Split(Environment.NewLine)
                     .Select(x => x.Trim())
                     .Where(x => x != string.Empty)
                     .ToHashSet(),
-                message_delay = _messageDelay,
+                RequestsPerMinute = _messageDelay,
                 LoadCredentialOnStartup = SettingLoadCredentialsOnStartup,
-                checkForUpdates = CheckForNewVerionOnStartup,
-                includePrereleases = IncludePrereleases
+                CheckForUpdates = CheckForNewVerionOnStartup,
+                IncludePrereleases = IncludePrereleases,
+                Version = Program.Version
             };
 
             var result = data.ToJSON();
@@ -667,7 +660,7 @@ namespace MassBanToolMP.ViewModels
             RaisePropertyChanged(nameof(CanExecRun));
         }
 
-        private void OpenUrl(string url)
+        public static void OpenUrl(string url)
         {
             try
             {
@@ -677,7 +670,7 @@ namespace MassBanToolMP.ViewModels
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    url = url.Replace("&", "^&");
+                    url = url.Replace("&", "&");
                     Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -878,6 +871,7 @@ namespace MassBanToolMP.ViewModels
                 if (cred == null) return;
                 Username = cred.Item1;
                 OAuth = cred.Item2;
+                Program.API.Settings.AccessToken = OAuth;
             }
             catch (Exception e)
             {
@@ -906,7 +900,7 @@ namespace MassBanToolMP.ViewModels
 
             _logWindow = new LogWindow()
             {
-                DataContext = _logModel
+                DataContext = LogViewModel.Instance
             };
             _logWindow.Closed += (sender, args) =>
             {
@@ -973,7 +967,7 @@ namespace MassBanToolMP.ViewModels
                 SwitchChannel();
                 return;
             }
-            
+
             if (!CheckMutex())
             {
                 await MessageBox.Show("Only one instance with the same username allowed to run.", "Mutex error");
@@ -982,14 +976,14 @@ namespace MassBanToolMP.ViewModels
 
             IsBusy = true;
 
-            _twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
+            //_twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
 
-            if (!_twitchChatClient.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
+            //if (!_twitchChatClient.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
 
             RaiseIsConnectedChanged();
 
-            isConnectedObservable = _twitchChatClient.WhenAnyValue(x => x.IsConnected)
-                .Subscribe(_ => RaisePropertyChanged(nameof(IsConnected)));
+            //isConnectedObservable = _twitchChatClient.WhenAnyValue(x => x.IsConnected)
+            //    .Subscribe(_ => RaisePropertyChanged(nameof(IsConnected)));
         }
 
         public void Client_OnLeftChannel(string channel)
@@ -1046,14 +1040,14 @@ namespace MassBanToolMP.ViewModels
 
         private void SwitchChannel()
         {
-            if (_twitchChatClient == null)
-            {
-                LogViewModel.Log(
-                    "Application reached an impossible state. No Twitch Client and trying to switch channels.");
-                return;
-            }
+            //if (_twitchChatClient == null)
+            //{
+            //    LogViewModel.Log(
+            //        "Application reached an impossible state. No Twitch Client and trying to switch channels.");
+            //    return;
+            //}
 
-            var joinedChannels = _twitchChatClient.JoinedChannels.Select(x => x.Channel.ToLower());
+            var joinedChannels = channelIDs.Select(x => x.Key.ToLower());
 
             var toleave = joinedChannels.Except(channels).ToList();
             LogViewModel.Log($"Need to leave '{string.Join(", ", toleave)}'");
@@ -1062,15 +1056,15 @@ namespace MassBanToolMP.ViewModels
             LogViewModel.Log($"Need to join '{string.Join(", ", tojoin)}'");
 
             LogViewModel.Log("Leaving Channels...");
-            foreach (var channel in toleave)
-            {
-                _twitchChatClient.LeaveChannel(channel);
-                ChannelModerators[channel]?.Clear();
-            }
+            //foreach (var channel in toleave)
+            //{
+            //    _twitchChatClient.LeaveChannel(channel);
+            //    ChannelModerators[channel]?.Clear();
+            //}
 
             LogViewModel.Log("Joining Channels...");
 
-            _twitchChatClient.JoinChannels(tojoin);
+            //_twitchChatClient.JoinChannels(tojoin);
         }
 
         public void MessageThrottled()
@@ -1085,6 +1079,7 @@ namespace MassBanToolMP.ViewModels
 
         public void SetChannelVIPs(string channel, List<string> vipList)
         {
+            // alternative https://api.ivr.fi/v2/twitch/modvip/<channel>
             ChannelVIPs[channel.ToLowerInvariant()] = vipList;
         }
 
@@ -1467,13 +1462,22 @@ namespace MassBanToolMP.ViewModels
             return true;
         }
 
-        private Task CreateWorkerTask(WorkingMode mode)
+        private async Task CreateWorkerTask(WorkingMode mode)
         {
-            if (_twitchChatClient == null) throw new ArgumentException();
-
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
+            
+            await QueryIdsForEntries();
 
+            if(Entries.Count == 0)
+                return;
+
+            await GetChannelIds();
+
+            if(channelIDs.All(x => string.IsNullOrEmpty(x.Value)))
+                return;
+
+            
             foreach (Entry entry in _entries)
             foreach (string channel in channels)
             {
@@ -1482,79 +1486,404 @@ namespace MassBanToolMP.ViewModels
                 entry.Result = new ConcurrentObservableDictionary<string, string>(entry.Result);
             }
 
-            return Task.Factory.StartNew(async () =>
+
+            var TextReason = Reason ?? string.Empty;
+            for (var i = 0; i < Entries.Count; i++)
+            {
+                while (Paused) await Task.Delay(1000, _token);
+
+                if (_token.IsCancellationRequested) break;
+
+                Entry entry = Entries[i];
+                string user = string.Empty;
+
+                
+                foreach (var channel in channelIDs)
                 {
-                    var TextReason = Reason;
-                    for (var i = 0; i < Entries.Count; i++)
+                    if (!entry.IsValid) break;
+
+                    if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
+                        !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
+
+                    switch (mode)
                     {
-                        while (Paused) await Task.Delay(1000, _token);
-
-                        if (_token.IsCancellationRequested) break;
-
-                        var entry = Entries[i];
-                        var commandtoExecute = string.Empty;
-                        string user = string.Empty;
-
-                        switch (mode)
+                        case WorkingMode.Ban:
                         {
-                            case WorkingMode.Ban:
-                            {
-                                commandtoExecute = $"/ban {entry.Name} {TextReason}".Trim();
-                                user = entry.Name;
-                                break;
-                            }
-                            case WorkingMode.Unban:
-                            {
-                                commandtoExecute = $"/unban {entry.Name}";
-                                user = entry.Name;
-                                break;
-                            }
-                            case WorkingMode.Readfile:
-                            {
-                                commandtoExecute = entry.ChatCommand;
-                                user = entry.Name;
-                                break;
-                            }
-                        }
+                            var banRespone = await Program.API.Helix.Moderation.BanUserAsync(channel.Value, _userId, 
+                                new BanUserRequest()
+                                {
+                                    Duration = null, 
+                                    Reason = TextReason, 
+                                    UserId = entry.Id
+                                } 
+                                );
 
-                        foreach (var channel in _twitchChatClient.JoinedChannels)
+                            if (banRespone?.Data != null)
+                            {
+                                OnUserBanned(channel.Key, entry.Name);
+                            }
+                            break;
+                        }
+                        case WorkingMode.Unban:
                         {
-                            if (!entry.IsValid) break;
-
-                            if (entry.Result.ContainsKey(channel.Channel.ToLower()) &&
-                                !string.IsNullOrEmpty(entry.Result[channel.Channel.ToLower()])) continue;
-
-                            if (DryRun)
-                            {
-                                LogViewModel.Log($"DEBUG #{channel.Channel}: PRIVMSG {commandtoExecute}");
-                                OnUserBanned(channel.Channel, user, true);
-                            }
-                            else
-                            {
-                                _twitchChatClient.SendMessage(channel, commandtoExecute);
-                            }
-
-                            await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
+                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                            break;
                         }
+                        case WorkingMode.Readfile:
+                        {
+                                ExecReadFileEntry(channel.Value, entry);
 
-                        BanProgress = (i + 1) / (double)Entries.Count * 100;
-                        ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
 
-                        entry.RowBackColor = "Green";
+
+                            // Not supported yet
+                            break;
+                        }
                     }
 
-                    ETA = TimeSpan.Zero;
-                    BanProgress = 100;
-                },
-                _token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default).Result;
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
+                }
+               
+
+                BanProgress = (i + 1) / (double)Entries.Count * 100;
+                ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
+
+                entry.RowBackColor = "Green";
+            }
+
+            ETA = TimeSpan.Zero;
+            BanProgress = 100;
         }
 
-        public async void FailedToJoinChannel(string exceptionChannel, string details)
+        private async void ExecReadFileEntry(string channelID, Entry entry)
         {
-            await MessageBox.Show("Failed to join channel " + exceptionChannel+"\n"+details, "Warning");
-            RemoveChannelFromGrid(exceptionChannel);
+            ReadFileOperation operation;
+            var api = Program.API.Helix;
+            try
+            {
+                operation = Enum.GetValues<ReadFileOperation>()
+                    .First(x => x.ToString().ToLowerInvariant().Equals(entry.ChatCommand));
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                return;
+            }
+
+
+            switch (operation)
+            {
+                case ReadFileOperation.AddBlockedTerm:
+                {
+                    await api.Moderation.AddBlockedTermAsync(channelID, _userId, entry.Name);
+                    break;
+                }
+                case ReadFileOperation.RemoveBlockedTerm:
+                {
+                    await api.Moderation.DeleteBlockedTermAsync(channelID, _userId, entry.Name);
+                    break;
+                }
+                case ReadFileOperation.Ban:
+                {
+                    await api.Moderation.BanUserAsync(channelID, _userId, new BanUserRequest()
+                    {
+                        Duration = null, 
+                        Reason = entry.Reason, 
+                        UserId = entry.Id
+                    });
+                    break;
+                }
+                case ReadFileOperation.UnBan:
+                case ReadFileOperation.UnTimeout:
+                {
+                    await api.Moderation.UnbanUserAsync(channelID, _userId, entry.Id);
+                    break;
+                }
+                
+            case ReadFileOperation.Block :
+            {
+                await api.Users.BlockUserAsync(entry.Id);
+                break;
+            }
+            case ReadFileOperation.UnBlock:
+            {
+                await api.Users.UnblockUserAsync(entry.Id);
+                break;
+            }
+            case ReadFileOperation.Vip:
+            {
+                await api.Channels.AddChannelVIPAsync(channelID, entry.Id);
+                break;
+            }
+            case ReadFileOperation.UnVip:
+            {
+                await api.Channels.RemoveChannelVIPAsync(channelID, entry.Id);
+                break;
+            }
+            case ReadFileOperation.Mod:
+            {
+                await api.Moderation.AddChannelModeratorAsync(channelID, entry.Id);
+                break;
+            }
+            case ReadFileOperation.UnMod:
+            {
+                await api.Moderation.DeleteChannelModeratorAsync(channelID, entry.Id);
+                break;
+            }
+            case ReadFileOperation.Timeout:
+            {
+                int duration = 600;
+                string reason = entry.Reason;
+                if (string.IsNullOrEmpty(entry.Reason))
+                {
+                    int idx = entry.Reason.IndexOf(" ");
+                    if (idx >= 0)
+                    {
+                        string s_duration = entry.Reason.Substring(0, idx);
+                        duration = int.Parse(s_duration);
+                        reason = reason.Substring(idx + 1);
+                    }
+                }
+
+                await api.Moderation.BanUserAsync(channelID, _userId, new BanUserRequest()
+                {
+                    Duration = duration,
+                    Reason = reason,
+                    UserId = entry.Id
+                });
+                break;
+            }
+            
+            case ReadFileOperation.Clear:
+            {
+                await api.Moderation.DeleteChatMessagesAsync(channelID, _userId);
+                break;
+            }
+            case ReadFileOperation.Slow:
+            {
+                int duration = 30;
+                try
+                {
+                    duration = int.Parse(entry.Reason.Trim());
+                }
+                catch
+                {
+                    // ignored
+                }
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    SlowMode = true,
+                    SlowModeWaitTime = duration
+                });
+                break;
+            }
+            case ReadFileOperation.SlowOff:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    SlowMode = false
+                });
+                break;
+            }
+            case ReadFileOperation.Followers:
+            {
+                int? duration = null;
+                try
+                {
+                    duration = int.Parse(entry.Reason.Trim());
+                }
+                catch
+                {
+                    // ignored
+                }
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    FollowerMode = true,
+                    FollowerModeDuration = duration
+                });
+                break;
+            }
+            case ReadFileOperation.FollowersOff:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    FollowerMode = false
+                });
+                break;
+            }
+            case ReadFileOperation.Subscribers:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    SubscriberMode = true
+                });
+                break;
+            }
+            case ReadFileOperation.SubscribersOff:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    SubscriberMode = false
+                });
+                break;
+            }
+            case ReadFileOperation.Uniquechat:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    UniqueChatMode = true
+                });
+                break;
+            }
+            case ReadFileOperation.UniquechatOff:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    UniqueChatMode = false
+                });
+                break;
+            }
+            case ReadFileOperation.Emoteonly:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    EmoteMode = true
+                });
+                break;
+            }
+            case ReadFileOperation.EmoteonlyOff:
+            {
+                await api.Chat.UpdateChatSettingsAsync(channelID, _userId, new ChatSettings()
+                {
+                    EmoteMode = false
+                });
+                break;
+            }
+            default:
+            {
+                Console.WriteLine("I have no memory of this place.");
+                break;
+            }
+            }
+        }
+
+
+   
+        private async void GetAccessToken(Window window)
+        {
+            // TODO selectable Scopes.
+            // TODO check if OBS is running.
+
+            string[] scopes = {
+                "moderator:manage:banned_users",
+                "moderation:read",
+                "moderator:manage:automod_settings",
+                "moderator:manage:blocked_terms",
+                
+                //PubSub
+                //"chat:read",
+                "channel:moderate"
+            };
+
+
+            var url = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + Program.API.Settings.ClientId +
+                      "&redirect_uri=" + HttpUtility.UrlEncode("https://twitchapps.com/tmi/") +
+                      "&response_type=code&scope=" + string.Join("+", scopes); 
+            
+            OpenUrl(url);
+
+            var diag = new TextInputDialog("Paste Oauth token here", "Oauth", new Regex(@"oauth:\w+"));
+            await diag.ShowDialog(window);
+            var token = diag.BoxContent;
+
+            Program.API.Settings.AccessToken = "Bearer " + token.Substring(token.IndexOf(":")+1);
+
+            var res = await Program.API.Auth.ValidateAccessTokenAsync();
+            
+            if ((res != null))
+            {
+                OAuth = Program.API.Settings.AccessToken;
+                Username = res.Login;
+                _userId = res.UserId;
+            }
+            else
+            {
+                await MessageBox.Show("Token was rejected by Twitch", "Token failure");
+            }
+        }
+
+
+        private async void Debug()
+        { 
+            
+                
+
+        }
+
+
+        private async Task QueryIdsForEntries()
+        {
+            int resCount = 0;
+            try
+            {
+                LogViewModel.Log($"Fetching Ids for {Entries.Count} entries...");
+
+                for (int i = 0; i < Entries.Count; i+=100)
+                {
+                    var entriesSlice = Entries.Skip(i).Take(100);
+                    var logins = entriesSlice.Select(x => x.Name).ToList();
+                    var res = await Program.API.Helix.Users.GetUsersAsync(logins: logins);
+
+                    resCount += res.Users.Length;
+
+                    foreach (User resUser in res.Users)
+                    {
+                        var u = entriesSlice.FirstOrDefault(x =>
+                            string.Equals(x.Name, resUser.Login, StringComparison.InvariantCultureIgnoreCase));
+                        if (u != null)
+                        {
+                            u.Id = resUser.Id;
+                        }
+                    }
+                }
+                LogViewModel.Log($"Fetched Ids. Out of {Entries.Count} usernames {resCount} were found by twitch, entries which weren't found will be skipped - Accounts probably already banned by twitch.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                LogViewModel.Log("Error while Fetching Ids for entries. " + e.Message);
+            }
+
+            if (Entries.Count != resCount)
+            {
+                var diagres = await MessageBox.Show($"Only {resCount} out of {Entries.Count} were found on Twitch, do you want to remove the invalid/banned entries? These will be skipped anyways.", "Invalid users", ButtonEnum.YesNo);
+            }
+        }
+
+        private async Task GetChannelIds()
+        {
+            #region SanityChecks
+
+            if (channels.Count == 0)
+            {
+                return;
+            }
+
+            if (Program.API.Settings.AccessToken == null)
+            {
+                return;
+            }
+
+            #endregion
+            var userId = await Program.API.Helix.Users.GetUsersAsync(logins: channels);
+
+            if (userId != null)
+            {
+                foreach (User user in userId.Users)
+                {
+                    channelIDs[user.Login] = user.Id;
+                }
+            }
         }
     }
 }

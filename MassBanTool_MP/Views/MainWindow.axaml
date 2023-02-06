@@ -1,19 +1,15 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MassBanToolMP.ViewModels"
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
         x:Class="MassBanToolMP.Views.MainWindow"
         Title="{Binding WindowTitle, Mode=OneTime}"
         Icon="/Assets/moderator.ico"
         Name="Window">
-    <Design.DataContext>
-        <vm:MainWindowViewModel />
-    </Design.DataContext>
-
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="Debug" Command="{Binding DebugCommand}" />
                 <MenuItem Header="Open _File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
                 <MenuItem Header="Open File from _URL"
@@ -38,7 +34,8 @@
                           Command="{Binding StoreCredentialsCommand, Mode=OneTime}" 
                           ToolTip.Tip="Saves the Twitch credentials using Windows Credential Manager or secret-tool" />
                 <MenuItem Header="_Get New Credentials" 
-                          Command="{Binding GetOAuthCommand, Mode=OneTime}" 
+                          Command="{Binding GetOAuthCommand, Mode=OneTime}"
+                          CommandParameter="{Binding ElementName=Window}"
                           ToolTip.Tip="https://twitchapps.com/tmi/" />
             </MenuItem>
             <MenuItem Header="_Settings">
@@ -278,8 +275,8 @@
                     </StackPanel>
                 </TabItem>
 
-                <TabItem Header="Readfile" Cursor="Hand">
-                    <Grid>
+                <TabItem Header="Readfile" Cursor="No" >
+                    <Grid IsEnabled="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition />

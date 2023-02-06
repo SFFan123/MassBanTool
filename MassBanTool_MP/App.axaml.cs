@@ -18,11 +18,14 @@ namespace MassBanToolMP
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
                     WindowStartupLocation = WindowStartupLocation.CenterScreen
                 };
+
+                desktop.MainWindow.DataContext = new MainWindowViewModel();
+
                 ((desktop.MainWindow.DataContext as MainWindowViewModel)!).DataGrid =
                     desktop.MainWindow.Get<DataGrid>("DataGrid");
             }

@@ -11,7 +11,17 @@ namespace MassBanToolMP.ViewModels
 {
     public class LogViewModel : ViewModelBase
     {
-        public static LogViewModel Instance { get; private set; }
+        private static LogViewModel? _instance;
+
+        public static LogViewModel Instance
+        {
+            get
+            {
+                if( _instance == null )
+                    _instance = new LogViewModel();
+                return _instance;
+            }
+        }
         private static Regex checkForTimestamp;
         private string _logLines;
 
@@ -23,9 +33,8 @@ namespace MassBanToolMP.ViewModels
 
         public ReactiveCommand<Window, Unit> SaveLogCommand { get; }
 
-        public LogViewModel()
+        private LogViewModel()
         {
-            Instance = this;
             logLines = string.Empty;
             checkForTimestamp = new Regex(@"^\d{1,2}\.\d{1,2}\.\d{4}", RegexOptions.Compiled, TimeSpan.FromMilliseconds(5));
             SaveLogCommand = ReactiveCommand.Create<Window>(SaveLog);
@@ -63,6 +72,9 @@ namespace MassBanToolMP.ViewModels
             if (string.IsNullOrEmpty(message))
                 return;
 
+            if( _instance == null )
+                _instance = new LogViewModel();
+            
             StringBuilder sb = new StringBuilder();
 
             if (!checkForTimestamp.IsMatch(message))

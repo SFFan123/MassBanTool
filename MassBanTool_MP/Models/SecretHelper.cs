@@ -49,6 +49,7 @@ namespace MassBanToolMP.Models
                 cred.Load();
                 if (cred.Exists())
                 {
+                    Program.API.Settings.AccessToken = "Bearer " + cred.Password;
                     return new Tuple<string, string>(cred.Username, cred.Password);
                 }
                 LogViewModel.Log("Credentials not found. using Windows Credential Manager", "GetCredentialsOnWindows");
@@ -131,7 +132,7 @@ namespace MassBanToolMP.Models
                         continue;
                 }
             }
-
+            Program.API.Settings.AccessToken = "Bearer " + oauth;
             return new Tuple<string, string>(user, oauth);
         }
         private static void StoreCredentialsLinux(ref string username, ref string oauth)

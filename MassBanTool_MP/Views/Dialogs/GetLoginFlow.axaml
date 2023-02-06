@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="800" Height="450"
+        x:Class="MassBanToolMP.Views.Dialogs.GetLoginFlow"
+        Title="Get Login">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderBrush="Red" BorderThickness="2" Margin="0,5">
+            <TextPresenter TextWrapping="Wrap"
+                Text="Important:&#x0a;The Token generated gives the app permission to perform moderation Actions in your name do not show/share with others."/>
+        </Border>
+        <Border BorderBrush="{StaticResource AccentButtonBackground}" BorderThickness="1"  Grid.Row="1" Margin="0,5">
+            <StackPanel>
+                <TextBlock>Step 1:</TextBlock>
+                <Button ToolTip.Tip="https://id.twitch.tv/oauth2/authorize">Open Auth Page (default Browser)</Button>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="{StaticResource AccentButtonBackground}" BorderThickness="1"  Grid.Row="2" Margin="0,5">
+            <StackPanel>
+                <TextBlock>Step 2 Paste info</TextBlock>
+                <TextBox Text="{Binding}" PasswordChar="*" RevealPassword="{Binding ElementName=ShowTokenSwitch, Path=IsChecked}"/>
+                <ToggleSwitch Name="ShowTokenSwitch"
+                              OffContent="Hide"
+                              OnContent="Show"/>
+            </StackPanel>
+        </Border>
+
+        <Border BorderBrush="{StaticResource AccentButtonBackground}" BorderThickness="1"  Grid.Row="3" Margin="0,5">
+            <StackPanel>
+                <TextBlock>Step 3</TextBlock>
+                <Button>Validate and save</Button>
+            </StackPanel>
+        </Border>
+        
+    </Grid>
+</Window>

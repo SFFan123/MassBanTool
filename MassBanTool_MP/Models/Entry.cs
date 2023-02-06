@@ -11,6 +11,7 @@ namespace MassBanToolMP.Models
         private ConcurrentObservableDictionary<string, string> result = new ();
         private bool _isValid = true;
         private string rowBackColor = "Blue";
+        private string id;
 
 
         public string Command
@@ -23,6 +24,12 @@ namespace MassBanToolMP.Models
         {
             get => name;
             set => SetProperty(ref name, value);
+        }
+
+        public string Id
+        {
+            get => id;
+            set => SetProperty(ref id, value);
         }
 
         public string Reason
