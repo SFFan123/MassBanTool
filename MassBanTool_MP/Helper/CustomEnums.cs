@@ -56,4 +56,10 @@
         Restrict, // Not supported by API
         UnRestrict, // Not supported by API
     }
+
+    public enum DialogResult
+    {
+        Aborted,
+        OK,
+    }
 }

@@ -1774,42 +1774,13 @@ namespace MassBanToolMP.ViewModels
             // TODO selectable Scopes.
             // TODO check if OBS is running.
 
-            string[] scopes = {
-                "moderator:manage:banned_users",
-                "moderation:read",
-                "moderator:manage:automod_settings",
-                "moderator:manage:blocked_terms",
-                
-                //PubSub
-                //"chat:read",
-                "channel:moderate"
-            };
+            var diag = new GetLoginFlow();
+            await diag.ShowDialog<DialogResult>(window);
 
-
-            var url = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + Program.API.Settings.ClientId +
-                      "&redirect_uri=" + HttpUtility.UrlEncode("https://twitchapps.com/tmi/") +
-                      "&response_type=code&scope=" + string.Join("+", scopes); 
+            if (diag.Result != DialogResult.OK)
+                return;
             
-            OpenUrl(url);
-
-            var diag = new TextInputDialog("Paste Oauth token here", "Oauth", new Regex(@"oauth:\w+"));
-            await diag.ShowDialog(window);
-            var token = diag.BoxContent;
-
-            Program.API.Settings.AccessToken = "Bearer " + token.Substring(token.IndexOf(":")+1);
-
-            var res = await Program.API.Auth.ValidateAccessTokenAsync();
-            
-            if ((res != null))
-            {
-                OAuth = Program.API.Settings.AccessToken;
-                Username = res.Login;
-                _userId = res.UserId;
-            }
-            else
-            {
-                await MessageBox.Show("Token was rejected by Twitch", "Token failure");
-            }
+            Program.API.Settings.AccessToken = "Bearer " + diag.Token;
         }
 
 
