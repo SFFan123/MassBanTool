@@ -6,15 +6,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reactive;
 using System.Runtime.InteropServices;
-using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -23,7 +20,6 @@ using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
-using DynamicData.Kernel;
 using IX.Observable;
 using IX.StandardExtensions.Extensions;
 using MassBanToolMP.Helper;
@@ -32,8 +28,6 @@ using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
 using ReactiveUI;
-using TwitchLib.Api;
-using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
 using TwitchLib.Api.Helix.Models.Moderation.BanUser;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
@@ -104,6 +98,9 @@ namespace MassBanToolMP.ViewModels
         private List<string> channels = new();
         private Dictionary<string, string> channelIDs = new Dictionary<string, string>();
         private string filterRegex = string.Empty;
+
+        private List<string> TokenScopes = new List<string>();
+        private bool _IsConnected;
 
 
         public MainWindowViewModel()
@@ -201,7 +198,7 @@ namespace MassBanToolMP.ViewModels
 
         public bool CanExecPauseAbort => Worker != null && !Worker.IsCompleted;
 
-        public bool CanExecRun => OAuth!=null && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
+        public bool CanExecRun => !string.IsNullOrEmpty(OAuth) && Entries.Count > 0 && (Worker == null || Worker.IsCompleted);
 
         public string Username
         {
@@ -290,11 +287,8 @@ namespace MassBanToolMP.ViewModels
 
         public bool IsConnected
         {
-            get
-            {
-                // TODO
-               return false;
-            }
+            get => _IsConnected;
+            set => SetProperty(ref _IsConnected, value);
         }
 
         public bool Paused
@@ -976,14 +970,31 @@ namespace MassBanToolMP.ViewModels
 
             IsBusy = true;
 
-            //_twitchChatClient = new TwitchChatClient(this, _username, _oAuth, channels);
+            try
+            {
+                var res = await Program.API.Auth.ValidateAccessTokenAsync();
+                TokenScopes = res.Scopes;
+                _userId = res.UserId;
+                _IsConnected = true;
+            }
+            catch (Exception e)
+            {
+                LogViewModel.Log(e.Message);
+                await MessageBox.Show("Could not verify token", "Token error");
+                IsBusy = false;
+                return;
+            }
+            
+            await GetChannelIds();
 
-            //if (!_twitchChatClient.IsConnected) await MessageBox.Show("Failed to connect to twitch", "Warning");
+            channelIDs.ForEach((x) =>
+            {
+                AddChannelToGrid(x.Key);
+            });
 
             RaiseIsConnectedChanged();
 
-            //isConnectedObservable = _twitchChatClient.WhenAnyValue(x => x.IsConnected)
-            //    .Subscribe(_ => RaisePropertyChanged(nameof(IsConnected)));
+            IsBusy = false;
         }
 
         public void Client_OnLeftChannel(string channel)
@@ -999,21 +1010,21 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-        public void AddChannelToGrid(string channelName, bool isMod)
+        public void AddChannelToGrid(string channelName)
         {
             if (Dispatcher.UIThread.CheckAccess())
             {
-                _AddChannelToGrid(channelName, isMod);
+                _AddChannelToGrid(channelName);
             }
             else
             {
-                var tsk = Dispatcher.UIThread.InvokeAsync(() => _AddChannelToGrid(channelName, isMod));
+                var tsk = Dispatcher.UIThread.InvokeAsync(() => _AddChannelToGrid(channelName));
                 tsk.Wait();
             }
 
         }
 
-        private void _AddChannelToGrid(string channelName, bool isMod)
+        private void _AddChannelToGrid(string channelName)
         {
             if (DataGrid.Columns.Any(x => x.Header as string == channelName)) return;
 
@@ -1466,6 +1477,8 @@ namespace MassBanToolMP.ViewModels
         {
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
+
+            //var tokenScopes = (await Program.API.Auth.ValidateAccessTokenAsync()).Scopes;
             
             await QueryIdsForEntries();
 
@@ -1531,11 +1544,7 @@ namespace MassBanToolMP.ViewModels
                         }
                         case WorkingMode.Readfile:
                         {
-                                ExecReadFileEntry(channel.Value, entry);
-
-
-
-                            // Not supported yet
+                            ExecReadFileEntry(channel.Value, entry);
                             break;
                         }
                     }
@@ -1569,6 +1578,8 @@ namespace MassBanToolMP.ViewModels
                 Console.WriteLine(exception);
                 return;
             }
+
+
 
 
             switch (operation)
@@ -1767,15 +1778,13 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-
-   
         private async void GetAccessToken(Window window)
         {
             // TODO selectable Scopes.
             // TODO check if OBS is running.
 
             var diag = new GetLoginFlow();
-            await diag.ShowDialog<DialogResult>(window);
+            await diag.ShowDialog(window);
 
             if (diag.Result != DialogResult.OK)
                 return;

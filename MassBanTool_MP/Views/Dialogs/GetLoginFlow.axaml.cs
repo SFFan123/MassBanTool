@@ -17,26 +17,22 @@ namespace MassBanToolMP.Views.Dialogs
             Result = DialogResult.Aborted;
         }
 
-        public List<string> AuthScopesList
+        public Dictionary<string, string> AuthScopesList
         {
-            get => new List<string>()
+            get => new Dictionary<string, string>()
             {
-                "moderator:manage:banned_users",
-                "moderation:read",
-                "moderator:manage:automod_settings",
-                "moderator:manage:blocked_terms",
-                "moderator:manage:chat_settings",
-                "moderator:manage:chat_messages",
+                {"moderator:manage:banned_users", "Enables Ban, UnBan, Timeout, Untimeout"},
+                {"moderator:manage:blocked_terms", "Enables Readfile Operations: AddBlockedTerm, RemoveBlockedTerm"},
+                {"moderator:manage:chat_settings", "Enables Readfile Operations: Slow, Slowoff, Followers, FollowersOff, Subscribers, SubscribersOff, Uniquechat, UniquechatOff, Emoteonly, EmoteonlyOff"},
+                {"moderator:manage:chat_messages", "Enables Readfile Operations: Clear"},
 
                 //PubSub
-                //"chat:read",
-                "channel:moderate",
+                {"channel:moderate","Enables reading of Moderation Actions in PubSub/Chat"},
                 
                 // Personal
-                "channel:manage:moderators",
-                "channel:manage:vips",
-                "user:manage:blocked_users"
-
+                {"channel:manage:moderators","Enables Readfile Operations: Mod, UnMod"},
+                {"channel:manage:vips","Enables Readfile Operations: Vip, UnVip"},
+                {"user:manage:blocked_users", "Enables ReadfileO perations: Block, Unblock"},
             };
         }
 
@@ -91,6 +87,7 @@ namespace MassBanToolMP.Views.Dialogs
                 Username = res.Login;
                 UserId = res.UserId;
                 Result = DialogResult.OK;
+                Close();
             }
             else
             {

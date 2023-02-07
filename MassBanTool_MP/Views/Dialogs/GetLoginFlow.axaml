@@ -4,6 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         x:Class="MassBanToolMP.Views.Dialogs.GetLoginFlow"
+        Height="650"
+        Width="1000"
         Title="Get Login">
     <Grid Margin="5">
         <Grid.RowDefinitions>
@@ -23,7 +25,12 @@
                 <TextBlock>Step 1 Permissions:</TextBlock>
                 <CheckBox Name="CheckBox_All_Scopes">All</CheckBox>
                 <TextBlock Margin="5" Text="Ctrl+Click Add/Remove single entry, Shift+Click select interval"/>
-                <ListBox SelectionMode="Multiple" Name="ListBox_Scopes" Items="{Binding AuthScopesList}"/>
+                <DataGrid SelectionMode="Extended" Name="ListBox_Scopes" Items="{Binding AuthScopesList}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding Key}" Header="Scope Name"/>
+                        <DataGridTextColumn Binding="{Binding Value}" Header="Info"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </StackPanel>
         </Border>
         <Border BorderBrush="{StaticResource AccentButtonBackground}" BorderThickness="1"  Grid.Row="2" Margin="0,5">

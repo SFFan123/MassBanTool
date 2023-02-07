@@ -275,8 +275,8 @@
                     </StackPanel>
                 </TabItem>
 
-                <TabItem Header="Readfile" Cursor="No" >
-                    <Grid IsEnabled="False">
+                <TabItem Header="Readfile" Cursor="Hand" >
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition />
