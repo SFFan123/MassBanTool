@@ -28,6 +28,7 @@ using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
 using MessageBox.Avalonia.Enums;
 using ReactiveUI;
+using TwitchLib.Api.Core.Exceptions;
 using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
 using TwitchLib.Api.Helix.Models.Moderation.BanUser;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
@@ -1515,22 +1516,27 @@ namespace MassBanToolMP.ViewModels
                 {
                     if (!entry.IsValid) break;
 
-                    if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
-                        !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
+                    if (entry.Result.ContainsKey(channel.Key.ToLower()) && !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
 
                     switch (mode)
                     {
                         case WorkingMode.Ban:
                         {
-                            var banRespone = await Program.API.Helix.Moderation.BanUserAsync(channel.Value, _userId, 
-                                new BanUserRequest()
+                            BanUserResponse? banRespone = null;
+                            try
+                            {
+                                banRespone = await Program.API.Helix.Moderation.BanUserAsync(channel.Value, _userId, new BanUserRequest
                                 {
-                                    Duration = null, 
-                                    Reason = TextReason, 
+                                    Reason = TextReason,
                                     UserId = entry.Id
-                                } 
-                                );
-
+                                });
+                            }
+                            catch (BadRequestException)
+                            {
+                                // user already banned
+                               OnUserAlreadyBanned(channel.Key, entry.Name);
+                            }
+                            
                             if (banRespone?.Data != null)
                             {
                                 OnUserBanned(channel.Key, entry.Name);
@@ -1539,7 +1545,15 @@ namespace MassBanToolMP.ViewModels
                         }
                         case WorkingMode.Unban:
                         {
-                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                            try
+                            {
+                                await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                            }
+                            catch (BadRequestException)
+                            {
+                                LogViewModel.Log($"User '{entry.Name}' not banned in channel '{channel.Key}'");
+                            }
+                            
                             break;
                         }
                         case WorkingMode.Readfile:
@@ -1578,9 +1592,6 @@ namespace MassBanToolMP.ViewModels
                 Console.WriteLine(exception);
                 return;
             }
-
-
-
 
             switch (operation)
             {

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MassBanToolMP.ViewModels;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using DialogResult = MassBanToolMP.Helper.DialogResult;
 
 namespace MassBanToolMP.Views.Dialogs
@@ -11,11 +13,25 @@ namespace MassBanToolMP.Views.Dialogs
     {
         public GetLoginFlow()
         {
-
             InitializeComponent();
             this.DataContext = this;
             Result = DialogResult.Aborted;
+
+            foreach (object o in ListBox_Scopes.Items)
+            {
+                if (o is KeyValuePair<string, string> keyValuePair)
+                {
+                    if (basicScopes.Contains(keyValuePair.Key))
+                    {
+                        ListBox_Scopes.SelectedItem = o;
+                    }
+                }
+            }
+
         }
+
+        private string[] basicScopes = new[] { "moderator:manage:banned_users" };
+
 
         public Dictionary<string, string> AuthScopesList
         {
