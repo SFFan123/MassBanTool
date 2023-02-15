@@ -4,7 +4,6 @@ using System.Web;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MassBanToolMP.ViewModels;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 using DialogResult = MassBanToolMP.Helper.DialogResult;
 
 namespace MassBanToolMP.Views.Dialogs
