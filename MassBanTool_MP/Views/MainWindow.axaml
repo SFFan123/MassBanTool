@@ -2,14 +2,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
+        xmlns:viewModels="clr-namespace:MassBanToolMP.ViewModels"
+        xmlns:models="clr-namespace:MassBanToolMP.Models"
         x:Class="MassBanToolMP.Views.MainWindow"
         Title="{Binding WindowTitle, Mode=OneTime}"
         Icon="/Assets/moderator.ico"
         Name="Window">
+    <Design.DataContext>
+        <viewModels:MainWindowViewModel/>
+    </Design.DataContext>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Debug" Command="{Binding DebugCommand}" />
+                <MenuItem Header="Debug" Command="{Binding DebugCommand}"
+                          CommandParameter="{Binding ElementName=Window}"/>
                 <MenuItem Header="Open _File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
                 <MenuItem Header="Open File from _URL"
@@ -46,6 +52,7 @@
                           IsChecked="{Binding SettingLoadCredentialsOnStartup}"/>
                 <Separator/>
                 <MenuItem Header="Special User">
+                    <MenuItem Header="Edit special user list" Command="{Binding EditSpecialUsersCommand}" />
                     <CheckBox Content="Protect VIPs/Mods from Commands"
                               IsChecked="{Binding ProtectSpecialUsers}" />
                     <RadioButton GroupName="SpecialUserMode"
@@ -98,6 +105,8 @@
             <TextBlock Text="{Binding ListType}" />
             <TextBlock Text="Connected: " Margin="15,0,0,0" />
             <TextBlock Text="{Binding IsConnected}" />
+            <Separator Foreground="White" Margin="5,0,5,0" />
+            <TextBlock Text="{Binding ToolStatus}"/>
         </StackPanel>
 
         <Grid Margin="5">
@@ -112,6 +121,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!-- List -->
+            
             <DataGrid Grid.Row="0"
                       Grid.RowSpan="4"
                       Grid.Column="0"
@@ -128,8 +138,7 @@
                                 Command="{Binding OnDataGridRemoveEntry}" />
                 </DataGrid.KeyBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="False"
-                                        Binding="{Binding Command}" />
+                    <DataGridTextColumn Header="CMD" Width="Auto" CanUserReorder="False" IsReadOnly="False" Binding="{Binding Command}" />
                     <DataGridTextColumn Header="Name" CanUserReorder="False" Binding="{Binding Name}" />
                     <DataGridTextColumn Header="Reason" CanUserReorder="False" Binding="{Binding Reason}" />
                 </DataGrid.Columns>
@@ -144,6 +153,13 @@
                             Header="Paste from Clipboard" />
                     </ContextMenu>
                 </DataGrid.ContextMenu>
+                <!--
+                <DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="Background" x:DataType="models:Entry" Value="{Binding Result[_RowBackColor]}"/>
+                    </Style>
+                </DataGrid.Styles>
+                -->
             </DataGrid>
 
             <ProgressBar
@@ -171,10 +187,6 @@
                         <RowDefinition />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Username: " HorizontalAlignment="Right"
-                               Margin="0,10,0,0" />
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Username}" Margin="0,5,0,0" />
-
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Token: " HorizontalAlignment="Right"
                                Margin="0,10,0,0" />
                     <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="*" Text="{Binding OAuth}" Margin="0,5,0,0" />
@@ -188,12 +200,6 @@
                         <TextBox Width="200"
                                  Margin="0,5,0,0"
                                  Text="{Binding ChannelS}"/>
-                        <Image Source="/Assets/triangle-exclamation-solid.ico"
-                               IsVisible="{Binding DisplayChannelWarning}"
-                               Height="28"
-                               Width="28"
-                               Margin="5,0"
-                               ToolTip.Tip="Channel count over the amount that can be joined at once, joining might take a while."/>
                         <Button Margin="2,6" Content="&#709;" Click="Button_OnClick"
                                 ContextMenu="{Binding LastVisitedChannelsMenu}" />
                     </StackPanel>
@@ -212,7 +218,7 @@
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,10">
                 <StackPanel Orientation="Horizontal">
                     <NumericUpDown Value="{Binding MessageDelay}"
-                                   Minimum="301"
+                                   Minimum="10"
                                    Increment="10"
                                    Width="150"
                                    Margin="0,5,0,0" />
@@ -298,6 +304,8 @@
                         <StackPanel Grid.Row="1"
                                     Grid.Column="1">
                             <!--Behaviour on Mismatch-->
+                            <TextBlock Text="Behaviour on Mismatch"/>
+                            <TextBlock FontStyle="Italic" TextWrapping="Wrap" Text="*Also applies if Token lacking required scope."/>
                             <RadioButton Content="Warn and Abort" IsChecked="{Binding ReadFileCommandMismatch_Cancel}" />
                             <RadioButton Content="Remove entry" IsChecked="{Binding ReadFileCommandMismatch_Skip}"/>
                         </StackPanel>
