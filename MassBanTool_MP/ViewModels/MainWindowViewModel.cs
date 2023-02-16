@@ -198,8 +198,7 @@ namespace MassBanToolMP.ViewModels
                 var errs = GetErrors(nameof(ChannelS));
                 if (errs is List<string> errorList) hasErrors = errorList.Count > 0;
 
-                return !string.IsNullOrEmpty(Username)
-                       && !string.IsNullOrEmpty(OAuth)
+                return !string.IsNullOrEmpty(OAuth)
                        && channels.Count > 0
                        && !hasErrors;
             }
@@ -563,9 +562,9 @@ namespace MassBanToolMP.ViewModels
 
         private void StoreCredentials()
         {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(OAuth))
+            if (string.IsNullOrEmpty(OAuth))
                 return;
-            SecretHelper.StoreCredentials(Username, OAuth);
+            SecretHelper.StoreCredentials(OAuth);
         }
 
 
@@ -890,9 +889,17 @@ namespace MassBanToolMP.ViewModels
             {
                 var cred = SecretHelper.GetCredentials();
                 if (cred == null) return;
-                Username = cred.Item1;
-                OAuth = cred.Item2;
-                Program.API.Settings.AccessToken = OAuth;
+                    OAuth = cred;
+
+                if(OAuth.StartsWith("Bearer "))
+                {
+                    Program.API.Settings.AccessToken = OAuth;
+                }
+                else
+                {
+                    Program.API.Settings.AccessToken = "Bearer " + OAuth;
+                }
+
             }
             catch (Exception e)
             {
@@ -1880,7 +1887,7 @@ namespace MassBanToolMP.ViewModels
 
             if (diag.Result != DialogResult.OK)
                 return;
-
+            _username = diag.Username;
             Program.API.Settings.AccessToken = "Bearer " + diag.Token;
         }
 

@@ -7,7 +7,7 @@ namespace MassBanToolMP.Models
 {
     internal class SecretHelper
     {
-        public static Tuple<string, string>? GetCredentials()
+        public static string? GetCredentials()
         {
             LogViewModel.Log("Checking OS");
             if (OperatingSystem.IsWindows())
@@ -22,25 +22,25 @@ namespace MassBanToolMP.Models
             }
 
             LogViewModel.Log("OS Credential manager unknown.");
-            return new Tuple<string, string>("", "");
+            return null;
         }
-        public static void StoreCredentials(string username, string oauth)
+        public static void StoreCredentials(string oauth)
         {
             if (OperatingSystem.IsWindows())
             {
-                StoreCredentialsWindows(ref username, ref oauth);
+                StoreCredentialsWindows(ref oauth);
                 return;
             }
 
             if (OperatingSystem.IsLinux())
             {
-                StoreCredentialsLinux(ref username, ref oauth);
+                StoreCredentialsLinux(ref oauth);
                 return;
             }
 
             LogViewModel.Log("ERROR, Unknown OS can not save credentials.");
         }
-        private static Tuple<string, string>? GetCredentialsOnWindows()
+        private static string? GetCredentialsOnWindows()
         {
             try
             {
@@ -49,10 +49,9 @@ namespace MassBanToolMP.Models
                 cred.Load();
                 if (cred.Exists())
                 {
-                    Program.API.Settings.AccessToken = "Bearer " + cred.Password;
-                    return new Tuple<string, string>(cred.Username, cred.Password);
+                    return cred.Password;
                 }
-                LogViewModel.Log("Credentials not found. using Windows Credential Manager", "GetCredentialsOnWindows");
+                LogViewModel.Log("Credentials not found. using Windows Credential Manager");
                 return null;
             }
             catch (Exception e)
@@ -61,7 +60,7 @@ namespace MassBanToolMP.Models
                 throw new Exception("Unexpected Exception while fetching credentials from Windows Credential Manager");
             }
         }
-        private static Tuple<string, string>? GetCredentialsOnLinux()
+        private static string? GetCredentialsOnLinux()
         {
             //check for secret-tool
             ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash", Arguments = "-c \"command -v secret-tool\"", RedirectStandardOutput = true}; 
@@ -105,7 +104,6 @@ namespace MassBanToolMP.Models
             string[] erOutput = Line2.Split(Environment.NewLine);
             
             string oauth = string.Empty;
-            string user = string.Empty;
             foreach (string outline in output)
             {
                 string[] tuple = outline.Split(" = ");
@@ -119,28 +117,14 @@ namespace MassBanToolMP.Models
                         continue;
                 }
             }
-            foreach (string outline in erOutput)
-            {
-                string[] tuple = outline.Split(" = ");
-                switch (tuple[0])
-                {
-                    case "attribute.User":
-                        user = tuple[1];
-                        continue;
-
-                    default:
-                        continue;
-                }
-            }
-            Program.API.Settings.AccessToken = "Bearer " + oauth;
-            return new Tuple<string, string>(user, oauth);
+            return oauth;
         }
-        private static void StoreCredentialsLinux(ref string username, ref string oauth)
+        private static void StoreCredentialsLinux(ref string oauth)
         {
             var startInfo = new ProcessStartInfo()
             {
                 FileName = "bash", 
-                Arguments = $"-c \"secret-tool store --label=\'MassBanTool\' App MassBanTool User {username}\"",
+                Arguments = $"-c \"secret-tool store --label=\'MassBanTool\' App MassBanTool\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
@@ -153,18 +137,15 @@ namespace MassBanToolMP.Models
             
             proc.WaitForExit();
             
-            // secret-tool store --label='MassBanTool' App MassBanTool User {username}
+            // secret-tool store --label='MassBanTool' App MassBanTool
             // write to stdin oauth EOF
-
-
         }
-        private static void StoreCredentialsWindows(ref string username, ref string oauth)
+        private static void StoreCredentialsWindows(ref string oauth)
         {
             using (var cred = new Credential())
             {
                 cred.Password = oauth;
                 cred.Target = "MassBanTool";
-                cred.Username = username;
                 cred.Type = CredentialType.Generic;
                 cred.PersistanceType = PersistanceType.LocalComputer;
                 cred.Save();
