@@ -93,7 +93,7 @@ namespace MassBanToolMP.Views.Dialogs
         {
             string oauthprefix = "oauth:";
             if (Token.StartsWith(oauthprefix))
-                Token = Token.Remove(oauthprefix.Length);
+                Token = Token.Substring(oauthprefix.Length);
 
             var res = await Program.API.Auth.ValidateAccessTokenAsync( "Bearer " +  Token );
             
