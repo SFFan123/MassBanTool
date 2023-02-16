@@ -59,23 +59,23 @@ namespace MassBanToolMP.Views.Dialogs
 
         private void Button_OnClick(object? sender, RoutedEventArgs e)
         {
-            string scopes = string.Empty;
-
+            List<string> scopeList = new List<string>();
+            
             if (CheckBox_All_Scopes.IsChecked == true)
             {
-                scopes = string.Join("+", AuthScopesList);
+                scopeList.AddRange(AuthScopesList.Select(x => x.Key));
             }
             else
             {
                 foreach (object item in ListBox_Scopes.SelectedItems)
                 {
-                    if (item is string sc)
+                    if (item is KeyValuePair<string,string> sc)
                     {
-                        scopes = string.Join("+", scopes, sc);
+                        scopeList.Add(sc.Key);
                     }
                 }
-
             }
+            string scopes = string.Join("+", scopeList);
 
             if (string.IsNullOrEmpty(scopes))
             {
