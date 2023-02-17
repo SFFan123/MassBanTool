@@ -103,6 +103,9 @@
             <Separator Foreground="White" Margin="5,0,5,0" />
             <TextBlock Text="List type: " />
             <TextBlock Text="{Binding ListType}" />
+            <Separator Foreground="White" Margin="5,0,5,0" />
+            <TextBlock Text="{Binding Entries.Count}"/>
+            <TextBlock Text=" Entries"/>
             <TextBlock Text="Connected: " Margin="15,0,0,0" />
             <TextBlock Text="{Binding IsConnected}" />
             <Separator Foreground="White" Margin="5,0,5,0" />
@@ -218,10 +221,10 @@
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,10">
                 <StackPanel Orientation="Horizontal">
                     <NumericUpDown Value="{Binding MessageDelay}"
-                                   Minimum="10"
+                                   Minimum="6"
                                    Increment="10"
                                    Width="150"
-                                   Margin="0,5,0,0" />
+                                   Margin="0,5,0,0"/>
                 </StackPanel>
                 <Label Content="Cooldown between messages in ms" />
             </StackPanel>

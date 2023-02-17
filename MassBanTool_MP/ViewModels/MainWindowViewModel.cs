@@ -37,7 +37,7 @@ namespace MassBanToolMP.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private const string MESSAGE_DELAY_TOO_LOW = "Delay may not be under 300ms";
+        private const string MESSAGE_DELAY_TOO_LOW = "Delay may not be under 6ms";
         private const string MESSAGE_DELAY_INVALID_TYPE = "Message Delay must be a postive number.";
         private const string CHANNEL_INVALID = "Invalid Channel Name";
 
@@ -134,7 +134,7 @@ namespace MassBanToolMP.ViewModels
             LoadCredentialsCommand = ReactiveCommand.Create(LoadCredentials);
             StoreCredentialsCommand = ReactiveCommand.Create(StoreCredentials,
                 this.WhenAnyValue(x => x.Username, x => x.OAuth,
-                    (userName, password) => !string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password)));
+                    (userName, password) => !string.IsNullOrEmpty(password)));
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
             OnClickPropertiesPasteClipboard = ReactiveCommand.Create(HandlePasteEntries);
             OnDataGridRemoveEntry = ReactiveCommand.Create<object>(RemoveEntry);
@@ -239,7 +239,7 @@ namespace MassBanToolMP.ViewModels
                 else
                     AddError(nameof(MessageDelay), MESSAGE_DELAY_INVALID_TYPE);
 
-                if (val < 10)
+                if (val < 6)
                 {
                     AddError(nameof(MessageDelay), MESSAGE_DELAY_TOO_LOW);
                 }
@@ -867,7 +867,7 @@ namespace MassBanToolMP.ViewModels
             _tokenSource.Cancel();
             try
             {
-                Worker.Wait();
+                Worker.Wait(2000);
             }
             catch (AggregateException)
             {
@@ -1065,6 +1065,7 @@ namespace MassBanToolMP.ViewModels
         {
             var joinedChannels = channelIDs.Select(x => x.Key.ToLower());
             var toleave = joinedChannels.Except(channels).ToList();
+            toleave.ForEach(x=> channelIDs.Remove(x));
             toleave.ForEach(RemoveChannelFromGrid);
             toleave = null;
 
@@ -1505,6 +1506,7 @@ namespace MassBanToolMP.ViewModels
         {
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
+            Paused = false;
 
             await QueryIdsForEntries();
 
@@ -1541,7 +1543,7 @@ namespace MassBanToolMP.ViewModels
 
                     if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
                         !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
-
+                    
                     switch (mode)
                     {
                         case WorkingMode.Ban:
@@ -1596,11 +1598,11 @@ namespace MassBanToolMP.ViewModels
                     await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
                 }
 
-
-                BanProgress = (i + 1) / (double)Entries.Count * 100;
-                ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
-
-                entry.RowBackColor = "Green";
+                if (i % 2 == 0)
+                {
+                    BanProgress = (i + 1) / (double)Entries.Count * 100;
+                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * _messageDelay);
+                }
             }
 
             ETA = TimeSpan.Zero;
@@ -1637,7 +1639,7 @@ namespace MassBanToolMP.ViewModels
                 {
                     try
                     {
-                        await api.Moderation.AddBlockedTermAsync(channelID, _userId, entry.Name);
+                        await api.Moderation.AddBlockedTermAsync(channelID, _userId, entry.Name + entry.Reason);
                     }
                     catch (BadRequestException)
                     {
@@ -1655,7 +1657,7 @@ namespace MassBanToolMP.ViewModels
                 {
                     try
                     {
-                        await api.Moderation.DeleteBlockedTermAsync(channelID, _userId, entry.Name);
+                        await api.Moderation.DeleteBlockedTermAsync(channelID, _userId, entry.Name + entry.Reason);
                     }
                     catch (BadRequestException)
                     {
