@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace MassBanToolMP.ViewModels
@@ -46,7 +47,7 @@ namespace MassBanToolMP.ViewModels
 
         public bool HasErrors
         {
-            get => _propertyErrors.Count > 0;
+            get => _propertyErrors.Count > 0 && _propertyErrors.Sum(x => x.Value.Count) > 0;
         }
         public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
@@ -77,6 +78,7 @@ namespace MassBanToolMP.ViewModels
                 {
                     _propertyErrors[propertyName].Remove(errorMessage);
                 }
+                RaisePropertyChanged(nameof(HasErrors));
             }
         }
 
