@@ -1581,6 +1581,7 @@ namespace MassBanToolMP.ViewModels
                     if (increaseDelay)
                     {
                         _messageDelay++;
+                        RaisePropertyChanged(nameof(MessageDelay));
                         increaseDelay = false;
                     }
                     
