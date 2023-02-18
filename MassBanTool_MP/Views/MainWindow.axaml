@@ -51,22 +51,21 @@
                 <CheckBox Content="Load Credentials on Startup"
                           IsChecked="{Binding SettingLoadCredentialsOnStartup}"/>
                 <Separator/>
-                <MenuItem Header="Special User">
-                    <MenuItem Header="Edit special user list" Command="{Binding EditSpecialUsersCommand}" />
-                    <CheckBox Content="Protect VIPs/Mods from Commands"
-                              IsChecked="{Binding ProtectSpecialUsers}" />
-                    <RadioButton GroupName="SpecialUserMode"
-                                 IsChecked="{Binding ProtectedUserMode_Skip}"
-                                 Content="Skip Commands targeting User" />
-                    <RadioButton GroupName="SpecialUserMode"
-                                 IsChecked="{Binding ProtectedUserMode_Cancel}"
-                                 Content="Abort Action (default)" />
-                </MenuItem>
-                <Separator/>
                 <CheckBox Content="Dry Run"
                           ToolTip.Tip="No commands get sent to twitch, only in log."
                           IsChecked="{Binding DryRun}" 
                           IsEnabled="{Binding CanExecRun}" />
+            </MenuItem>
+            <MenuItem Header="Special User">
+                <MenuItem Header="Edit special user list" Command="{Binding EditSpecialUsersCommand}" />
+                <CheckBox Content="Protect special users from Commands"
+                          IsChecked="{Binding ProtectSpecialUsers}" />
+                <RadioButton GroupName="SpecialUserMode"
+                             IsChecked="{Binding ProtectedUserMode_Skip}"
+                             Content="Skip Commands targeting User" />
+                <RadioButton GroupName="SpecialUserMode"
+                             IsChecked="{Binding ProtectedUserMode_Cancel}"
+                             Content="Abort Action (default)" />
             </MenuItem>
             <MenuItem Header="_Misc">
                 <MenuItem Header="Show Log window" Command="{Binding ShowLogWindowCommand, Mode=OneTime}" 
@@ -99,7 +98,7 @@
         <StackPanel DockPanel.Dock="Bottom" Name="StatusStrip" Orientation="Horizontal"
                     Margin="2,8,2,4">
             <TextBlock Text="ETA: " />
-            <TextBlock Text="{Binding ETA,StringFormat={}{0:hh}:{0:mm}:{0:ss},FallbackValue=00:00:00,Mode=OneWay}" />
+            <TextBlock Text="{Binding ETA,StringFormat={}{0:hh}h:{0:mm}m:{0:ss}s,FallbackValue=00:00:00,Mode=OneWay}" />
             <Separator Foreground="White" Margin="5,0,5,0" />
             <TextBlock Text="List type: " />
             <TextBlock Text="{Binding ListType}" />
