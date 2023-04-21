@@ -225,7 +225,7 @@ namespace MassBanToolMP.ViewModels
             get => _oAuth;
             set => SetProperty(ref _oAuth, value);
         }
-
+        
         public string Reason
         {
             get => _reason;
@@ -891,15 +891,14 @@ namespace MassBanToolMP.ViewModels
                 if (cred == null) return;
                     OAuth = cred;
 
-                if(OAuth.StartsWith("Bearer "))
+                var m = Regex.Match( cred, @"^(?:oauth:|Bearer )?(.+)$", RegexOptions.IgnoreCase);
+                string token = cred;
+                if (m.Success)
                 {
-                    Program.API.Settings.AccessToken = OAuth;
-                }
-                else
-                {
-                    Program.API.Settings.AccessToken = "Bearer " + OAuth;
+                    token = m.Groups[1].Value;
                 }
 
+                Program.API.Settings.AccessToken = "Bearer " + token;
             }
             catch (Exception e)
             {
@@ -1659,14 +1658,37 @@ namespace MassBanToolMP.ViewModels
                         }
                         case WorkingMode.Unban:
                         {
-                            try
+                            var tsk = Task.Run(async () =>
                             {
-                                await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
-                            }
-                            catch (BadRequestException)
-                            {
-                                LogViewModel.Log($"User '{entry.Name}' not banned in channel '{channel.Key}'");
-                            }
+                                try
+                                {
+                                    await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                                }
+                                catch (BadRequestException)
+                                {
+                                    LogViewModel.Log($"User '{entry.Name}' not banned in channel '{channel.Key}'");
+                                }
+                                catch (TooManyRequestsException)
+                                {
+                                    increaseDelay = true;
+                                    LogViewModel.Log("Hitting Rate Limit");
+
+                                    async void RetryAction()
+                                    {
+                                        try
+                                        {
+                                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                                        }
+                                        catch (BadRequestException)
+                                        {
+                                            // user already banned
+                                            OnUserAlreadyBanned(channel.Key, entry.Name);
+                                        }
+                                    }
+
+                                    Retries.Add(RetryAction);
+                                }
+                            }, _token);
 
                             break;
                         }
