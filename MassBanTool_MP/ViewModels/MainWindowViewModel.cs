@@ -889,8 +889,7 @@ namespace MassBanToolMP.ViewModels
             {
                 var cred = SecretHelper.GetCredentials();
                 if (cred == null) return;
-                    OAuth = cred;
-
+                
                 var m = Regex.Match( cred, @"^(?:oauth:|Bearer )?(.+)$", RegexOptions.IgnoreCase);
                 string token = cred;
                 if (m.Success)
@@ -899,6 +898,7 @@ namespace MassBanToolMP.ViewModels
                 }
 
                 Program.API.Settings.AccessToken = "Bearer " + token;
+                OAuth = Program.API.Settings.AccessToken;
             }
             catch (Exception e)
             {
@@ -1003,9 +1003,15 @@ namespace MassBanToolMP.ViewModels
 
             IsBusy = true;
             
+            if (!OAuth.StartsWith("Bearer"))
+            {
+                OAuth = "Bearer " + OAuth;
+            }
+            Program.API.Settings.AccessToken = OAuth;
+
             try
             {
-                var res = await Program.API.Auth.ValidateAccessTokenAsync();
+                var res = await Program.API.Auth.ValidateAccessTokenAsync(Program.API.Settings.AccessToken);
                 TokenScopes = res.Scopes;
                 _userId = res.UserId;
                 _IsConnected = true;
@@ -1998,6 +2004,8 @@ namespace MassBanToolMP.ViewModels
                 return;
             _username = diag.Username;
             Program.API.Settings.AccessToken = "Bearer " + diag.Token;
+            OAuth = Program.API.Settings.AccessToken;
+            StoreCredentials();
         }
 
 
