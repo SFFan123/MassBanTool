@@ -26,7 +26,7 @@ namespace MassBanToolMP
         {
             Window? owner = (Avalonia.Application.Current as App)?.MainWindow;
 
-            if (owner != null)
+            if (owner != null && owner.IsVisible)
             {
                 var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(
                     new MessageBoxStandardParams()

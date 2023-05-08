@@ -9,6 +9,11 @@ namespace MassBanToolMP
 {
     public partial class App : Application
     {
+        public Window? MainWindow
+        {
+            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -18,7 +23,6 @@ namespace MassBanToolMP
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                
                 desktop.MainWindow = new MainWindow
                 {
                     WindowStartupLocation = WindowStartupLocation.CenterScreen
@@ -31,11 +35,6 @@ namespace MassBanToolMP
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        public Window? MainWindow
-        {
-            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
         }
     }
 }

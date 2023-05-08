@@ -7,7 +7,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.NetworkInformation;
 using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -2011,7 +2010,7 @@ namespace MassBanToolMP.ViewModels
 
         private async void Debug(MainWindow window)
         {
-            await FilterEntriesForSpecialUsers();
+            
         }
 
 
