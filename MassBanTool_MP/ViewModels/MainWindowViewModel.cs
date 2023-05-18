@@ -1170,6 +1170,11 @@ namespace MassBanToolMP.ViewModels
         {
             var diag = new OpenFileDialog();
             diag.AllowMultiple = false;
+            diag.Filters = new List<FileDialogFilter>()
+            {
+                new FileDialogFilter(){Name = "Text file", Extensions = new List<string>(){ "txt" }},
+                new FileDialogFilter(){Name = "All files",  Extensions = new List<string>() { "*" }}
+            };
             diag.Title = "Open File:";
             var path = await diag.ShowAsync(window);
 
