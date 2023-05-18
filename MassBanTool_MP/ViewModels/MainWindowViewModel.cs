@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -158,6 +159,7 @@ namespace MassBanToolMP.ViewModels
             ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
             ShowInfoWindowCommand = ReactiveCommand.Create<Window>(ShowInfoWindow);
             DebugCommand = ReactiveCommand.Create<MainWindow>(Debug);
+            QueryUsersInListCommand = ReactiveCommand.Create<Unit, Task>( unit => QueryIdsForEntries());
             EditSpecialUsersCommand = ReactiveCommand.Create(EditSpecialUsers);
 
             ApplySettings();
@@ -165,8 +167,7 @@ namespace MassBanToolMP.ViewModels
             SpecialUsers = new List<string>(); // for now.
             LogViewModel.Log("Done Init GUI...");
         }
-
-
+        
         private Task Worker
         {
             get => _worker;
@@ -241,7 +242,7 @@ namespace MassBanToolMP.ViewModels
                 else
                     AddError(nameof(MessageDelay), MESSAGE_DELAY_INVALID_TYPE);
 
-                if (val < 6)
+                if (val < 0)
                 {
                     AddError(nameof(MessageDelay), MESSAGE_DELAY_TOO_LOW);
                 }
@@ -368,6 +369,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Window, Unit> EditLastVisitChannelCommand { get; }
         public ReactiveCommand<Window, Unit> GetOAuthCommand { get; }
         public ReactiveCommand<MainWindow, Unit> DebugCommand { get; }
+        public ReactiveCommand<Unit, Task> QueryUsersInListCommand { get; }
         public ReactiveCommand<Unit, Unit> EditSpecialUsersCommand { get; }
 
         public ObservableCollection<Entry> Entries
@@ -1541,7 +1543,7 @@ namespace MassBanToolMP.ViewModels
             int maxParallelism = 4;
 
             List<Task> Tasks = new List<Task>();
-            List<Action> Retries = new List<Action>();
+            Queue<Action> Retries = new Queue<Action>();
 
             await QueryIdsForEntries();
 
@@ -1570,7 +1572,15 @@ namespace MassBanToolMP.ViewModels
 
                 while (Retries.Count >=1)
                 {
-                    await Task.Run(Retries.First(), _token);
+                    try
+                    {
+                        await Task.Run(Retries.Dequeue(), _token);
+                    }
+                    catch (Exception e)
+                    {
+                        LogViewModel.Log(e.Message);
+                    }
+                    
                 }
 
 
@@ -1584,7 +1594,7 @@ namespace MassBanToolMP.ViewModels
                 {
                     if (increaseDelay)
                     {
-                        _messageDelay++;
+                        _messageDelay += 5;
                         RaisePropertyChanged(nameof(MessageDelay));
                         increaseDelay = false;
                     }
@@ -1617,7 +1627,7 @@ namespace MassBanToolMP.ViewModels
                                     // user already banned
                                     OnUserAlreadyBanned(channel.Key, entry.Name);
                                 }
-                                catch (TooManyRequestsException)
+                                catch (TooManyRequestsException e)
                                 {
                                     increaseDelay = true;
                                     LogViewModel.Log("Hitting Rate Limit");
@@ -1637,11 +1647,13 @@ namespace MassBanToolMP.ViewModels
                                         }
                                     }
 
-                                    Retries.Add(RetryAction);
+                                    Retries.Enqueue(RetryAction);
+
+                                    await WaitForReset(e);
                                 }
                                 catch (Exception ex)
                                 {
-
+                                    LogViewModel.Log(ex.Message);
                                 }
                                 
                                 if (banRespone?.Data != null)
@@ -1691,7 +1703,7 @@ namespace MassBanToolMP.ViewModels
                                         }
                                     }
 
-                                    Retries.Add(RetryAction);
+                                    Retries.Enqueue(RetryAction);
                                 }
                             }, _token);
 
@@ -1719,6 +1731,19 @@ namespace MassBanToolMP.ViewModels
                 BanProgress = 100;
             }
             ETA = TimeSpan.Zero;
+        }
+
+        private async Task WaitForReset(TooManyRequestsException tooManyRequestsException)
+        {
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+            var defaultVal = dateTime - DateTime.Now;
+
+            double resttimestamp = (double)(tooManyRequestsException.Data["Ratelimit-Reset"] ?? defaultVal.TotalSeconds);
+
+            dateTime = dateTime.AddSeconds(resttimestamp).ToLocalTime();
+
+            await Task.Delay(DateTime.Now - dateTime);
         }
 
         private ReadFileOperation parseOperation(string com)
@@ -2019,16 +2044,24 @@ namespace MassBanToolMP.ViewModels
             bool busyState = IsBusy;
             IsBusy = true;
 
+            var toFetch = Entries.AsParallel().Where(x => string.IsNullOrEmpty(x.Id)).ToList();
+
+            if (!toFetch.Any())
+            {
+                IsBusy = busyState;
+                return;
+            }
+
             int resCount = 0;
             try
             {
-                LogViewModel.Log($"Fetching IDs for {Entries.Count} entries...");
+                LogViewModel.Log($"Fetching IDs for {toFetch.Count} entries...");
 
-                for (int i = 0; i < Entries.Count; i += 100)
+                for (int i = 0; i < toFetch.Count; i += 100)
                 {
-                    ToolStatus = $"Fetching IDs for list entries... ({i}/{Entries.Count})";
+                    ToolStatus = $"Fetching IDs for list entries... ({i}/{toFetch.Count})";
 
-                    var entriesSlice = Entries.Skip(i).Take(100);
+                    var entriesSlice = toFetch.Skip(i).Take(100);
                     var logins = entriesSlice.Select(x => x.Name).ToList();
                     var res = await Program.API.Helix.Users.GetUsersAsync(logins: logins);
 
@@ -2046,7 +2079,7 @@ namespace MassBanToolMP.ViewModels
                 }
 
                 LogViewModel.Log(
-                    $"Fetched IDs. Out of {Entries.Count} usernames {resCount} were found by twitch, entries which weren't found will be skipped - Accounts probably already banned by twitch.");
+                    $"Fetched IDs. Out of {toFetch.Count} usernames {resCount} were found by twitch, entries which weren't found will be skipped - Accounts probably already banned by twitch.");
             }
             catch (Exception e)
             {
@@ -2054,11 +2087,11 @@ namespace MassBanToolMP.ViewModels
                 LogViewModel.Log("Error while Fetching Ids for entries. " + e.Message);
             }
 
-            if (Entries.Count != resCount)
+            if (toFetch.Count != resCount)
             {
                 var diagres =
                     await MessageBox.Show(
-                        $"Only {resCount} out of {Entries.Count} were found on Twitch, do you want to remove the invalid/banned entries? These will be skipped anyways.",
+                        $"Only {resCount} out of {toFetch.Count} were found on Twitch, do you want to remove the invalid/banned entries? These will be skipped anyways.",
                         "Invalid users", ButtonEnum.YesNo);
 
                 if (diagres == ButtonResult.Yes)

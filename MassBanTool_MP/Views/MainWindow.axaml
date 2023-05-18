@@ -233,7 +233,7 @@
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,10">
                 <StackPanel Orientation="Horizontal">
                     <NumericUpDown Value="{Binding MessageDelay}"
-                                   Minimum="6"
+                                   Minimum="0"
                                    Increment="10"
                                    Width="150"
                                    Margin="0,5,0,0"/>
@@ -373,6 +373,8 @@
                         <Button Content="Sort list" Margin="2" Command="{Binding RunSortListCommand}" />
                         <Button Content="Remove not allowed commands" Margin="2"
                                 Command="{Binding RunRemoveNotAllowedActionsCommand, Mode=OneTime}" />
+                        <Button Content="Query Users in List" Margin="2"
+                                Command="{Binding QueryUsersInListCommand, Mode=OneTime}" />
                     </WrapPanel>
                 </TabItem>
             </TabControl>
