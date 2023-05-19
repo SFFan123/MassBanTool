@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -103,9 +102,11 @@ namespace MassBanToolMP.ViewModels
         private List<string> channels = new();
         private string filterRegex = string.Empty;
 
-        private List<string> TokenScopes = new List<string>();
+        private string SpecialUserFilePath =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MassBanTool",
+                "MassBanToolProtectedUsers.txt");
 
-        private string SpecialUserFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MassBanTool", "MassBanToolProtectedUsers.txt");
+        private List<string> TokenScopes = new List<string>();
 
 
         public MainWindowViewModel()
@@ -159,7 +160,7 @@ namespace MassBanToolMP.ViewModels
             ShowLogWindowCommand = ReactiveCommand.Create<Window>(ShowLogWindow);
             ShowInfoWindowCommand = ReactiveCommand.Create<Window>(ShowInfoWindow);
             DebugCommand = ReactiveCommand.Create<MainWindow>(Debug);
-            QueryUsersInListCommand = ReactiveCommand.Create<Unit, Task>( unit => QueryIdsForEntries());
+            QueryUsersInListCommand = ReactiveCommand.Create<Unit, Task>(unit => QueryIdsForEntries());
             EditSpecialUsersCommand = ReactiveCommand.Create(EditSpecialUsers);
 
             ApplySettings();
@@ -167,7 +168,7 @@ namespace MassBanToolMP.ViewModels
             SpecialUsers = new List<string>(); // for now.
             LogViewModel.Log("Done Init GUI...");
         }
-        
+
         private Task Worker
         {
             get => _worker;
@@ -225,7 +226,7 @@ namespace MassBanToolMP.ViewModels
             get => _oAuth;
             set => SetProperty(ref _oAuth, value);
         }
-        
+
         public string Reason
         {
             get => _reason;
@@ -457,8 +458,8 @@ namespace MassBanToolMP.ViewModels
                 File.Create(SpecialUserFilePath).Close();
 
                 File.WriteAllText(SpecialUserFilePath, "// example" + Environment.NewLine +
-                                            "// CommanderRoot" + Environment.NewLine +
-                                            "// teischEnte" + Environment.NewLine);
+                                                       "// CommanderRoot" + Environment.NewLine +
+                                                       "// teischEnte" + Environment.NewLine);
             }
 
             new Process
@@ -890,8 +891,8 @@ namespace MassBanToolMP.ViewModels
             {
                 var cred = SecretHelper.GetCredentials();
                 if (cred == null) return;
-                
-                var m = Regex.Match( cred, @"^(?:oauth:|Bearer )?(.+)$", RegexOptions.IgnoreCase);
+
+                var m = Regex.Match(cred, @"^(?:oauth:|Bearer )?(.+)$", RegexOptions.IgnoreCase);
                 string token = cred;
                 if (m.Success)
                 {
@@ -1003,11 +1004,12 @@ namespace MassBanToolMP.ViewModels
             }
 
             IsBusy = true;
-            
+
             if (!OAuth.StartsWith("Bearer"))
             {
                 OAuth = "Bearer " + OAuth;
             }
+
             Program.API.Settings.AccessToken = OAuth;
 
             try
@@ -1029,9 +1031,9 @@ namespace MassBanToolMP.ViewModels
 
             channelIDs.ForEach((x) => { AddChannelToGrid(x.Key); });
 
-            if(!_lastVisitedChannels.Contains(ChannelS))
+            if (!_lastVisitedChannels.Contains(ChannelS))
                 _lastVisitedChannels.Add(ChannelS);
-            
+
             RaiseIsConnectedChanged();
 
             IsBusy = false;
@@ -1074,7 +1076,7 @@ namespace MassBanToolMP.ViewModels
         {
             var joinedChannels = channelIDs.Select(x => x.Key.ToLower());
             var toleave = joinedChannels.Except(channels).ToList();
-            toleave.ForEach(x=> channelIDs.Remove(x));
+            toleave.ForEach(x => channelIDs.Remove(x));
             toleave.ForEach(RemoveChannelFromGrid);
             toleave = null;
 
@@ -1082,10 +1084,10 @@ namespace MassBanToolMP.ViewModels
             var tojoin = channels.Except(lst).ToList();
             tojoin.ForEach(AddChannelToGrid);
             tojoin = null;
-            
+
             await GetChannelIds();
-            
-            if(!_lastVisitedChannels.Contains(ChannelS))
+
+            if (!_lastVisitedChannels.Contains(ChannelS))
                 _lastVisitedChannels.Add(ChannelS);
 
             GC.Collect();
@@ -1172,8 +1174,8 @@ namespace MassBanToolMP.ViewModels
             diag.AllowMultiple = false;
             diag.Filters = new List<FileDialogFilter>()
             {
-                new FileDialogFilter(){Name = "Text file", Extensions = new List<string>(){ "txt" }},
-                new FileDialogFilter(){Name = "All files",  Extensions = new List<string>() { "*" }}
+                new FileDialogFilter() { Name = "Text file", Extensions = new List<string>() { "txt" } },
+                new FileDialogFilter() { Name = "All files", Extensions = new List<string>() { "*" } }
             };
             diag.Title = "Open File:";
             var path = await diag.ShowAsync(window);
@@ -1417,7 +1419,7 @@ namespace MassBanToolMP.ViewModels
             {
                 LogViewModel.Log("Warning: no protected users defined!");
             }
-            
+
             //
 
             var toRemove = new List<Entry>();
@@ -1575,7 +1577,7 @@ namespace MassBanToolMP.ViewModels
                 while (Tasks.Count >= maxParallelism)
                     await Task.Delay(10, _token);
 
-                while (Retries.Count >=1)
+                while (Retries.Count >= 1)
                 {
                     try
                     {
@@ -1585,7 +1587,6 @@ namespace MassBanToolMP.ViewModels
                     {
                         LogViewModel.Log(e.Message);
                     }
-                    
                 }
 
 
@@ -1603,12 +1604,12 @@ namespace MassBanToolMP.ViewModels
                         RaisePropertyChanged(nameof(MessageDelay));
                         increaseDelay = false;
                     }
-                    
+
                     if (!entry.IsValid) break;
 
                     if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
                         !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
-                    
+
                     switch (mode)
                     {
                         case WorkingMode.Ban:
@@ -1660,21 +1661,16 @@ namespace MassBanToolMP.ViewModels
                                 {
                                     LogViewModel.Log(ex.Message);
                                 }
-                                
+
                                 if (banRespone?.Data != null)
                                 {
                                     OnUserBanned(channel.Key, entry.Name);
                                 }
-
-
                             }, _token);
 
                             Tasks.Add(tsk);
 
-                            tsk.ContinueWith((t) =>
-                            {
-                                Tasks.Remove(t);
-                            });
+                            tsk.ContinueWith((t) => { Tasks.Remove(t); });
 
                             break;
                         }
@@ -1699,7 +1695,8 @@ namespace MassBanToolMP.ViewModels
                                     {
                                         try
                                         {
-                                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
+                                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId,
+                                                entry.Id);
                                         }
                                         catch (BadRequestException)
                                         {
@@ -1727,7 +1724,8 @@ namespace MassBanToolMP.ViewModels
                 if (i % 2 == 0)
                 {
                     BanProgress = (i + 1) / (double)Entries.Count * 100;
-                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * (_messageDelay) + (Entries.Count - i + 1)*100) ;
+                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * (_messageDelay) +
+                                                    (Entries.Count - i + 1) * 100);
                 }
             }
 
@@ -1735,6 +1733,7 @@ namespace MassBanToolMP.ViewModels
             {
                 BanProgress = 100;
             }
+
             ETA = TimeSpan.Zero;
         }
 
@@ -1744,7 +1743,8 @@ namespace MassBanToolMP.ViewModels
 
             var defaultVal = dateTime - DateTime.Now;
 
-            double resttimestamp = (double)(tooManyRequestsException.Data["Ratelimit-Reset"] ?? defaultVal.TotalSeconds);
+            double resttimestamp =
+                (double)(tooManyRequestsException.Data["Ratelimit-Reset"] ?? defaultVal.TotalSeconds);
 
             dateTime = dateTime.AddSeconds(resttimestamp).ToLocalTime();
 
@@ -2040,7 +2040,6 @@ namespace MassBanToolMP.ViewModels
 
         private async void Debug(MainWindow window)
         {
-            
         }
 
 

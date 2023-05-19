@@ -12,7 +12,6 @@ The .NET Framework Version is now removed.
 
 ## Safety Measures
  - Readfile has a list of allowed commands, only commands that in that list will be executed by the tool, so if someone sneaks in a /mod \<user>.
- - The Moderator rate limit of Twitch of 100 Requests in 30 secs are hard coded in the twitch client.
  
 
 ## Build it yourself
