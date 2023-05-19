@@ -1767,11 +1767,11 @@ namespace MassBanToolMP.ViewModels
             var api = Program.API.Helix;
             try
             {
-                operation = parseOperation(entry.ChatCommand);
+                operation = parseOperation(entry.Command);
             }
             catch (Exception exception)
             {
-                Console.WriteLine(exception);
+                LogViewModel.Log(exception.Message);
                 return;
             }
 
