@@ -9,6 +9,11 @@ namespace MassBanToolMP
 {
     public partial class App : Application
     {
+        public Window? MainWindow
+        {
+            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -20,19 +25,16 @@ namespace MassBanToolMP
             {
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
                     WindowStartupLocation = WindowStartupLocation.CenterScreen
                 };
+
+                desktop.MainWindow.DataContext = new MainWindowViewModel();
+
                 ((desktop.MainWindow.DataContext as MainWindowViewModel)!).DataGrid =
                     desktop.MainWindow.Get<DataGrid>("DataGrid");
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        public Window? MainWindow
-        {
-            get => (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
         }
     }
 }

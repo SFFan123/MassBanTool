@@ -13,8 +13,8 @@ namespace MassBanToolMP.ViewModels
         {
             _fetchAmount = 200;
             _channel = string.Empty;
-            CloseOKCommand = ReactiveCommand.Create<Window>(CloseWindowOK, 
-                this.WhenAnyValue(x => x.Channel, channel => channel!=null && channel.Length>2));
+            CloseOKCommand = ReactiveCommand.Create<Window>(CloseWindowOK, this.WhenAnyValue(x => x.Channel, channel => 
+                channel!=null && channel.Length>=2));
             CloseCancelCommand = ReactiveCommand.Create<Window>(CloseWindowCancel);
         }
         private uint _fetchAmount;

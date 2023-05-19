@@ -1,4 +1,5 @@
 ﻿using IX.Observable;
+using MassBanToolMP.Helper;
 using MassBanToolMP.ViewModels;
 
 namespace MassBanToolMP.Models
@@ -10,7 +11,8 @@ namespace MassBanToolMP.Models
         private string reason;
         private ConcurrentObservableDictionary<string, string> result = new ();
         private bool _isValid = true;
-        private string rowBackColor = "Blue";
+        private string rowBackColor = "Transparent";
+        private string id;
 
 
         public string Command
@@ -19,10 +21,18 @@ namespace MassBanToolMP.Models
             set => SetProperty(ref command, value);
         }
 
+        public ReadFileOperation Operation { get; set; }
+
         public string Name
         {
             get => name;
             set => SetProperty(ref name, value);
+        }
+
+        public string Id
+        {
+            get => id;
+            set => SetProperty(ref id, value);
         }
 
         public string Reason
@@ -47,7 +57,7 @@ namespace MassBanToolMP.Models
         /// </summary>
         public bool IsValid
         {
-            get => _isValid;
+            get => _isValid && !string.IsNullOrEmpty(id);
             set => SetProperty(ref _isValid, value);
         }
         public string RowBackColor
