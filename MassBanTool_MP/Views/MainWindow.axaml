@@ -57,6 +57,10 @@
                           IsChecked="{Binding DryRun}" 
                           IsEnabled="{Binding CanExecRun}" />
             </MenuItem>
+            <MenuItem Header="View">
+                <CheckBox Content="Show Result"
+                          IsChecked="{Binding SettingShowResult}"/>
+            </MenuItem>
             <MenuItem Header="Special User">
                 <MenuItem Header="Edit special user list" Command="{Binding EditSpecialUsersCommand}" />
                 <CheckBox Content="Protect special users from Commands"

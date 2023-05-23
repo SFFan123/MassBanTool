@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -371,7 +372,13 @@ namespace MassBanToolMP.ViewModels
 
         private void RemoveChannelFromGrid(string eChannel)
         {
-            var toremove = DataGrid.Columns.Skip(2).FirstOrDefault(x => x.Header as string == eChannel);
+            var toremove = DataGrid.Columns.Skip(3).FirstOrDefault(x => x.Header as string == eChannel);
+            DataGrid.Columns.Remove(toremove);
+        }
+
+        private void RemoveAllChannelsFromGrid()
+        {
+            var toremove = DataGrid.Columns.Skip(3);
             DataGrid.Columns.Remove(toremove);
         }
 
@@ -455,6 +462,11 @@ namespace MassBanToolMP.ViewModels
 
         private void _AddChannelToGrid(string channelName)
         {
+            if (!SettingShowResult)
+            {
+                return;
+            }
+
             if (DataGrid.Columns.Any(x => x.Header as string == channelName)) return;
 
             var col = new DataGridTextColumn()
@@ -517,9 +529,11 @@ namespace MassBanToolMP.ViewModels
 
             if (!item.Result.ContainsKey(channel))
             {
-                var c = item.Result;
-                c[channel] = res;
-                item.Result = new ConcurrentObservableDictionary<string, string>(c);
+                item.Result[channel] = res;
+                if (SettingShowResult)
+                {
+                    item.Result.RefreshViewers();
+                }
             }
             else
             {
@@ -953,8 +967,8 @@ namespace MassBanToolMP.ViewModels
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
             Paused = false;
-            bool increaseDelay = false;
-            int maxParallelism = 10;
+
+            int maxParallelism = 8;
 
             List<Task> Tasks = new List<Task>();
             Queue<Action> Retries = new Queue<Action>();
@@ -1037,7 +1051,7 @@ namespace MassBanToolMP.ViewModels
                                     }
                                     catch (TooManyRequestsException)
                                     {
-                                        increaseDelay = true;
+                                        IncreaseDelay();
                                         LogViewModel.Log("Hitting Rate Limit");
 
                                         async void RetryAction()
@@ -1094,12 +1108,14 @@ namespace MassBanToolMP.ViewModels
             ETA = TimeSpan.Zero;
         }
 
+        
         private void IncreaseDelay()
         {
-            _messageDelay += 5;
+            _messageDelay += 3;
             RaisePropertyChanged(nameof(MessageDelay));
             Task.Delay(TimeSpan.FromSeconds(1)).Wait();
         }
+
 
         private async Task BanUser(string channelId, string channelName, string modId, Entry entry, string reason,
             int? duration = null)
@@ -1750,6 +1766,19 @@ namespace MassBanToolMP.ViewModels
             set => SetProperty(ref _readFileCommandMismatchSkip, value);
         }
 
+        public bool SettingShowResult
+        {
+            get => _settingShowResults;
+            set
+            {
+                SetProperty(ref _settingShowResults, value);
+                if (!value)
+                {
+                    RemoveAllChannelsFromGrid();
+                }
+            }
+        }
+
 
         public DataGrid DataGrid { get; set; }
         public bool RegexOptionIgnoreCase { get; set; }
@@ -2097,6 +2126,7 @@ namespace MassBanToolMP.ViewModels
         private bool _protectSpecialUsers = true;
         private bool _readFileCommandMismatchCancel = true;
         private bool _readFileCommandMismatchSkip;
+        private bool _settingShowResults = true;
         private string _reason;
         private bool _settingLoadCredentialsOnStartup;
         private CancellationToken _token;
