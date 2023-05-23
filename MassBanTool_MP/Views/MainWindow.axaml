@@ -14,8 +14,6 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Debug" Command="{Binding DebugCommand}"
-                          CommandParameter="{Binding ElementName=Window}"/>
                 <MenuItem Header="Open _File" Command="{Binding OpenFileCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}" />
                 <MenuItem Header="Open File from _URL"
@@ -262,7 +260,7 @@
                 <TabItem Header="Banning" Cursor="Hand">
                     <StackPanel>
                         <Label Content="Ban Reason: " />
-                        <TextBox Height="40" Margin="0,0,0,20" Text="{Binding Reason}" />
+                        <TextBox Height="40" Margin="0,0,0,20" Text="{Binding Reason}" MaxLength="500" />
                         <StackPanel Orientation="Horizontal">
                             <Button Template="{StaticResource PauseButton}" Margin="0,0,5,0" />
                             <Button Template="{StaticResource AbortButton}" Margin="0,0,5,0" />

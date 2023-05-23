@@ -1,14 +1,11 @@
-﻿using Avalonia.OpenGL;
-using CredentialManagement;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace MassBanToolMP.Helper
@@ -85,6 +82,34 @@ namespace MassBanToolMP.Helper
             }
             
             return new Tuple<JObject, JObject>(stable, pre);
+        }
+
+        public static void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "&");
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
     }
 }

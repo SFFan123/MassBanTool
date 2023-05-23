@@ -7,6 +7,7 @@
     <TrimMode>copyused</TrimMode>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>Assets\moderator.ico</ApplicationIcon>
+    <AssemblyVersion />
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

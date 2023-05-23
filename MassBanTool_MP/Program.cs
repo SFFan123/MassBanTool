@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using MassBanToolMP.Models;
@@ -12,7 +13,7 @@ namespace MassBanToolMP
     {
         public static TwitchAPI API;
         public static SettingsWrapper settings;
-        public static Version Version { get; } = new(1, 1, 5, 1);
+        public static Version Version { get; } = Assembly.GetEntryAssembly().GetName().Version;
 
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized

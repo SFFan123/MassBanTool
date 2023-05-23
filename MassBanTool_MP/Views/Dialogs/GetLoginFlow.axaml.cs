@@ -3,6 +3,7 @@ using System.Linq;
 using System.Web;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using MassBanToolMP.Helper;
 using MassBanToolMP.ViewModels;
 using DialogResult = MassBanToolMP.Helper.DialogResult;
 
@@ -86,7 +87,7 @@ namespace MassBanToolMP.Views.Dialogs
                       "&redirect_uri=" + HttpUtility.UrlEncode("https://twitchapps.com/tmi/") +
                       "&response_type=code&scope=" + scopes; 
             
-            MainWindowViewModel.OpenUrl(url);
+            HttpHelper.OpenUrl(url);
         }
 
         private async void Button_OnOKClick(object? sender, RoutedEventArgs e)
