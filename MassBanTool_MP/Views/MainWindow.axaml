@@ -3,7 +3,6 @@
         Width="1100" Height="650"
         MinWidth="900" MinHeight="500"
         xmlns:viewModels="clr-namespace:MassBanToolMP.ViewModels"
-        xmlns:models="clr-namespace:MassBanToolMP.Models"
         x:Class="MassBanToolMP.Views.MainWindow"
         Title="{Binding WindowTitle, Mode=OneTime}"
         Icon="/Assets/moderator.ico"
@@ -19,6 +18,10 @@
                 <MenuItem Header="Open File from _URL"
                           Command="{Binding OpenFileFromURLCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>
+                <Separator/>
+                <MenuItem Command="{Binding OnClickPropertiesPasteClipboard}"
+                          Header="Paste from Clipboard" />
+                <Separator/>
                 <MenuItem Header="Fetch last X Followers of Channel Y" 
                           Command="{Binding FetchLastFollowersForChannelCommand, Mode=OneTime}"
                           CommandParameter="{Binding ElementName=Window}"/>

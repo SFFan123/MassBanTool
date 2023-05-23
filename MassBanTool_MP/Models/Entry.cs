@@ -14,6 +14,11 @@ namespace MassBanToolMP.Models
         private string rowBackColor = "Transparent";
         private string id;
 
+        public Entry()
+        {
+            result = new ConcurrentObservableDictionary<string, string> ();
+            result.HistoryLevels = 0;
+        }
 
         public string Command
         {

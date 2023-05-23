@@ -460,7 +460,7 @@ namespace MassBanToolMP.ViewModels
             var col = new DataGridTextColumn()
             {
                 Header = channelName,
-                Binding = new Binding() { Path = $"Result[{channelName}]" },
+                Binding = new Binding() { Path = $"Result[{channelName}]", Priority = BindingPriority.Style, Mode = BindingMode.OneWay},
                 IsReadOnly = true,
             };
 
@@ -954,7 +954,7 @@ namespace MassBanToolMP.ViewModels
             _token = _tokenSource.Token;
             Paused = false;
             bool increaseDelay = false;
-            int maxParallelism = 1;
+            int maxParallelism = 10;
 
             List<Task> Tasks = new List<Task>();
             Queue<Action> Retries = new Queue<Action>();
@@ -976,110 +976,121 @@ namespace MassBanToolMP.ViewModels
                 entry.Result = new ConcurrentObservableDictionary<string, string>(entry.Result);
             }
 
-            var TextReason = Reason ?? string.Empty;
-            for (var i = 0; i < Entries.Count; i++)
+            var textReason = Reason ?? string.Empty;
+            try
             {
-                while (Paused) await Task.Delay(1000, _token);
-
-                while (Tasks.Count >= maxParallelism)
-                    await Task.Delay(10, _token);
-
-                while (Retries.Count >= 1)
+                for (var i = 0; i < Entries.Count; i++)
                 {
-                    try
+                    while (Paused) await Task.Delay(1000, _token);
+
+                    while (Tasks.Count >= maxParallelism)
+                        await Task.Delay(10, _token);
+
+                    while (Retries.Count >= 1)
                     {
-                        await Task.Run(Retries.Dequeue(), _token);
-                    }
-                    catch (Exception e)
-                    {
-                        LogViewModel.Log(e.Message);
-                    }
-                }
-
-
-                if (_token.IsCancellationRequested) break;
-
-                Entry entry = Entries[i];
-                
-                foreach (var channel in channelIDs)
-                {
-                    if (!entry.IsValid) break;
-
-                    if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
-                        !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
-
-                    switch (mode)
-                    {
-                        case WorkingMode.Ban:
+                        try
                         {
-                            var tsk = BanUser(channel.Value, channel.Key, _userId, entry, TextReason);
-
-                            Tasks.Add(tsk);
-
-                            tsk.ContinueWith((t) => { Tasks.Remove(t); });
-
-                            break;
+                            await Task.Run(Retries.Dequeue(), _token);
                         }
-                        case WorkingMode.Unban:
+                        catch (Exception e)
                         {
-                            var tsk = Task.Run(async () =>
+                            LogViewModel.Log(e.Message);
+                        }
+                    }
+
+
+                    if (_token.IsCancellationRequested) break;
+
+                    Entry entry = Entries[i];
+
+                    foreach (var channel in channelIDs)
+                    {
+                        if (!entry.IsValid) break;
+
+                        if (entry.Result.ContainsKey(channel.Key.ToLower()) &&
+                            !string.IsNullOrEmpty(entry.Result[channel.Key.ToLower()])) continue;
+
+                        switch (mode)
+                        {
+                            case WorkingMode.Ban:
                             {
-                                try
-                                {
-                                    await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId, entry.Id);
-                                }
-                                catch (BadRequestException)
-                                {
-                                    LogViewModel.Log($"User '{entry.Name}' not banned in channel '{channel.Key}'");
-                                }
-                                catch (TooManyRequestsException)
-                                {
-                                    increaseDelay = true;
-                                    LogViewModel.Log("Hitting Rate Limit");
+                                var tsk = BanUser(channel.Value, channel.Key, _userId, entry, textReason);
 
-                                    async void RetryAction()
+                                Tasks.Add(tsk);
+
+                                tsk.ContinueWith((t) => { Tasks.Remove(t); });
+
+                                break;
+                            }
+                            case WorkingMode.Unban:
+                            {
+                                var tsk = Task.Run(async () =>
+                                {
+                                    try
                                     {
-                                        try
-                                        {
-                                            await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId,
-                                                entry.Id);
-                                        }
-                                        catch (BadRequestException)
-                                        {
-                                            // user already banned
-                                            OnUserAlreadyBanned(channel.Key, entry.Name);
-                                        }
+                                        await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value, _userId,
+                                            entry.Id);
                                     }
+                                    catch (BadRequestException)
+                                    {
+                                        LogViewModel.Log($"User '{entry.Name}' not banned in channel '{channel.Key}'");
+                                    }
+                                    catch (TooManyRequestsException)
+                                    {
+                                        increaseDelay = true;
+                                        LogViewModel.Log("Hitting Rate Limit");
 
-                                    Retries.Enqueue(RetryAction);
-                                }
-                            }, _token);
+                                        async void RetryAction()
+                                        {
+                                            try
+                                            {
+                                                await Program.API.Helix.Moderation.UnbanUserAsync(channel.Value,
+                                                    _userId,
+                                                    entry.Id);
+                                            }
+                                            catch (BadRequestException)
+                                            {
+                                                // user already banned
+                                                OnUserAlreadyBanned(channel.Key, entry.Name);
+                                            }
+                                        }
 
-                            break;
+                                        Retries.Enqueue(RetryAction);
+                                    }
+                                }, _token);
+
+                                break;
+                            }
+                            case WorkingMode.Readfile:
+                            {
+                                ExecReadFileEntry(channel.Value, entry);
+                                break;
+                            }
                         }
-                        case WorkingMode.Readfile:
-                        {
-                            ExecReadFileEntry(channel.Value, entry);
-                            break;
-                        }
+
+                        await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
                     }
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(_messageDelay), _token);
+                    if (i % 2 == 0)
+                    {
+                        BanProgress = (i + 1) / (double)Entries.Count * 100;
+                        ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * (_messageDelay) +
+                                                        (Entries.Count - i + 1) * 100);
+                    }
                 }
-
-                if (i % 2 == 0)
+                if (!_token.IsCancellationRequested)
                 {
-                    BanProgress = (i + 1) / (double)Entries.Count * 100;
-                    ETA = TimeSpan.FromMilliseconds((Entries.Count - i + 1) * channels.Count * (_messageDelay) +
-                                                    (Entries.Count - i + 1) * 100);
+                    BanProgress = 100;
                 }
             }
-
-            if (!_token.IsCancellationRequested)
+            catch (Exception e)
             {
-                BanProgress = 100;
-            }
+                if(!_token.IsCancellationRequested)
+                    ToolStatus = "Error!";
 
+                LogViewModel.Log(e.GetType().Name + e.Message);
+            }
+            
             ETA = TimeSpan.Zero;
         }
 
@@ -1090,10 +1101,11 @@ namespace MassBanToolMP.ViewModels
             Task.Delay(TimeSpan.FromSeconds(1)).Wait();
         }
 
-        private async Task BanUser(string channelId, string channelName, string modId, Entry entry, string reason, int? duration = null)
+        private async Task BanUser(string channelId, string channelName, string modId, Entry entry, string reason,
+            int? duration = null)
         {
             bool breakLoop = false;
-            for (ushort tries = 0; !breakLoop && tries < 5 ; tries++)
+            for (ushort tries = 0; !breakLoop && tries < 5; tries++)
             {
                 BanUserResponse? banRespone = null;
                 BanUserRequest request = new BanUserRequest
@@ -1144,9 +1156,8 @@ namespace MassBanToolMP.ViewModels
                     OnUserBanned(channelName, entry.Name);
                 }
             }
-            
         }
-        
+
         private ReadFileOperation parseOperation(string com)
         {
             if (com.StartsWith(".") || com.StartsWith("/"))
@@ -2105,9 +2116,6 @@ namespace MassBanToolMP.ViewModels
                 "MassBanToolProtectedUsers.txt");
 
         private List<string> TokenScopes = new List<string>();
-
-        private bool increaseDelay = false;
-
         #endregion
     }
 }
