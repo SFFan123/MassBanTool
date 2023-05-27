@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Width="800" Height="450"
+        x:Class="MassBanToolMP.Views.Dialogs.TokenInfoDialog"
+        Title="TokenInfo">
+<Grid Margin="10">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="10"/>
+        <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="10"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="10"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Grid.Column="0" Text="Generated for"/>
+    <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding TokenInfo.Login}" />
+
+    <TextBlock Grid.Row="2" Grid.Column="0" Text="Scopes"/>
+    <ListBox Grid.Row="2" Grid.Column="2" Items="{Binding TokenInfo.Scopes}" />
+
+    <TextBlock Grid.Row="4" Grid.Column="0" Text="Expires at"/>
+    <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ExpireDateTime}" />
+
+
+</Grid>
+</Window>

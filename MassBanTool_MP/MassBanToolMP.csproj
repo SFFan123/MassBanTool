@@ -45,5 +45,8 @@
     <Compile Update="Views\Dialogs\EditIENumerableDialog.axaml.cs">
       <DependentUpon>EditIENumerableDialog.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Dialogs\TokenInfoDialog.axaml.cs">
+      <DependentUpon>TokenInfoDialog.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
