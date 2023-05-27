@@ -412,7 +412,7 @@ namespace MassBanToolMP.ViewModels
 
             Program.API.Settings.AccessToken = OAuth;
 
-            GetTokenRateLimit(out var limit, out var span);
+            GetTokenRateLimit(out var limit, out var span, out _);
 
             if(limit != -1 && span != TimeSpan.Zero)
                 Program.CreateApiClient(limit, span);

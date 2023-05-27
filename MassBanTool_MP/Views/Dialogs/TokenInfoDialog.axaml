@@ -19,6 +19,8 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="10"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="10"/>
+        <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Grid.Column="0" Text="Generated for"/>
@@ -35,5 +37,8 @@
         <TextBlock  Text="{Binding Rate, Mode=OneTime, TargetNullValue=-1}" />
         <TextBlock Text="/s"/>
     </StackPanel>
+
+    <TextBlock Grid.Row="8" Grid.Column="0" Text="Info Timestamp"/>
+    <TextBlock Grid.Row="8" Grid.Column="2" Text="{Binding ResultTime, Mode=OneTime}" />
 </Grid>
 </Window>

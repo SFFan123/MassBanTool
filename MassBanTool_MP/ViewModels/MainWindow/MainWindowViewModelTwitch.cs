@@ -24,10 +24,11 @@ namespace MassBanToolMP.ViewModels
 {
     public partial class MainWindowViewModel
     {
-        private void GetTokenRateLimit(out int rateLimit, out TimeSpan resetSpan)
+        private void GetTokenRateLimit(out int rateLimit, out TimeSpan resetSpan, out DateTime resultTime)
         {
             rateLimit = -1;
             resetSpan = TimeSpan.Zero;
+            resultTime = default;
             
             using (var httpClient = new HttpClient())
             {
@@ -52,7 +53,7 @@ namespace MassBanToolMP.ViewModels
                 }
 
                 DateTime resetTime = default;
-                DateTime responseTime = default;
+                resultTime = default;
 
                 if (response.Headers.TryGetValues("Ratelimit-Reset", out var resetValues))
                 {
@@ -65,10 +66,10 @@ namespace MassBanToolMP.ViewModels
 
                 if (response.Headers.TryGetValues("Date", out var dateValues))
                 {
-                    responseTime = DateTime.Parse(dateValues.First());
+                    resultTime = DateTime.Parse(dateValues.First());
                 }
 
-                resetSpan = resetTime - responseTime;
+                resetSpan = resetTime - resultTime;
             }
         }
 
@@ -663,10 +664,10 @@ namespace MassBanToolMP.ViewModels
         {
             IsBusy = true;
             var res = await Program.API.Auth.ValidateAccessTokenAsync(Program.API.Settings.AccessToken);
-            GetTokenRateLimit(out var limit, out var span);
+            GetTokenRateLimit(out var limit, out var span, out var resultTime);
             double rate = limit / span.TotalSeconds; 
             IsBusy = false;
-            await new TokenInfoDialog(res, rate).ShowDialog(arg);
+            await new TokenInfoDialog(res, resultTime, rate).ShowDialog(arg);
         }
     }
 }
