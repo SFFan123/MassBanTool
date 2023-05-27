@@ -7,7 +7,7 @@ using MassBanToolMP.Models;
 using MassBanToolMP.ViewModels;
 using TwitchLib.Api;
 
-[assembly: AssemblyVersion("1.1.5.6")]
+[assembly: AssemblyVersion("1.1.5.7")]
 namespace MassBanToolMP
 {
     internal class Program
