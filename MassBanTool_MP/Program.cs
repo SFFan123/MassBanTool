@@ -6,8 +6,10 @@ using Avalonia.ReactiveUI;
 using MassBanToolMP.Models;
 using MassBanToolMP.ViewModels;
 using TwitchLib.Api;
+using TwitchLib.Api.Core.RateLimiter;
 
-[assembly: AssemblyVersion("1.1.5.7")]
+[assembly: AssemblyVersion("1.1.5.8")]
+
 namespace MassBanToolMP
 {
     internal class Program
@@ -52,9 +54,9 @@ namespace MassBanToolMP
                 {
                 }
             }
-
-            API = new TwitchAPI();
-            API.Settings.ClientId = "hbhswgdfb452bz3o63f8strz7u0jgp";
+            // Create Default API.
+            CreateApiClient();
+            
 
             if (OperatingSystem.IsLinux())
             {
@@ -84,6 +86,24 @@ namespace MassBanToolMP
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI();
+        }
+
+
+        public static void CreateApiClient(int? rateLimit = null, TimeSpan? time = null)
+        {
+            if (rateLimit == null)
+            {
+                rateLimit = 800;
+            }
+
+            if (time == null)
+            {
+                time = TimeSpan.FromSeconds(1);
+            }
+            API = new TwitchAPI(
+                rateLimiter: TimeLimiter.GetFromMaxCountByInterval(rateLimit.Value, time.Value)
+            );
+            API.Settings.ClientId = "hbhswgdfb452bz3o63f8strz7u0jgp";
         }
     }
 }

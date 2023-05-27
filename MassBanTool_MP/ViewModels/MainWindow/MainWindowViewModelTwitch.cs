@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,55 @@ namespace MassBanToolMP.ViewModels
 {
     public partial class MainWindowViewModel
     {
+        private void GetTokenRateLimit(out int rateLimit, out TimeSpan resetSpan)
+        {
+            rateLimit = -1;
+            resetSpan = TimeSpan.Zero;
+            
+            using (var httpClient = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/streams?first=1");
+                request.Headers.Add("Authorization", Program.API.Settings.AccessToken);
+                request.Headers.Add("Client-Id", Program.API.Settings.ClientId);
+                var response = httpClient.Send(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // TODO
+                    return;
+                }
+                
+                if( response.Headers.TryGetValues("Ratelimit-Limit", out var limitValues) )
+                {
+                    string val = limitValues?.FirstOrDefault() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(val))
+                    {
+                        rateLimit = int.Parse(val);
+                    }
+                }
+
+                DateTime resetTime = default;
+                DateTime responseTime = default;
+
+                if (response.Headers.TryGetValues("Ratelimit-Reset", out var resetValues))
+                {
+                    string val = resetValues?.FirstOrDefault() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(val))
+                    {
+                        resetTime = DateTime.UnixEpoch.AddSeconds(int.Parse(val)).ToLocalTime();
+                    }
+                }
+
+                if (response.Headers.TryGetValues("Date", out var dateValues))
+                {
+                    responseTime = DateTime.Parse(dateValues.First());
+                }
+
+                resetSpan = resetTime - responseTime;
+            }
+        }
+
+
         private async Task BanUser(string channelId, string channelName, Entry entry, string reason, int? duration = null)
         {
             bool breakLoop = false;
@@ -227,7 +277,6 @@ namespace MassBanToolMP.ViewModels
             ToolStatus = string.Empty;
             IsBusy = busystate;
         }
-
 
         private async void ExecReadFileEntry(string channelID, string channelName, Entry entry)
         {
@@ -488,9 +537,7 @@ namespace MassBanToolMP.ViewModels
             OAuth = Program.API.Settings.AccessToken;
             StoreCredentials();
         }
-
-
-
+        
         private Task CreateWorkerTask(WorkingMode mode)
         {
             _tokenSource = new CancellationTokenSource();
@@ -604,8 +651,7 @@ namespace MassBanToolMP.ViewModels
                 ETA = TimeSpan.Zero;
             }, _token, TaskCreationOptions.LongRunning|TaskCreationOptions.AttachedToParent, TaskScheduler.Default);
         }
-
-
+        
         private void IncreaseDelay()
         {
             _messageDelay += 3;
@@ -617,8 +663,10 @@ namespace MassBanToolMP.ViewModels
         {
             IsBusy = true;
             var res = await Program.API.Auth.ValidateAccessTokenAsync(Program.API.Settings.AccessToken);
+            GetTokenRateLimit(out var limit, out var span);
+            double rate = limit / span.TotalSeconds; 
             IsBusy = false;
-            await new TokenInfoDialog(res).ShowDialog(arg);
+            await new TokenInfoDialog(res, rate).ShowDialog(arg);
         }
     }
 }

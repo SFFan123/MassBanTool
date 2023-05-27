@@ -6,13 +6,16 @@ namespace MassBanToolMP.Views.Dialogs
 {
     public partial class TokenInfoDialog : Window
     {
-        public TokenInfoDialog():this(null)
+        public TokenInfoDialog():this(null, null)
         { }
 
-        public TokenInfoDialog(ValidateAccessTokenResponse? tokenInfo = null)
+        public TokenInfoDialog(ValidateAccessTokenResponse? tokenInfo = null, double? rate = null)
         {
             if(tokenInfo != null)
                 this.TokenInfo = tokenInfo;
+
+            if(rate != null)
+                this.Rate = rate;
 
             InitializeComponent();
             DataContext = this;
@@ -21,6 +24,7 @@ namespace MassBanToolMP.Views.Dialogs
         }
 
         public ValidateAccessTokenResponse TokenInfo { get; set; }
+        public double? Rate { get; set; }
 
         public string ExpireDateTime => DateTime.Now.AddSeconds(TokenInfo.ExpiresIn).ToString("F");
     }

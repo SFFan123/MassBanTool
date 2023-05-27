@@ -405,26 +405,27 @@ namespace MassBanToolMP.ViewModels
         {
             if (!CanConnect) return;
 
-            if (IsConnected)
-            {
-                SwitchChannel();
-                return;
-            }
-
-            if (!CheckMutex())
-            {
-                await MessageBox.Show("Only one instance with the same username allowed to run.", "Mutex error");
-                return;
-            }
-
-            IsBusy = true;
-
             if (!OAuth.StartsWith("Bearer"))
             {
                 OAuth = "Bearer " + OAuth;
             }
 
             Program.API.Settings.AccessToken = OAuth;
+
+            GetTokenRateLimit(out var limit, out var span);
+
+            if(limit != -1 && span != TimeSpan.Zero)
+                Program.CreateApiClient(limit, span);
+
+            Program.API.Settings.AccessToken = OAuth;
+
+            if (IsConnected)
+            {
+                SwitchChannel();
+                return;
+            }
+
+            IsBusy = true;
 
             try
             {

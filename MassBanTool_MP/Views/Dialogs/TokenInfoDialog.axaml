@@ -17,17 +17,23 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="10"/>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="10"/>
+        <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Grid.Column="0" Text="Generated for"/>
-    <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding TokenInfo.Login}" />
+    <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding TokenInfo.Login, Mode=OneTime}" />
 
     <TextBlock Grid.Row="2" Grid.Column="0" Text="Scopes"/>
-    <ListBox Grid.Row="2" Grid.Column="2" Items="{Binding TokenInfo.Scopes}" />
+    <ListBox Grid.Row="2" Grid.Column="2" Items="{Binding TokenInfo.Scopes, Mode=OneTime}" />
 
     <TextBlock Grid.Row="4" Grid.Column="0" Text="Expires at"/>
-    <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ExpireDateTime}" />
+    <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ExpireDateTime, Mode=OneTime}" />
 
-
+    <TextBlock Grid.Row="6" Grid.Column="0" Text="Token Rate limit"/>
+    <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
+        <TextBlock  Text="{Binding Rate, Mode=OneTime, TargetNullValue=-1}" />
+        <TextBlock Text="/s"/>
+    </StackPanel>
 </Grid>
 </Window>
