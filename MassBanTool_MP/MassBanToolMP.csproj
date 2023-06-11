@@ -9,6 +9,7 @@
     <ApplicationIcon>Assets\moderator.ico</ApplicationIcon>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Deterministic>false</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
