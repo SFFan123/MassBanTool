@@ -27,7 +27,7 @@
     <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding TokenInfo.Login, Mode=OneTime}" />
 
     <TextBlock Grid.Row="2" Grid.Column="0" Text="Scopes"/>
-    <ListBox Grid.Row="2" Grid.Column="2" Items="{Binding TokenInfo.Scopes, Mode=OneTime}" />
+    <ListBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding TokenInfo.Scopes, Mode=OneTime}" />
 
     <TextBlock Grid.Row="4" Grid.Column="0" Text="Expires at"/>
     <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ExpireDateTime, Mode=OneTime}" />

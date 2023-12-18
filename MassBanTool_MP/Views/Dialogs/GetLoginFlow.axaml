@@ -25,7 +25,7 @@
                 <TextBlock>Step 1 Permissions:</TextBlock>
                 <CheckBox Name="CheckBox_All_Scopes">All</CheckBox>
                 <TextBlock Margin="5" Text="Ctrl+Click Add/Remove single entry, Shift+Click select interval"/>
-                <DataGrid SelectionMode="Extended" Name="ListBox_Scopes" Items="{Binding AuthScopesList}">
+                <DataGrid SelectionMode="Extended" Name="ListBox_Scopes" ItemsSource="{Binding AuthScopesList}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Binding="{Binding Key}" Header="Scope Name"/>
                         <DataGridTextColumn Binding="{Binding Value}" Header="Info"/>

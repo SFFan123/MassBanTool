@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reactive;
 using Avalonia.Controls;
 using DynamicData;
-using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia.Enums;
 using ReactiveUI;
 
 namespace MassBanToolMP.ViewModels

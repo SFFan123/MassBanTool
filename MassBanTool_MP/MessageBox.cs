@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using MessageBox.Avalonia.DTO;
-using MessageBox.Avalonia.Enums;
-using avMBox = MessageBox.Avalonia;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
 
 namespace MassBanToolMP
 {
@@ -22,26 +22,27 @@ namespace MassBanToolMP
         }
 
         private static async Task<ButtonResult> InternalShow(string message, string title,
-            ButtonEnum Buttons = ButtonEnum.Ok)
+        ButtonEnum Buttons = ButtonEnum.Ok)
         {
+            
             Window? owner = (Avalonia.Application.Current as App)?.MainWindow;
 
             if (owner != null && owner.IsVisible)
             {
-                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(
+                var messageBoxCustomWindow = MessageBoxManager.GetMessageBoxStandard( 
                     new MessageBoxStandardParams()
                     {
                         ContentMessage = message,
                         ContentTitle = title,
-                        ButtonDefinitions = Buttons,
+                        ButtonDefinitions =  Buttons,
                         WindowStartupLocation = WindowStartupLocation.CenterOwner,
                         CanResize = true
                     });
-                return await messageBoxCustomWindow.ShowDialog(owner);
+                return await messageBoxCustomWindow.ShowWindowDialogAsync(owner);
             }
             else
             {
-                var messageBoxCustomWindow = avMBox.MessageBoxManager.GetMessageBoxStandardWindow(
+                var messageBoxCustomWindow = MessageBoxManager.GetMessageBoxStandard(
                     new MessageBoxStandardParams()
                     {
                         ContentMessage = message,
@@ -50,7 +51,7 @@ namespace MassBanToolMP
                         CanResize = true,
                         WindowStartupLocation = WindowStartupLocation.CenterScreen
                     });
-                return await messageBoxCustomWindow.Show();
+                return await messageBoxCustomWindow.ShowAsync();
             }
         }
     }

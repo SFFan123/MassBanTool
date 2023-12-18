@@ -14,7 +14,7 @@ using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
-using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia.Enums;
 using TwitchLib.Api.Core.Exceptions;
 using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
 using TwitchLib.Api.Helix.Models.Moderation.BanUser;

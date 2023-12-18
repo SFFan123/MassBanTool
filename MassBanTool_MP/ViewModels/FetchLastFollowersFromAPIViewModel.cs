@@ -2,7 +2,7 @@
 using System.Reactive;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
-using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia.Enums;
 using ReactiveUI;
 
 namespace MassBanToolMP.ViewModels

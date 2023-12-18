@@ -1,13 +1,20 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:MassBanToolMP"
-             x:Class="MassBanToolMP.App">
+             x:Class="MassBanToolMP.App"
+             RequestedThemeVariant="Dark">
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
 
     <Application.Styles>
-        <FluentTheme Mode="Dark"/>
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <!-- Palette for Light theme variant -->
+                <ColorPaletteResources x:Key="Light" Accent="Green" RegionColor="White" ErrorText="Red" />
+                <!-- Palette for Dark theme variant -->
+                <ColorPaletteResources x:Key="Dark" Accent="DarkGreen" RegionColor="Black" ErrorText="Yellow" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
     </Application.Styles>
 </Application>

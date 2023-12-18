@@ -5,7 +5,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia.Enums;
 
 namespace MassBanToolMP.Views.Dialogs
 {

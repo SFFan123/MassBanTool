@@ -17,7 +17,7 @@ namespace MassBanToolMP.Views.Dialogs
             this.DataContext = this;
             Result = DialogResult.Aborted;
 
-            foreach (object o in ListBox_Scopes.Items)
+            foreach (object o in ListBox_Scopes.Columns)
             {
                 if (o is KeyValuePair<string, string> keyValuePair)
                 {

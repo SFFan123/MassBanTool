@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -21,12 +20,12 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using DynamicData;
-using IX.StandardExtensions.Extensions;
+using IX.Library.Collections;
 using MassBanToolMP.Helper;
 using MassBanToolMP.Models;
 using MassBanToolMP.Views;
 using MassBanToolMP.Views.Dialogs;
-using MessageBox.Avalonia.Enums;
+using MsBox.Avalonia.Enums;
 using ReactiveUI;
 #endregion
 
@@ -67,7 +66,7 @@ namespace MassBanToolMP.ViewModels
                 this.WhenAnyValue(x => x.Username, x => x.OAuth,
                     (userName, password) => !string.IsNullOrEmpty(password)));
             OnClickPropertiesAddEntry = ReactiveCommand.Create<Window>(HandleAddEntry);
-            OnClickPropertiesPasteClipboard = ReactiveCommand.Create(HandlePasteEntries);
+            OnClickPropertiesPasteClipboard = ReactiveCommand.Create<Window>(HandlePasteEntries);
             OnDataGridRemoveEntry = ReactiveCommand.Create<object>(RemoveEntry);
             OnClickPauseActionCommand = ReactiveCommand.Create(PauseAction);
             OnClickCancelActionCommand = ReactiveCommand.Create(CancelAction);
@@ -587,9 +586,16 @@ namespace MassBanToolMP.ViewModels
             }
         }
 
-        private async void HandlePasteEntries()
+        private async void HandlePasteEntries(Window window)
         {
-            var text = await Application.Current.Clipboard.GetTextAsync();
+            var clipboard = window.Clipboard;
+            if(clipboard == null)
+                return;
+
+            var text = await clipboard.GetTextAsync();
+
+            if(string.IsNullOrEmpty(text))
+                return;
 
             var lines = text.Split(Environment.NewLine);
 
@@ -1218,7 +1224,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<Unit, Unit> SaveDataCommand { get; }
         public ReactiveCommand<Unit, Unit> StoreCredentialsCommand { get; }
         public ReactiveCommand<Window, Unit> OnClickPropertiesAddEntry { get; }
-        public ReactiveCommand<Unit, Unit> OnClickPropertiesPasteClipboard { get; }
+        public ReactiveCommand<Window, Unit> OnClickPropertiesPasteClipboard { get; }
         public ReactiveCommand<Unit, Unit> RunBanCommand { get; }
         public ReactiveCommand<Unit, Unit> RunUnbanCommand { get; }
         public ReactiveCommand<Unit, Unit> RunReadfileCommand { get; }
@@ -1435,7 +1441,7 @@ namespace MassBanToolMP.ViewModels
             _lastVisitedChannelsMenu = new ContextMenu();
 
             MenuItem item;
-            var items = new List<MenuItem>();
+            _lastVisitedChannelsMenu.Items.Clear();
             foreach (var s in _lastVisitedChannels)
             {
                 var header = s.Replace("_", "__");
@@ -1448,10 +1454,9 @@ namespace MassBanToolMP.ViewModels
                 {
                     if (sender is MenuItem menuitem) ChannelS = (string)menuitem.DataContext;
                 };
-                items.Add(item);
+                _lastVisitedChannelsMenu.Items.Add(item);
             }
 
-            _lastVisitedChannelsMenu.Items = items;
             RaisePropertyChanged(nameof(LastVisitedChannelsMenu));
         }
 

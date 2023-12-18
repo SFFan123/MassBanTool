@@ -15,7 +15,7 @@
                   CanUserResizeColumns="True"
                   IsReadOnly="False"
                   Name="DataGrid"
-                  Items="{Binding Objects}">
+                  ItemsSource="{Binding Objects}">
             <DataGrid.Columns>
                 <DataGridTextColumn 
                     Header="{Binding Header}" 
