@@ -31,6 +31,16 @@ namespace MassBanToolMP.Views.Dialogs
 
         public DateTime ResultTime { get; set; }
 
-        public string ExpireDateTime => ResultTime.AddSeconds(TokenInfo.ExpiresIn).ToString("F");
+        public string ExpireDateTime
+        {
+            get
+            {
+                if (TokenInfo == null)
+                {
+                    return "Expired";
+                }
+                return ResultTime.AddSeconds(TokenInfo.ExpiresIn).ToString("F");
+            }
+        }
     }
 }

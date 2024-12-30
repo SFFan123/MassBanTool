@@ -15,6 +15,7 @@
                 <!-- Palette for Dark theme variant -->
                 <ColorPaletteResources x:Key="Dark" Accent="DarkGreen" RegionColor="Black" ErrorText="Yellow" />
             </FluentTheme.Palettes>
+            <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         </FluentTheme>
     </Application.Styles>
 </Application>

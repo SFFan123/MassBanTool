@@ -664,6 +664,13 @@ namespace MassBanToolMP.ViewModels
         {
             IsBusy = true;
             var res = await Program.API.Auth.ValidateAccessTokenAsync(Program.API.Settings.AccessToken);
+
+            if (res == null)
+            {
+                await new TokenInfoDialog(res, default, 0).ShowDialog(arg);
+                return;
+            }
+
             GetTokenRateLimit(out var limit, out var span, out var resultTime);
             double rate = limit / span.TotalSeconds; 
             IsBusy = false;

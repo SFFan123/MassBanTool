@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Reactive;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -826,11 +827,11 @@ namespace MassBanToolMP.ViewModels
             if (warning)
                 await MessageBox.Show("Could not parse one or more lines of the file, check the log", "Warning");
         }
-
+        
 
         private async Task<bool> FilterEntriesForSpecialUsers()
         {
-            // read special user file
+           // read special user file
 
             if (File.Exists(SpecialUserFilePath))
             {
@@ -860,6 +861,8 @@ namespace MassBanToolMP.ViewModels
                 if (SpecialUsers.Any(x =>
                         string.Equals(x, entry.Name, StringComparison.CurrentCultureIgnoreCase)))
                     toRemove.Add(entry);
+            
+
             var res = toRemove.Any();
             if (res && ProtectSpecialUsers && ProtectedUserMode_Cancel)
             {
@@ -1247,6 +1250,7 @@ namespace MassBanToolMP.ViewModels
         public ReactiveCommand<MainWindow, Unit> TokenInfoCommand { get; }
         public ReactiveCommand<Unit, Task> QueryUsersInListCommand { get; }
         public ReactiveCommand<Unit, Unit> EditSpecialUsersCommand { get; }
+        public ReactiveCommand<Unit, Unit> FetchModsVipsCommand { get; }
 
         #endregion
 
@@ -1556,6 +1560,7 @@ namespace MassBanToolMP.ViewModels
         private string _username;
 
         private Task _worker;
+        // Key is username, value is ID
         private Dictionary<string, string> channelIDs = new Dictionary<string, string>();
         private List<string> channels = new();
         private string filterRegex = string.Empty;

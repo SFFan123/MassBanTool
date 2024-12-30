@@ -28,12 +28,15 @@
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
     <PackageReference Include="CredentialManagement" Version="1.0.2" />
-    <PackageReference Include="IX.Observable" Version="1.0.0" />
+    <PackageReference Include="IX.Observable" Version="1.0.1" />
     <PackageReference Include="MessageBox.Avalonia" Version="3.1.5.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
     <PackageReference Include="TwitchLib.Api" Version="3.9.0" />
     <PackageReference Include="TwitchLib.PubSub" Version="3.2.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WebHost\WebAPI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Views\Dialogs\EditIENumerableDialog.axaml.cs">

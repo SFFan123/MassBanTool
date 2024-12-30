@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         x:Class="MassBanToolMP.Views.Dialogs.GetLoginFlow"
-        Height="650"
+        Height="750"
         Width="1000"
         Title="Get Login">
     <Grid Margin="5">
