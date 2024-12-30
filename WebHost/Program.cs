@@ -18,7 +18,7 @@ namespace WebAPI
         {
             _instance = instance;
             var builder = WebApplication.CreateBuilder();
-            builder.WebHost.UseUrls($"http://*:{port}");
+            builder.WebHost.UseUrls($"http://localhost:{port}");
 
             // Add services to the container.
             builder.Services.AddControllers();
