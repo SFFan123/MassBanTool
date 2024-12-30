@@ -8,7 +8,7 @@ using MassBanToolMP.ViewModels;
 using TwitchLib.Api;
 using TwitchLib.Api.Core.RateLimiter;
 
-[assembly: AssemblyVersion("1.1.5.8")]
+[assembly: AssemblyVersion("1.1.6.1")]
 
 namespace MassBanToolMP
 {
