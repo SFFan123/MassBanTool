@@ -30,11 +30,11 @@ jobs:
         with:
           name: MassBanTool_Win
           path: |
-              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\win-x64\publish\*
+              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net8.0\win-x64\publish\*
               
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v3
         with:
           name: MassBanTool_Linux
           path: |
-              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net6.0\linux-x64\publish\*
+              D:\a\MassBanTool\MassBanTool\MassBanTool_MP\bin\Release\net8.0\linux-x64\publish\*
